@@ -1,3 +1,3 @@
 Initial README
 
-MAPAS
+MAPAS Application
