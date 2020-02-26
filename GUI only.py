@@ -39,6 +39,8 @@ raw_pairttest_var2_tk = tk.StringVar()
 summ_corr_varOne_tk = tk.StringVar()
 summ_corr_varTwo_tk = tk.StringVar()
 summ_corr_coeff_tk = tk.StringVar()
+summ_corr_pvalues_tk = tk.StringVar()
+
 summ_indttest_var_tk = tk.StringVar()
 summ_indttest_meanOne_tk = tk.StringVar()
 summ_indttest_sdOne_tk = tk.StringVar()
@@ -70,15 +72,17 @@ output_dir_tk = tk.StringVar()
 #resets variables to default but does not include input variables or alpha as it is used in functions below
 def set_variables_default():
 	raw_test_tk.set("Select a test...")
+
 	raw_corr_type_tk.set("Select a correlation...")
 	raw_mr_outcomevar_tk.set("Select outcome variable...")
 	raw_indttest_groupvar_tk.set("Select grouping variable...")
 	raw_pairttest_var1_tk.set("Select first variable...")
 	raw_pairttest_var2_tk.set("Select second variable...")
 
-	summ_corr_varOne_tk.set("")
-	summ_corr_varTwo_tk.set("")
-	summ_corr_coeff_tk.set("")
+	summ_corr_varOne_tk.set("Select var 1 column")
+	summ_corr_varTwo_tk.set("Select var 2 column")
+	summ_corr_coeff_tk.set("Select correlation coeff column")
+	summ_corr_pvalues_tk.set("Select p-values column")
 
 	summ_indttest_var_tk.set("")
 	summ_indttest_meanOne_tk.set("")
@@ -89,7 +93,8 @@ def set_variables_default():
 	summ_indttest_nTwo_tk.set("")
 	summ_indttest_equal_var_tk.set("")
 
-	spss_test_tk.set(0)
+	spss_test_tk.set("Select a test...")
+
 	spss_indttest_nOne_tk.set("")
 	spss_indttest_nTwo_tk.set("")
 	spss_indttest_groupOneLabel_tk.set("")
@@ -124,6 +129,7 @@ raw_corr_Frame = tk.LabelFrame(master, text="Correlation type", padx=5, pady=5, 
 
 raw_mr_outcomevar_Frame = tk.LabelFrame(master, text="Outcome variable", padx=5, pady=5, borderwidth=3)
 raw_mr_predictors_Frame = tk.LabelFrame(master, text="Predictors", padx=5, pady=5, borderwidth=3)
+
 raw_indttest_groupvar_Frame = tk.LabelFrame(master, text="Grouping variable", padx=5, pady=5, borderwidth=3)
 raw_indttest_dv_Frame = tk.LabelFrame(master, text="Dependent variables", padx=5, pady=5, borderwidth=3)
 
@@ -133,9 +139,33 @@ raw_pairttest_pairs_Frame.grid(row=0, column=0, pady=(0, 10))
 raw_pairttest_btn_list_Frame = tk.Frame(raw_pairttest_master_Frame)
 raw_pairttest_btn_list_Frame.grid(row=1, column=0)
 
-summ_corr_varNames_Frame = tk.Frame(master)
+summ_corr_master_Frame = tk.LabelFrame(master, text="Map columns", padx=5, pady=5, borderwidth=3)
+summ_corr_varOne_Frame = tk.LabelFrame(summ_corr_master_Frame, text="Variable 1 column", padx=5, pady=5, borderwidth=3)
+summ_corr_varOne_Frame.grid(row=0, column=0)
+summ_corr_varTwo_Frame = tk.LabelFrame(summ_corr_master_Frame, text="Variable 2 column", padx=5, pady=5, borderwidth=3)
+summ_corr_varTwo_Frame.grid(row=1, column=0, pady=5, padx=5)
+summ_corr_coeff_Frame = tk.LabelFrame(summ_corr_master_Frame, text="Correlation coefficient column", padx=5, pady=5, borderwidth=3)
+summ_corr_coeff_Frame.grid(row=2, column=0)
+summ_corr_pvalues_Frame = tk.LabelFrame(summ_corr_master_Frame, text="P-values column", padx=5, pady=5, borderwidth=3)
+summ_corr_pvalues_Frame.grid(row=3, column=0, pady=5)
 
-summ_indttest_cols_Frame = tk.Frame(master)
+summ_indttest_master_Frame = tk.LabelFrame(master, text="Map columns", padx=5, pady=5, borderwidth=3)
+summ_indttest_var_Frame = tk.LabelFrame(summ_indttest_master_Frame, text="Variables column", padx=5, pady=5, borderwidth=3)
+summ_indttest_var_Frame.grid(row=0, column=0)
+summ_indttest_equal_var_Frame = tk.LabelFrame(summ_indttest_master_Frame, text="Equal variances column", padx=5, pady=5, borderwidth=3)
+summ_indttest_equal_var_Frame.grid(row=0, column=1)
+summ_indttest_meanOne_Frame = tk.LabelFrame(summ_indttest_master_Frame, text="Mean of Group 1 column", padx=5, pady=5, borderwidth=3)
+summ_indttest_meanOne_Frame.grid(row=1, column=0)
+summ_indttest_sdOne_Frame = tk.LabelFrame(summ_indttest_master_Frame, text="SD of Group 1 column", padx=5, pady=5, borderwidth=3)
+summ_indttest_sdOne_Frame.grid(row=2, column=0)
+summ_indttest_nOne_Frame = tk.LabelFrame(summ_indttest_master_Frame, text="N of Group 1 column", padx=5, pady=5, borderwidth=3)
+summ_indttest_nOne_Frame.grid(row=3, column=0)
+summ_indttest_meanTwo_Frame = tk.LabelFrame(summ_indttest_master_Frame, text="Mean of Group 2 column", padx=5, pady=5, borderwidth=3)
+summ_indttest_meanTwo_Frame.grid(row=1, column=1)
+summ_indttest_sdTwo_Frame = tk.LabelFrame(summ_indttest_master_Frame, text="SD of Group 2 column", padx=5, pady=5, borderwidth=3)
+summ_indttest_sdTwo_Frame.grid(row=2, column=1)
+summ_indttest_nTwo_Frame = tk.LabelFrame(summ_indttest_master_Frame, text="N of Group 2 column", padx=5, pady=5, borderwidth=3)
+summ_indttest_nTwo_Frame.grid(row=3, column=1)
 
 spss_test_Frame = tk.LabelFrame(master, text="Statistical test", padx=5, pady=5, borderwidth=3)
 spss_indttest_Frame = tk.Frame(master)
@@ -169,7 +199,7 @@ def add_variables_to_listbox(listbox):
 def remove_variables_from_listbox(listbox):
 	current_selection = list(listbox.curselection())
 	for index in current_selection[::-1]: #have to start backwards as each deletion changes item indices
- 		listbox.delete(index)
+		listbox.delete(index)
 
 #-----------------2.2. Layout control
 def remove_frames(frames_list):
@@ -179,7 +209,7 @@ def remove_frames(frames_list):
 def input_type_frames_layout():
 	#the only frames it does not include are master or input_type
 	frames_list = [raw_test_Frame, raw_corr_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_dv_Frame,
-					raw_pairttest_master_Frame, summ_corr_varNames_Frame, summ_indttest_cols_Frame, spss_test_Frame, spss_indttest_Frame,
+					raw_pairttest_master_Frame, summ_corr_master_Frame, summ_indttest_master_Frame, spss_test_Frame, spss_indttest_Frame,
 					spss_pairttest_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame, raw_ttest_output_descriptives_Frame, 
 					non_numeric_input_raise_errors_Frame]
 
@@ -189,11 +219,14 @@ def input_type_frames_layout():
 	if input_type_tk.get() == "raw":
 		raw_test_Frame.grid(row=3, column=0, sticky="NW", padx=15, pady=0)
 	elif input_type_tk.get() == "summ_corr":
-		pass
+		correction_type_Frame.grid(row=3, column=0, sticky="NW", padx=15, pady=0)
+		summ_corr_master_Frame.grid(row=3, column=1, sticky="NW", padx=0, pady=(0, 5))
 	elif input_type_tk.get() == "summ_indttest":
-		pass
+		correction_type_Frame.grid(row=3, column=0, sticky="NW", padx=15, pady=0)
+		effect_size_Frame.grid(row=4, column=0, sticky="NW", padx=15, pady=5)
+		summ_indttest_master_Frame.grid(row=3, column=1, rowspan=45, sticky="NW", padx=0, pady=(0, 5))
 	elif input_type_tk.get() == "spss":
-		pass
+		spss_test_Frame.grid(row=3, column=0, sticky="NW", padx=15, pady=5)
 	elif input_type_tk.get() == "pvalues":
 		correction_type_Frame.grid(row=3, column=0, sticky="NW", padx=15, pady=0)
 
@@ -238,11 +271,31 @@ def raw_test_frames_layout(event):
 		raw_ttest_output_descriptives_Frame.grid(row=7, column=0, sticky="NW", padx=15, pady=(0,5))
 		raw_pairttest_master_Frame.grid(row=3, column=1, rowspan=6, sticky="NW", padx=0, pady=0)
 
-def spss_test_tk_clear_vars():
-	pass
+def spss_test_clear_vars():
+	spss_indttest_nOne_tk.set("")
+	spss_indttest_nTwo_tk.set("")
+	spss_indttest_groupOneLabel_tk.set("")
+	spss_indttest_groupTwoLabel_tk.set("")
+	spss_pairttest_nOne_tk.set("")
+	spss_pairttest_nTwo_tk.set("")
 
-def spss_test_tk_frames_layout():
-	pass
+	correction_type_tk.set("Select correction...")
+	effect_size_choice_tk.set("Select effect size...")
+
+def spss_test_frames_layout(event):
+	frames_list = [spss_indttest_Frame, spss_pairttest_Frame, effect_size_Frame, correction_type_Frame]
+
+	spss_test_clear_vars()
+	remove_frames(frames_list)
+
+	if global_vars.master_dict[spss_test_tk.get()] == "corr":
+		correction_type_Frame.grid(row=4, column=0, sticky="NW", padx=15, pady=0)
+	elif global_vars.master_dict[spss_test_tk.get()] == "mr":
+		pass
+	elif global_vars.master_dict[spss_test_tk.get()] == "indttest":
+		pass
+	elif global_vars.master_dict[spss_test_tk.get()] == "pairttest":
+		pass 
 
 #-----------------2.3. GUI Content
 #Instructions
@@ -378,13 +431,59 @@ raw_pairttest_remove_btn = tk.Button(raw_pairttest_btn_list_Frame, text="Remove"
 raw_pairttest_remove_btn.grid(row=0, column=1, sticky="EWNS")
 
 #Summary statistics - Correlations
+summ_corr_varOne_drop = ttk.Combobox(summ_corr_varOne_Frame, state="readonly", width=30, textvariable=summ_corr_varOne_tk)
+summ_corr_varOne_drop.configure(postcommand=lambda dropdown=summ_corr_varOne_drop: get_values_for_dropdown(dropdown))
+summ_corr_varOne_drop.grid(row=0, column=0)
+
+summ_corr_varTwo_drop = ttk.Combobox(summ_corr_varTwo_Frame, state="readonly", width=30, textvariable=summ_corr_varTwo_tk)
+summ_corr_varTwo_drop.configure(postcommand=lambda dropdown=summ_corr_varTwo_drop: get_values_for_dropdown(dropdown))
+summ_corr_varTwo_drop.grid(row=0, column=0)
+
+summ_corr_coeff_drop = ttk.Combobox(summ_corr_coeff_Frame, state="readonly", width=30, textvariable=summ_corr_coeff_tk)
+summ_corr_coeff_drop.configure(postcommand=lambda dropdown=summ_corr_coeff_drop: get_values_for_dropdown(dropdown))
+summ_corr_coeff_drop.grid(row=0, column=0)
+
+summ_corr_pvalues_drop = ttk.Combobox(summ_corr_pvalues_Frame, state="readonly", width=30, textvariable=summ_corr_pvalues_tk)
+summ_corr_pvalues_drop.configure(postcommand=lambda dropdown=summ_corr_pvalues_drop: get_values_for_dropdown(dropdown))
+summ_corr_pvalues_drop.grid(row=0, column=0)
 
 #Summary statistics - Independent samples t-test
+summ_indttest_var_drop = ttk.Combobox(summ_indttest_var_Frame, state="readonly", width=30, textvariable=summ_indttest_var_tk)
+summ_indttest_var_drop.configure(postcommand=lambda dropdown=summ_indttest_var_drop: get_values_for_dropdown(dropdown))
+summ_indttest_var_drop.grid(row=0, column=0)
+
+summ_indttest_equal_var_drop = ttk.Combobox(summ_indttest_equal_var_Frame, state="readonly", width=30, textvariable=summ_indttest_equal_var_tk)
+summ_indttest_equal_var_drop.configure(postcommand=lambda dropdown=summ_indttest_equal_var_drop: get_values_for_dropdown(dropdown))
+summ_indttest_equal_var_drop.grid(row=0, column=0)
+
+summ_indttest_meanOne_drop = ttk.Combobox(summ_indttest_meanOne_Frame, state="readonly", width=30, textvariable=summ_indttest_meanOne_tk)
+summ_indttest_meanOne_drop.configure(postcommand=lambda dropdown=summ_indttest_meanOne_drop: get_values_for_dropdown(dropdown))
+summ_indttest_meanOne_drop.grid(row=0, column=0)
+
+summ_indttest_sdOne_drop = ttk.Combobox(summ_indttest_sdOne_Frame, state="readonly", width=30, textvariable=summ_indttest_sdOne_tk)
+summ_indttest_sdOne_drop.configure(postcommand=lambda dropdown=summ_indttest_sdOne_drop: get_values_for_dropdown(dropdown))
+summ_indttest_sdOne_drop.grid(row=0, column=0)
+
+summ_indttest_nOne_drop = ttk.Combobox(summ_indttest_nOne_Frame, state="readonly", width=30, textvariable=summ_indttest_nOne_tk)
+summ_indttest_nOne_drop.configure(postcommand=lambda dropdown=summ_indttest_nOne_drop: get_values_for_dropdown(dropdown))
+summ_indttest_nOne_drop.grid(row=0, column=0)
+
+summ_indttest_meanTwo_drop = ttk.Combobox(summ_indttest_meanTwo_Frame, state="readonly", width=30, textvariable=summ_indttest_meanTwo_tk)
+summ_indttest_meanTwo_drop.configure(postcommand=lambda dropdown=summ_indttest_meanTwo_drop: get_values_for_dropdown(dropdown))
+summ_indttest_meanTwo_drop.grid(row=0, column=0)
+
+summ_indttest_sdTwo_drop = ttk.Combobox(summ_indttest_sdTwo_Frame, state="readonly", width=30, textvariable=summ_indttest_sdTwo_tk)
+summ_indttest_sdTwo_drop.configure(postcommand=lambda dropdown=summ_indttest_sdTwo_drop: get_values_for_dropdown(dropdown))
+summ_indttest_sdTwo_drop.grid(row=0, column=0)
+
+summ_indttest_nTwo_drop = ttk.Combobox(summ_indttest_nTwo_Frame, state="readonly", width=30, textvariable=summ_indttest_nTwo_tk)
+summ_indttest_nTwo_drop.configure(postcommand=lambda dropdown=summ_indttest_nTwo_drop: get_values_for_dropdown(dropdown))
+summ_indttest_nTwo_drop.grid(row=0, column=0)
 
 #SPSS // test
-spss_test_options = ("Select a test...", "Correlations", "(Multiple) Regression - Standard", "Independent Samples t-test", "Paired samples t-test")
+spss_test_options = ("Correlations", "(Multiple) Regression - Standard", "Independent Samples t-test", "Paired samples t-test")
 spss_test_drop = ttk.Combobox(spss_test_Frame, values=spss_test_options, state="readonly", width=30, textvariable=spss_test_tk)
-spss_test_drop.current(0)
+spss_test_drop.bind("<<ComboboxSelected>>", spss_test_frames_layout)
 spss_test_drop.grid(row=0, column=0)
 
 #SPSS // test // Independent samples t-test
