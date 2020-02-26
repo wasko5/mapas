@@ -1,3 +1,13 @@
+master_dict = {
+	"Correlations" : "corr",
+	"(Multiple) Regression - Standard" : "mr",
+	"Independent Samples t-test" : "indttest",
+	"Paired samples t-test" : "pairttest",
+
+	"Raise errors" : True,
+	"Ignore case-wise" : False
+}
+
 input_type = ""
 raw_test = ""
 raw_corr_type = ""
