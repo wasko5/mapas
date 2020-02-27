@@ -1,3 +1,4 @@
+#df = pd.read_excel("Input files\\raw data\\input_raw_correlations.xlsx")
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -9,6 +10,20 @@ from openpyxl.styles import Border, Side, Alignment, Font
 from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
 from datetime import datetime
+
+
+#------------------------------------------------------------0. Additional helper functions-----------------------------------------
+def get_df_columns(filename):
+	try:
+		if filename.endswith(".xlsx"):
+			df_columns = list(pd.read_excel(filename, sheet_name=0).columns)
+		elif filename.endsiwth(".csv"):
+			df_columns = list(pd.read_csv(filename).columns)
+
+		return df_columns
+	except:
+		raise Exception("There was a problem reading the columns from the file.")
+
 
 #-----------------------------------------------------------1. Data transformations----------------------------------------------------
 #-----------------1.1. Individual functions for generating modified raw data dataframes
