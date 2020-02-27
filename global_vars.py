@@ -8,16 +8,26 @@ master_dict = {
 	"Ignore case-wise" : False
 }
 
+input_filename = ""
+input_fileext = ""
+alpha_threshold = ""
+output_filename = ""
+
 input_type = ""
+
 raw_test = ""
+
 raw_corr_type = ""
 raw_mr_outcomevar = ""
 raw_indttest_groupvar = ""
-raw_pairttest_inputVars_list = ""
+raw_pairttest_var1 = ""
+raw_pairttest_var2 = ""
 
 summ_corr_varOne = ""
 summ_corr_varTwo = ""
 summ_corr_coeff = ""
+summ_corr_pvalues = ""
+
 summ_indttest_var = ""
 summ_indttest_meanOne = ""
 summ_indttest_sdOne = ""
@@ -38,11 +48,5 @@ spss_pairttest_nTwo = ""
 effect_size_choice = ""
 correction_type = ""
 
-raw_ttest_output_descriptives = ""
 non_numeric_input_raise_errors = ""
-output_pvalues_type = ""
-
-input_filename = ""
-input_fileext = ""
-alpha_threshold = ""
-output_dir = ""
+raw_ttest_output_descriptives = ""

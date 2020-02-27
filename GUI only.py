@@ -11,12 +11,22 @@ from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
 from datetime import datetime
 '''
+
+'''
+First, I have to add validation - if filename is too long I want to add "..." to shorten it.
+Then, when submit is clicked, I want a few buttons: 1) open file location (using the webbrowser.open_new(filename) func;
+2) do another analysis (i.e. just close the file dialog);
+3) close the app. probably has to happen with some sort of toplevel stuff - https://stackoverflow.com/questions/49072942/how-can-i-add-a-show-details-button-to-a-tkinter-messagebox;
+4) add loading stuff too as it looks cool
+'''
+
 import Calculations_only as calcs
 import global_vars
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from tkinter.filedialog import askopenfilename, askdirectory
+from tkinter.filedialog import askopenfilename, asksaveasfilename
+from webbrowser import open_new
 
 #-------------------------------------------------------------2. GUI----------------------------------------------------------------
 master = tk.Tk()
@@ -27,9 +37,15 @@ master.resizable(False, False)
 #tk.Grid.columnconfigure(master, 0, weight=1)
 
 #-----------------2.1. Variable and Frame declaration
+input_filename_tk = tk.StringVar()
+input_fileext_tk = tk.StringVar()
+alpha_threshold_tk = tk.StringVar()
+output_filename_tk = tk.StringVar()
+
 input_type_tk = tk.StringVar()
 
 raw_test_tk = tk.StringVar()
+
 raw_corr_type_tk = tk.StringVar()
 raw_mr_outcomevar_tk = tk.StringVar()
 raw_indttest_groupvar_tk = tk.StringVar()
@@ -64,11 +80,6 @@ correction_type_tk = tk.StringVar()
 non_numeric_input_raise_errors_tk = tk.StringVar()
 raw_ttest_output_descriptives_tk = tk.StringVar()
 
-input_filename_tk = tk.StringVar()
-input_fileext_tk = tk.StringVar()
-alpha_threshold_tk = tk.StringVar()
-output_dir_tk = tk.StringVar()
-
 #resets variables to default but does not include input variables or alpha as it is used in functions below
 def set_variables_default():
 	raw_test_tk.set("Select a test...")
@@ -95,12 +106,12 @@ def set_variables_default():
 
 	spss_test_tk.set("Select a test...")
 
-	spss_indttest_nOne_tk.set("")
-	spss_indttest_nTwo_tk.set("")
+	spss_indttest_nOne_tk.set("Enter an integer")
+	spss_indttest_nTwo_tk.set("Enter an integer")
 	spss_indttest_groupOneLabel_tk.set("")
 	spss_indttest_groupTwoLabel_tk.set("")
-	spss_pairttest_nOne_tk.set("")
-	spss_pairttest_nTwo_tk.set("")
+	spss_pairttest_nOne_tk.set("Enter an integer")
+	spss_pairttest_nTwo_tk.set("Enter an integer")
 
 	effect_size_choice_tk.set("Select effect size...")
 	correction_type_tk.set("Select correction...")
@@ -108,17 +119,22 @@ def set_variables_default():
 	raw_ttest_output_descriptives_tk.set("No")
 	non_numeric_input_raise_errors_tk.set("Select error handling...")
 
-	output_dir_tk.set("")
-
 #set all variables to default at start
 input_type_tk.set(0)
 input_filename_tk.set("")
 input_fileext_tk.set("")
+output_filename_tk.set("")
 alpha_threshold_tk.set("0.05")
 set_variables_default()
 
 input_filename_Frame = tk.LabelFrame(master, text="Choose input file", padx=5, pady=5, borderwidth=3)
-input_filename_Frame.grid(row=1, column=0, columnspan=50, sticky="NW", padx=15, pady=5)
+input_filename_Frame.grid(row=1, column=0, columnspan=49, sticky="NW", padx=15, pady=5)
+
+alpha_threshold_Frame = tk.LabelFrame(master, text="Alpha criterion", padx=5, pady=5, borderwidth=3)
+alpha_threshold_Frame.grid(row=1, column=49, sticky="NW", padx=15, pady=5)
+
+output_filename_Frame = tk.LabelFrame(master, text="Save output as...", padx=5, pady=5, borderwidth=3)
+output_filename_Frame.grid(row=50, column=0, columnspan=49, sticky="NW", padx=15, pady=5)
 
 input_type_Frame = tk.LabelFrame(master, text="Select input type:", padx=5, pady=5, borderwidth=3)
 input_type_Frame.grid(row=2, column=0, columnspan=50, sticky="NW", padx=15, pady=5)
@@ -168,8 +184,9 @@ summ_indttest_nTwo_Frame = tk.LabelFrame(summ_indttest_master_Frame, text="N of 
 summ_indttest_nTwo_Frame.grid(row=3, column=1)
 
 spss_test_Frame = tk.LabelFrame(master, text="Statistical test", padx=5, pady=5, borderwidth=3)
-spss_indttest_Frame = tk.Frame(master)
-spss_pairttest_Frame = tk.Frame(master)
+spss_indttest_sampleSize_Frame = tk.LabelFrame(master, text="Sample size", padx=5, pady=5, borderwidth=3)
+spss_indttest_groupLabels_Frame = tk.LabelFrame(master, text="Group labels (optional)", padx=5, pady=5, borderwidth=3)
+spss_pairttest_sampleSize_Frame = tk.LabelFrame(master, text="Sample size", padx=5, pady=5, borderwidth=3)
 
 col_names_Frame = tk.LabelFrame(master, text="Your variables", padx=5, pady=5, borderwidth=3)
 
@@ -209,9 +226,9 @@ def remove_frames(frames_list):
 def input_type_frames_layout():
 	#the only frames it does not include are master or input_type
 	frames_list = [raw_test_Frame, raw_corr_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_dv_Frame,
-					raw_pairttest_master_Frame, summ_corr_master_Frame, summ_indttest_master_Frame, spss_test_Frame, spss_indttest_Frame,
-					spss_pairttest_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame, raw_ttest_output_descriptives_Frame, 
-					non_numeric_input_raise_errors_Frame]
+					raw_pairttest_master_Frame, summ_corr_master_Frame, summ_indttest_master_Frame, spss_test_Frame, spss_indttest_sampleSize_Frame,
+					spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame,
+					raw_ttest_output_descriptives_Frame, non_numeric_input_raise_errors_Frame]
 
 	set_variables_default()
 	remove_frames(frames_list)
@@ -272,18 +289,18 @@ def raw_test_frames_layout(event):
 		raw_pairttest_master_Frame.grid(row=3, column=1, rowspan=6, sticky="NW", padx=0, pady=0)
 
 def spss_test_clear_vars():
-	spss_indttest_nOne_tk.set("")
-	spss_indttest_nTwo_tk.set("")
+	spss_indttest_nOne_tk.set("Enter an integer")
+	spss_indttest_nTwo_tk.set("Enter an integer")
 	spss_indttest_groupOneLabel_tk.set("")
 	spss_indttest_groupTwoLabel_tk.set("")
-	spss_pairttest_nOne_tk.set("")
-	spss_pairttest_nTwo_tk.set("")
+	spss_pairttest_nOne_tk.set("Enter an integer")
+	spss_pairttest_nTwo_tk.set("Enter an integer")
 
 	correction_type_tk.set("Select correction...")
 	effect_size_choice_tk.set("Select effect size...")
 
 def spss_test_frames_layout(event):
-	frames_list = [spss_indttest_Frame, spss_pairttest_Frame, effect_size_Frame, correction_type_Frame]
+	frames_list = [spss_indttest_sampleSize_Frame, spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame, effect_size_Frame, correction_type_Frame]
 
 	spss_test_clear_vars()
 	remove_frames(frames_list)
@@ -291,11 +308,16 @@ def spss_test_frames_layout(event):
 	if global_vars.master_dict[spss_test_tk.get()] == "corr":
 		correction_type_Frame.grid(row=4, column=0, sticky="NW", padx=15, pady=0)
 	elif global_vars.master_dict[spss_test_tk.get()] == "mr":
-		pass
+		pass #i.e. nothing needs to be done
 	elif global_vars.master_dict[spss_test_tk.get()] == "indttest":
-		pass
+		correction_type_Frame.grid(row=4, column=0, sticky="NW", padx=15, pady=0)
+		effect_size_Frame.grid(row=5, column=0, sticky="NW", padx=15, pady=5)
+		spss_indttest_sampleSize_Frame.grid(row=3, column=1, rowspan=45, sticky="NW", padx=0, pady=5)
+		spss_indttest_groupLabels_Frame.grid(row=3, column=2, rowspan=45, sticky="NW", padx=15, pady=5)
 	elif global_vars.master_dict[spss_test_tk.get()] == "pairttest":
-		pass 
+		correction_type_Frame.grid(row=4, column=0, sticky="NW", padx=15, pady=0)
+		effect_size_Frame.grid(row=5, column=0, sticky="NW", padx=15, pady=5)
+		spss_pairttest_sampleSize_Frame.grid(row=3, column=1, rowspan=45, sticky="NW", padx=0, pady=5)
 
 #-----------------2.3. GUI Content
 #Instructions
@@ -325,6 +347,10 @@ def select_file():
 tk.Button(input_filename_Frame, text="Select input file (xlsx only)", command=select_file).grid(row=0, column=0, sticky="W", padx=(0, 10))
 filename_label = tk.Label(input_filename_Frame, text="No file selected.")
 filename_label.grid(row=0, column=1, columnspan=1, sticky="W")
+
+#Alpha threshold
+tk.Label(alpha_threshold_Frame, text="Alpha: ").grid(row=0, column=0, sticky="NW")
+tk.Entry(alpha_threshold_Frame, textvariable=alpha_threshold_tk, width=6).grid(row=0, column=1, sticky="NW")
 
 #Column names listbox and scrollbar
 col_names_lb = tk.Listbox(col_names_Frame, selectmode="extended", height=10, width=20)
@@ -486,9 +512,23 @@ spss_test_drop = ttk.Combobox(spss_test_Frame, values=spss_test_options, state="
 spss_test_drop.bind("<<ComboboxSelected>>", spss_test_frames_layout)
 spss_test_drop.grid(row=0, column=0)
 
-#SPSS // test // Independent samples t-test
+#SPSS // test // Independent samples t-test // Sample Size
+tk.Label(spss_indttest_sampleSize_Frame, text="N, Group 1:").grid(row=0, column=0, sticky="NWES", padx=(0,5), pady=(0,5))
+tk.Entry(spss_indttest_sampleSize_Frame, textvariable=spss_indttest_nOne_tk, width=15).grid(row=0, column=1, sticky="NWES", pady=(0,5))
+tk.Label(spss_indttest_sampleSize_Frame, text="N, Group 2:").grid(row=1, column=0, sticky="NWES", padx=(0,5))
+tk.Entry(spss_indttest_sampleSize_Frame, textvariable=spss_indttest_nTwo_tk, width=15).grid(row=1, column=1, sticky="NWES")
 
-#SPSS // test // Paired samples t-test
+#SPSS // test // Independent samples t-test // Group Labels
+tk.Label(spss_indttest_groupLabels_Frame, text="Label, Group 1:").grid(row=0, column=0, sticky="NWES", padx=(0,5), pady=(0,5))
+tk.Entry(spss_indttest_groupLabels_Frame, textvariable=spss_indttest_groupOneLabel_tk, width=25).grid(row=0, column=1, sticky="NWES", pady=(0,5))
+tk.Label(spss_indttest_groupLabels_Frame, text="Label, Group 2:").grid(row=1, column=0, sticky="NWES", padx=(0,5))
+tk.Entry(spss_indttest_groupLabels_Frame, textvariable=spss_indttest_groupTwoLabel_tk, width=25).grid(row=1, column=1, sticky="NWES")
+
+#SPSS // test // Paired samples t-test // Sample Size
+tk.Label(spss_pairttest_sampleSize_Frame, text="N, Group 1:").grid(row=0, column=0, sticky="NWES", padx=(0,5), pady=(0,5))
+tk.Entry(spss_pairttest_sampleSize_Frame, textvariable=spss_pairttest_nOne_tk, width=15).grid(row=0, column=1, sticky="NWES", pady=(0,5))
+tk.Label(spss_pairttest_sampleSize_Frame, text="N, Group 2:").grid(row=1, column=0, sticky="NWES", padx=(0,5))
+tk.Entry(spss_pairttest_sampleSize_Frame, textvariable=spss_pairttest_nTwo_tk, width=15).grid(row=1, column=1, sticky="NWES")
 
 #Effect size choice
 effect_size_options = ("Cohen's d", "Hedge's g", "Glass's delta", "None")
@@ -502,8 +542,6 @@ correction_type_options = ("Bonferroni",  "Sidak", "Holm-Sidak", "Holm-Bonferron
 correction_type_drop = ttk.Combobox(correction_type_Frame, values=correction_type_options, state="readonly", width=30, textvariable=correction_type_tk)
 correction_type_drop.grid(row=0, column=0)
 
-#Pvalues choice
-
 #Raise errors on non-numeric input choice
 non_numeric_errors_options = ("Raise errors", "Ignore case-wise")
 non_numeric_errors_drop = ttk.Combobox(non_numeric_input_raise_errors_Frame, values=non_numeric_errors_options, state="readonly", width=30, textvariable=non_numeric_input_raise_errors_tk)
@@ -513,11 +551,111 @@ non_numeric_errors_drop.grid(row=0, column=0)
 raw_ttest_output_descriptives_drop = ttk.Combobox(raw_ttest_output_descriptives_Frame, values=["No", "Yes"], state="readonly", width=30, textvariable=raw_ttest_output_descriptives_tk)
 raw_ttest_output_descriptives_drop.grid(row=0, column=0)
 
+#Output file button & label
+def save_file():
+	filename = asksaveasfilename(initialdir = "/", title = "Save output file...", filetypes = (("Excel files","*.xlsx"),("All files","*.*")))
+	filename_sep_idx = filename.rfind("/")
+
+	#output_file_label.config(text=filename[filename_sep_idx+1:])
+	if filename != "":
+		output_filename_tk.set(filename)
+		output_file_label.config(text=filename + ".xlsx")
+		#directory = filename[:filename_sep_idx]
+		messagebox.showinfo("Developer's corner", "More stuff and validations to come!")
+
+tk.Button(output_filename_Frame, text="Save output file...", command=save_file).grid(row=0, column=0, sticky="NW", padx=(0, 10))
+output_file_label = tk.Label(output_filename_Frame, text="Nothing selected yet.")
+output_file_label.grid(row=0, column=1, columnspan=1, sticky="NW")
 
 #-----------------2.4. On Submit functions
 def set_global_variables():
-	pass
-	
+	global_vars.input_filename = input_filename_tk.get()
+	global_vars.input_fileext = input_fileext_tk.get()
+	global_vars.alpha_threshold = alpha_threshold_tk.get()
+	global_vars.output_filename = output_filename_tk.get()
+
+	global_vars.input_type = input_type_tk.get()
+
+	global_vars.raw_test = raw_test_tk.get()
+
+	global_vars.raw_corr_type = raw_corr_type_tk.get()
+	global_vars.raw_mr_outcomevar = raw_mr_outcomevar_tk.get()
+	global_vars.raw_indttest_groupvar = raw_indttest_groupvar_tk.get()
+	global_vars.raw_pairttest_var1 = raw_pairttest_var1_tk.get()
+	global_vars.raw_pairttest_var2 = raw_pairttest_var2_tk.get()
+
+	global_vars.summ_corr_varOne = summ_corr_varOne_tk.get()
+	global_vars.summ_corr_varTwo = summ_corr_varTwo_tk.get()
+	global_vars.summ_corr_coeff = summ_corr_coeff_tk.get()
+	global_vars.summ_corr_pvalues = summ_corr_pvalues_tk.get()
+
+	global_vars.summ_indttest_var = summ_indttest_var_tk.get()
+	global_vars.summ_indttest_meanOne = summ_indttest_meanOne_tk.get()
+	global_vars.summ_indttest_sdOne = summ_indttest_sdOne_tk.get()
+	global_vars.summ_indttest_nOne = summ_indttest_nOne_tk.get()
+	global_vars.summ_indttest_meanTwo = summ_indttest_meanTwo_tk.get()
+	global_vars.summ_indttest_sdTwo = summ_indttest_sdTwo_tk.get()
+	global_vars.summ_indttest_nTwo = summ_indttest_nTwo_tk.get()
+	global_vars.summ_indttest_equal_var = summ_indttest_equal_var_tk.get()
+
+	global_vars.spss_test = spss_test_tk.get()
+	global_vars.spss_indttest_nOne = spss_indttest_nOne_tk.get()
+	global_vars.spss_indttest_nTwo = spss_indttest_nTwo_tk.get()
+	global_vars.spss_indttest_groupOneLabel = spss_indttest_groupOneLabel_tk.get()
+	global_vars.spss_indttest_groupTwoLabel = spss_indttest_groupTwoLabel_tk.get()
+	global_vars.spss_pairttest_nOne = spss_pairttest_nOne_tk.get()
+	global_vars.spss_pairttest_nTwo = spss_pairttest_nTwo_tk.get()
+
+	global_vars.effect_size_choice = effect_size_choice_tk.get()
+	global_vars.correction_type = correction_type_tk.get()
+
+	global_vars.non_numeric_input_raise_errors = non_numeric_input_raise_errors_tk.get()
+	global_vars.raw_ttest_output_descriptives = raw_ttest_output_descriptives_tk.get()
+
+	print("-------------------------------START PRINTING OUTPUT---------------------------")
+	print("input_filename", global_vars.input_filename)
+	print("input_fileext", global_vars.input_fileext)
+	print("alpha_threshold", global_vars.alpha_threshold)
+	print("output_filename", global_vars.output_filename)
+
+	print("input_type", global_vars.input_type)
+
+	print("raw_test", global_vars.raw_test)
+
+	print("raw_corr_type", global_vars.raw_corr_type)
+	print("raw_mr_outcomevar", global_vars.raw_mr_outcomevar)
+	print("raw_indttest_groupvar", global_vars.raw_indttest_groupvar)
+	print("raw_pairttest_var1", global_vars.raw_pairttest_var1)
+	print("raw_pairttest_var2", global_vars.raw_pairttest_var2)
+
+	print("summ_corr_varOne", global_vars.summ_corr_varOne)
+	print("summ_corr_varTwo", global_vars.summ_corr_varTwo)
+	print("summ_corr_coeff", global_vars.summ_corr_coeff)
+	print("summ_corr_pvalues", global_vars.summ_corr_pvalues)
+
+	print("summ_indttest_var", global_vars.summ_indttest_var)
+	print("summ_indttest_meanOne", global_vars.summ_indttest_meanOne)
+	print("summ_indttest_sdOne", global_vars.summ_indttest_sdOne)
+	print("summ_indttest_nOne", global_vars.summ_indttest_nOne)
+	print("summ_indttest_meanTwo", global_vars.summ_indttest_meanTwo)
+	print("summ_indttest_sdTwo", global_vars.summ_indttest_sdTwo)
+	print("summ_indttest_nTwo", global_vars.summ_indttest_nTwo)
+	print("summ_indttest_equal_var", global_vars.summ_indttest_equal_var)
+
+	print("spss_test", global_vars.spss_test)
+	print("spss_indttest_nOne", global_vars.spss_indttest_nOne)
+	print("spss_indttest_nTwo", global_vars.spss_indttest_nTwo)
+	print("spss_indttest_groupOneLabel", global_vars.spss_indttest_groupOneLabel)
+	print("spss_indttest_groupTwoLabel", global_vars.spss_indttest_groupTwoLabel)
+	print("spss_pairttest_nOne", global_vars.spss_pairttest_nOne)
+	print("spss_pairttest_nTwo", global_vars.spss_pairttest_nTwo)
+
+	print("effect_size_choice", global_vars.effect_size_choice)
+	print("correction_type", global_vars.correction_type)
+
+	print("non_numeric_input_raise_errors", global_vars.non_numeric_input_raise_errors)
+	print("raw_ttest_output_descriptives", global_vars.raw_ttest_output_descriptives)
+	print("-------------------------------END PRINTING OUTPUT---------------------------")
 
 def input_validation():
 	pass
@@ -528,6 +666,6 @@ def submit():
 	print("Success")
 	#master.destroy()
 
-tk.Button(master, text="Submit", command=submit).grid(row=50, column=0, columnspan=50)
+tk.Button(master, text="Submit", command=submit).grid(row=50, column=49, padx=15, sticky="WE")
 
 master.mainloop()
