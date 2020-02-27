@@ -32,7 +32,7 @@ from webbrowser import open_new
 master = tk.Tk()
 master.title("MAPAS Rework")
 master.resizable(False, False)
-#master.geometry("900x400")
+#master.geometry("750x500")
 #tk.Grid.rowconfigure(master, 0, weight=1)
 #tk.Grid.columnconfigure(master, 0, weight=1)
 
@@ -131,7 +131,7 @@ input_filename_Frame = tk.LabelFrame(master, text="Choose input file", padx=5, p
 input_filename_Frame.grid(row=1, column=0, columnspan=49, sticky="NW", padx=15, pady=5)
 
 alpha_threshold_Frame = tk.LabelFrame(master, text="Alpha criterion", padx=5, pady=5, borderwidth=3)
-alpha_threshold_Frame.grid(row=1, column=49, sticky="NW", padx=15, pady=5)
+alpha_threshold_Frame.grid(row=1, column=49, sticky="NW", padx=0, pady=5)
 
 output_filename_Frame = tk.LabelFrame(master, text="Save output as...", padx=5, pady=5, borderwidth=3)
 output_filename_Frame.grid(row=50, column=0, columnspan=49, sticky="NW", padx=15, pady=5)

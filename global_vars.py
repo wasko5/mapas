@@ -5,7 +5,19 @@ master_dict = {
 	"Paired samples t-test" : "pairttest",
 
 	"Raise errors" : True,
-	"Ignore case-wise" : False
+	"Ignore case-wise" : False,
+
+	"Bonferroni" : "bonferroni",
+	"Sidak" : "sidak",
+	"Holm-Sidak" : "holm-sidak",
+	"Holm-Bonferroni" : "holm",
+	"Simes-\nHochberg" : "simes-hochberg",
+	"Hommel" : "hommel",
+	"Benjamini-Hochberg" : "fdr_bh",
+	"Benjamini-Yekutieli" : "fdr_by",
+	"Benjamini-Hochberg (2-stage\nnon-negative correction) " : "fdr_tsbh",
+	"Benjamini-Yekutieli (2-stage\nnon-negative correction)" : "fdr_tsbky",
+	"None" : ""
 }
 
 input_filename = ""
