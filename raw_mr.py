@@ -65,6 +65,8 @@ non_numeric_input_raise_errors = True #or False
 def get_raw_data_df():
 	raw_data_df = pd.read_excel(input_filename, sheet_name=0)
 
+	raw_data_df.to_excel("Progress dataframes\\raw_mr\\raw_data_df.xlsx")
+
 	return raw_data_df
 
 def modify_raw_data_df(raw_data_df):
@@ -74,10 +76,14 @@ def modify_raw_data_df(raw_data_df):
 	
 	mod_raw_data_df = raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols)
 
+	mod_raw_data_df.to_excel("Progress dataframes\\raw_mr\\mod_raw_data_df.xlsx")
+
 	return mod_raw_data_df
 
 def generate_output_df(mod_raw_data_df):
 	output_df = raw_mr_generate_output_df(mod_raw_data_df)
+
+	output_df.to_excel("Progress dataframes\\raw_mr\\output_df.xlsx")
 
 	return output_df
 
@@ -102,6 +108,8 @@ def multitest_correction(output_df):
 
 	output_df[sign_col_label] = output_df[sign_col_label].replace(True,"Significant")
 	output_df[sign_col_label] = output_df[sign_col_label].replace(False,"Non-significant")
+
+	output_df.to_excel("Progress dataframes\\raw_mr\\output_df_corrections.xlsx")
 
 	return output_df
 

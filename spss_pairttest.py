@@ -15,12 +15,12 @@ output_pvalues_type = "" #temporary to work until functionality is fixed
 
 #-----------------------------------------------------------0. Input----------------------------------------------------
 #Commented out variables would either not be used or are considered for removal
-input_filename = "Input files\\input_summary_independettest.xlsx"
+input_filename = "Input files\\spss\\input_spss_pairedTtest.xlsx"
 #input_fileext = ""
 alpha_threshold = 0.05
-output_filename = "Output files for testing\\summ_indttest_" #this does not end in .xlsx just for testing; in real app it should end with .xlsx (reason: function will add random numbers to prevent overwriting)
+output_filename = "Output files for testing\\spss_pairttest_" #this does not end in .xlsx just for testing; in real app it should end with .xlsx (reason: function will add random numbers to prevent overwriting)
 
-input_type = "summ_indttest"
+input_type = "spss"
 
 raw_test = ""
 
@@ -36,27 +36,27 @@ raw_test = ""
 #summ_corr_coeff = ""
 #summ_corr_pvalues = ""
 
-summ_indttest_var = "Variable"
-summ_indttest_meanOne = "Mean1"
-summ_indttest_sdOne = "SD1"
-summ_indttest_nOne = "N1"
-summ_indttest_meanTwo = "Mean2"
-summ_indttest_sdTwo = "SD2"
-summ_indttest_nTwo = "N2"
-summ_indttest_equal_var = "Equal Variances"
+#summ_indttest_var = ""
+#summ_indttest_meanOne = ""
+#summ_indttest_sdOne = ""
+#summ_indttest_nOne = ""
+#summ_indttest_meanTwo = ""
+#summ_indttest_sdTwo = ""
+#summ_indttest_nTwo = ""
+#summ_indttest_equal_var = ""
 
-#spss_test = ""
+spss_test = "pairttest"
 #spss_indttest_nOne = ""
 #spss_indttest_nTwo = ""
 #spss_indttest_groupOneLabel = ""
 #spss_indttest_groupTwoLabel = ""
-#spss_pairttest_nOne = ""
-#spss_pairttest_nTwo = ""
+spss_pairttest_nOne = 135
+spss_pairttest_nTwo = 125
 
-effect_size_choice = "Cohen's d" #could also be "Hedge's g", "Glass's delta" or blank/none (no idea which one it was)
-correction_type = "fdr_bh" #see global_vars.master_dict for other values
+effect_size_choice = "Cohen's d"
+correction_type = "bonferroni" #see global_vars.master_dict for other values
 
-#non_numeric_input_raise_errors = True #defaults to True here
+non_numeric_input_raise_errors = True #or False
 #raw_ttest_output_descriptives = ""
 
 
@@ -65,26 +65,21 @@ correction_type = "fdr_bh" #see global_vars.master_dict for other values
 def get_raw_data_df():
 	raw_data_df = pd.read_excel(input_filename, sheet_name=0)
 
-	raw_data_df.to_excel("Progress dataframes\\summ_indttest\\raw_data_df.xlsx")
+	raw_data_df.to_excel("Progress dataframes\\spss_pairttest\\raw_data_df.xlsx")
 
 	return raw_data_df
 
 def modify_raw_data_df(raw_data_df):
-	if input_type == "summ_corr" or input_type == "summ_indttest":
-		provided_cols = ["pvalues", summ_corr_varOne, summ_corr_varTwo, summ_corr_coeff] if input_type == "summ_corr" else [summ_indttest_var, summ_indttest_meanOne, summ_indttest_sdOne, summ_indttest_nOne, summ_indttest_meanTwo, summ_indttest_sdTwo, summ_indttest_nTwo, summ_indttest_equal_var]
-		summ_input_colNames_check(raw_data_df, provided_cols)
-		numeric_cols = get_numeric_cols(raw_data_df)
-		error_on_non_numeric_input(raw_data_df, numeric_cols)
-		mod_raw_data_df = summ_input_generate_mod_raw_data_df(raw_data_df)
+	mod_raw_data_df = spss_pairttest_generate_mod_raw_data_df(raw_data_df) #might remove the function depending on whether I add logical checks
 
-	mod_raw_data_df.to_excel("Progress dataframes\\summ_indttest\\mod_raw_data_df.xlsx")
+	mod_raw_data_df.to_excel("Progress dataframes\\spss_pairttest\\mod_raw_data_df.xlsx")
 
 	return mod_raw_data_df
 
 def generate_output_df(mod_raw_data_df):
-	output_df = summ_indttest_generate_output_df(mod_raw_data_df)
+	output_df = spss_pairttest_generate_output_df(mod_raw_data_df)
 
-	output_df.to_excel("Progress dataframes\\summ_indttest\\output_df.xlsx")
+	output_df.to_excel("Progress dataframes\\spss_pairttest\\output_df.xlsx")
 
 	return output_df
 
@@ -110,12 +105,12 @@ def multitest_correction(output_df):
 	output_df[sign_col_label] = output_df[sign_col_label].replace(True,"Significant")
 	output_df[sign_col_label] = output_df[sign_col_label].replace(False,"Non-significant")
 
-	output_df.to_excel("Progress dataframes\\summ_indttest\\output_df_corrections.xlsx")
+	output_df.to_excel("Progress dataframes\\spss_pairttest\\output_df_corrections.xlsx")
 
 	return output_df
 
 def save_output(mod_raw_data_df, output_df):
-	summ_indttest_apa_table(mod_raw_data_df, output_df)
+	spss_pairttest_apa_table(mod_raw_data_df, output_df)
 
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Helper functions fo generating modified raw data dataframes - all not just function-specific ones
@@ -170,16 +165,20 @@ def summ_input_colNames_check(raw_data_df, provided_cols):
 		raise Exception("The provided file contains too many columns. Please provide only {}.".format(len(provided_cols)))
 
 #2.1.  Main function for generating the modified raw data dataframe
-def summ_input_generate_mod_raw_data_df(raw_data_df):
-	non_numeric_cols = [summ_corr_varOne, summ_corr_varTwo] if input_type == "summ_corr" else [summ_indttest_var, summ_indttest_equal_var]
-	for col in non_numeric_cols:
-		if True in raw_data_df[col].isnull().values:
-			raise Exception("Blank row found in column \'{}\'.\nPleasu ensure there are no blank datapoints in the provided file.".format(col))
-	if input_type == "summ_indttest":
-		if not raw_data_df[summ_indttest_equal_var].isin([True, False]).all():
-			raise Exception("A value different from True or False is found in column \'{}\'.\nPlease ensure that only True and False values are provided.".format(summ_indttest_equal_var))
-	
+def spss_pairttest_generate_mod_raw_data_df(raw_data_df):
+	if (len(raw_data_df.columns) != 10 or raw_data_df.iloc[1,2] != "Mean" or raw_data_df.iloc[1,3] != "Std. Deviation"
+			or raw_data_df.iloc[1,4] != "Std. Error Mean" or raw_data_df.iloc[1,5] != "95% Confidence Interval of the Difference"
+			or raw_data_df.iloc[2,6] != "Upper" or raw_data_df.iloc[0,7] != "t" or raw_data_df.iloc[0,8] != "df"
+			or raw_data_df.iloc[0,9] != "Sig. (2-tailed)" or len(raw_data_df) <= 3):
+		raise Exception("The data provided could not be read correctly. Please see the documentation for help.")
+		
 	mod_raw_data_df = raw_data_df.copy()
+	renaming_dict = {}
+	new_col_names = [mod_raw_data_df.columns[0]] + ["Variables", "Mean difference", "Std difference", "Std error difference"] + [mod_raw_data_df.iloc[1, 5]] + ["Upper", "t", "df", "p"]
+	for i in range(0, len(mod_raw_data_df.columns)):
+		renaming_dict[mod_raw_data_df.columns[i]] = new_col_names[i]
+
+	mod_raw_data_df = mod_raw_data_df.rename(columns=renaming_dict).drop([mod_raw_data_df.index[0], mod_raw_data_df.index[1], mod_raw_data_df.index[2]]).reset_index(drop=True)
 
 	return mod_raw_data_df
 
@@ -215,46 +214,31 @@ def corr_coeff_ci(r, n):
 	return low, high
 
 #3.2.  Main function for generating the output data dataframe
-def summ_indttest_generate_output_df(mod_raw_data_df):
-	output_dict = {summ_indttest_var: [], summ_indttest_meanOne: [], summ_indttest_sdOne: [], summ_indttest_meanTwo: [],
-					summ_indttest_sdTwo: [], "Degrees of Freedom": [], "t": [], effect_size_choice: [], "pvalues": []}
+def spss_pairttest_generate_output_df(mod_raw_data_df):
+	t_stat_list = list(mod_raw_data_df["t"])
+	effectsize_list = []
 
-	for row in range(0, len(mod_raw_data_df)):
-		current_df = mod_raw_data_df.loc[row]
-		n1 = current_df[summ_indttest_nOne]
-		n2 = current_df[summ_indttest_nTwo]
+	if effect_size_choice == "Cohen's d":
+		for t in t_stat_list:
+			effect_size = t*np.sqrt(1/spss_pairttest_nOne + 1/spss_pairttest_nTwo)
+			effectsize_list.append(effect_size)
+	elif effect_size_choice == "Hedge's g":
+		#calculated using cohens_d * (1 - (3/4(n1+n2-9))) where cohens d is t*sqrt(1/n1 + 1/n2)
+		for t in t_stat_list:
+			effect_size = (t*np.sqrt(1/spss_pairttest_nOne + 1/spss_pairttest_nTwo))*np.sqrt(1/spss_pairttest_nOne + 1/spss_pairttest_nTwo)
+			effectsize_list.append(effect_size)
+			
+	output_df = pd.DataFrame()
+	output_df["Variables"] = list(mod_raw_data_df["Variables"])
+	output_df["Time 1_Mean"] = [""] * len(output_df)
+	output_df["Time 1_SD"] = [""] * len(output_df)
+	output_df["Time 2_Mean"] = [""] * len(output_df)
+	output_df["Time 2_SD"] = [""] * len(output_df)
+	output_df["df"] = ["{:.2f}".format(x) for x in list(mod_raw_data_df["df"])]
+	output_df["t"] = ["{:.2f}".format(x) for x in t_stat_list]
+	output_df[effect_size_choice] = ["{:.2f}".format(x) for x in effectsize_list]
+	output_df["pvalues"] = list(mod_raw_data_df["p"])
 
-		output_dict[summ_indttest_var].append(current_df[summ_indttest_var])
-		output_dict[summ_indttest_meanOne].append(current_df[summ_indttest_meanOne])
-		output_dict[summ_indttest_sdOne].append(current_df[summ_indttest_sdOne])
-		output_dict[summ_indttest_meanTwo].append(current_df[summ_indttest_meanTwo])
-		output_dict[summ_indttest_sdTwo].append(current_df[summ_indttest_sdTwo])
-		if current_df[summ_indttest_equal_var]: #equal vars assumed
-			deg_free = n1 + n2 - 2
-		else:
-			s1_pooled = current_df[summ_indttest_sdOne]**2
-			s2_pooled = current_df[summ_indttest_sdTwo]**2
-			deg_free = (s1_pooled/n1 + s2_pooled/n2)**2 / ( (1/(n1-1)*(s1_pooled/n1)**2) + (1/(n2-1)*(s2_pooled/n2)**2) )
-		output_dict["Degrees of Freedom"].append(deg_free)
-		#stats.ttest_ind_from_stats itself decides whether to to perform student's t-test or welch's based on equal_var
-		t, p = stats.ttest_ind_from_stats(mean1 = current_df[summ_indttest_meanOne], std1 = current_df[summ_indttest_sdOne], 
-										nobs1 = n1, mean2 = current_df[summ_indttest_meanTwo], std2 = current_df[summ_indttest_sdTwo], 
-										nobs2 = n2, equal_var=current_df[summ_indttest_equal_var])
-		output_dict["t"].append(t)
-		output_dict["pvalues"].append(p)
-		
-		if effect_size_choice == "Cohen's d":
-			effect_size = t*np.sqrt(1/n1 + 1/n2)
-		elif effect_size_choice == "Hedge's g":
-			#calculated using cohens_d * (1 - (3/4(n1+n2-9))) where cohens d is t*sqrt(1/n1 + 1/n2)
-			effect_size = (t*np.sqrt(1/n1 + 1/n2))*np.sqrt(1/n1 + 1/n2)
-		elif effect_size_choice == "Glass's delta":
-			#glass delta = (Mean2 - Mean1) / SD1 where SD1 is always that of control
-			effect_size = (current_df[summ_indttest_meanTwo] - current_df[summ_indttest_meanOne]) / current_df[summ_indttest_sdOne]
-		output_dict[effect_size_choice].append(effect_size)
-
-	output_df = pd.DataFrame(output_dict)
-	
 	return output_df
 
 #-----------------------------------------------------------4. Saving data----------------------------------------------------
@@ -306,30 +290,30 @@ def save_file(output_name, wb):
 	wb.save(filename=filename)
 
 #4.2.  Main function for saving data
-def summ_indttest_apa_table(mod_raw_data_df, output_df):
-	sign_bool_label = list(output_df.columns)[-1]
+def spss_pairttest_apa_table(mod_raw_data_df, output_df):
+	apa_output_df = output_df.copy()
 
 	if output_pvalues_type == "adjusted":
 		adjusted_pvalues_threshold = None
-		output_df["pvalues"] = output_df["adjusted_pvalues"]
+		apa_output_df["pvalues"] = apa_output_df["adjusted_pvalues"]
 	else:
-		adjusted_pvalues_threshold = sign_bool_label[sign_bool_label.find("=")+2:]
-	output_df.drop(columns = ["adjusted_pvalues", sign_bool_label], inplace=True)
+		adjusted_pvalues_threshold = apa_output_df.columns[-1][apa_output_df.columns[-1].find("=")+2:]
 
-	output_df[list(output_df.columns)[1:-1]] = output_df[list(output_df.columns)[1:-1]].applymap(lambda x: "{:.2f}".format(x))
-	output_df["pvalues"] = output_df["pvalues"].map(pvalue_formatting)
+	apa_output_df.drop(columns=apa_output_df.columns[-2:], inplace=True)
+
+	apa_output_df["pvalues"] = apa_output_df["pvalues"].map(pvalue_formatting)
 
 	wb = Workbook()
 	ws = wb.active
-
+	
 	ws.cell(row=1, column=1).value = "Variable"
 	ws.merge_cells('A1:A2')
 	ws.cell(row=1, column=1).font = font_header
 	
-	ws.cell(row=1, column=2).value = "Group1, n={n}".format(n=mod_raw_data_df[summ_indttest_nOne][0])
+	ws.cell(row=1, column=2).value = "Time 1"
 	ws.merge_cells('B1:C1')
 	
-	ws.cell(row=1, column=4).value = "Group2, n={n}".format(n=mod_raw_data_df[summ_indttest_nTwo][0])
+	ws.cell(row=1, column=4).value = "Time 2"
 	ws.merge_cells('D1:E1')
 	
 	ws.cell(row=1, column=6).value = "df"
@@ -354,25 +338,25 @@ def summ_indttest_apa_table(mod_raw_data_df, output_df):
 		ws.cell(row=2, column=col+1).value = "SD"
 		ws.cell(row=2, column=col+1).font = font_header
 	
-	for row in dataframe_to_rows(output_df, index=False, header=False):
+	for row in dataframe_to_rows(apa_output_df, index=False, header=False):
 		ws.append(row)
 
-	for row in range(1, len(output_df)+3):
+	for row in range(1, len(apa_output_df)+3):
 		for cell in ws[row]:
 			cell.alignment = alignment_center
-
-	for cell in ws[1]:
-		cell.border = Border(top=border_APA)
-	for cell in ws[2] + ws[len(output_df)+2]:
+	
+	for cell in ws[2] + ws[len(apa_output_df)+2]:
 		cell.border = Border(bottom=border_APA)
 
-	add_table_notes(ws, [], adjusted_pvalues_threshold)
+	table_notes = ["Means and Standard Deviations could not be read from the SPSS table. Please add them yourself or remove those columns if they are not needed."]
+	add_table_notes(ws, table_notes, adjusted_pvalues_threshold)
 
-	save_file("summ_indttest", wb)
+	save_file("spss_data_pairttest", wb)
 
 
 raw_data_df = get_raw_data_df()
 mod_raw_data_df = modify_raw_data_df(raw_data_df)
 output_df = generate_output_df(mod_raw_data_df)
-output_df = multitest_correction(output_df)
+if spss_test != "mr":
+	output_df = multitest_correction(output_df)
 save_output(mod_raw_data_df, output_df)

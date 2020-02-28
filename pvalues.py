@@ -65,6 +65,8 @@ correction_type = "fdr_bh" #see global_vars.master_dict for other values
 def get_raw_data_df():
 	raw_data_df = pd.read_excel(input_filename, sheet_name=0)
 
+	raw_data_df.to_excel("Progress dataframes\\pvalues\\raw_data_df.xlsx")
+
 	return raw_data_df
 
 def modify_raw_data_df(raw_data_df):
@@ -73,10 +75,14 @@ def modify_raw_data_df(raw_data_df):
 	error_on_non_numeric_input(raw_data_df, ["pvalues"])
 	mod_raw_data_df = raw_data_df.copy()
 
+	mod_raw_data_df.to_excel("Progress dataframes\\pvalues\\mod_raw_data_df.xlsx")
+
 	return mod_raw_data_df
 
 def generate_output_df(mod_raw_data_df):
 	output_df = pvalues_generate_output_df(mod_raw_data_df)
+
+	output_df.to_excel("Progress dataframes\\pvalues\\output_df.xlsx")
 
 	return output_df
 
@@ -101,6 +107,8 @@ def multitest_correction(output_df):
 
 	output_df[sign_col_label] = output_df[sign_col_label].replace(True,"Significant")
 	output_df[sign_col_label] = output_df[sign_col_label].replace(False,"Non-significant")
+
+	output_df.to_excel("Progress dataframes\\pvalues\\output_df_corrections.xlsx")
 
 	return output_df
 
