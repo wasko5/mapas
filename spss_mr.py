@@ -15,20 +15,21 @@ output_pvalues_type = "" #temporary to work until functionality is fixed
 
 #-----------------------------------------------------------0. Input----------------------------------------------------
 #Commented out variables would either not be used or are considered for removal
-input_filename = "Input files\\raw data\\input_raw_correlations.xlsx"
+input_filename = "Input files\\spss\\input_spss_mr_all stats requested.xlsx"
 #input_fileext = ""
 alpha_threshold = 0.05
-output_filename = "Output files for testing\\raw_corr_" #this does not end in .xlsx just for testing; in real app it should end with .xlsx (reason: function will add random numbers to prevent overwriting)
+output_filename = "Output files for testing\\spss_mr_" #this does not end in .xlsx just for testing; in real app it should end with .xlsx (reason: function will add random numbers to prevent overwriting)
 
-input_type = "raw"
+input_type = "spss"
 
-raw_test = "corr"
+raw_test = ""
 
-raw_corr_type = "pearson" #could be "spearman" or "kendall"
+#raw_corr_type = ""
 #raw_mr_outcomevar = ""
+#raw_mr_predictors = ""
 #raw_indttest_groupvar = ""
-#raw_pairttest_var1 = ""
-#raw_pairttest_var2 = ""
+#raw_indttest_dv = ""
+#raw_pairttest_var_pairs = ""
 
 #summ_corr_varOne = ""
 #summ_corr_varTwo = ""
@@ -44,7 +45,7 @@ raw_corr_type = "pearson" #could be "spearman" or "kendall"
 #summ_indttest_nTwo = ""
 #summ_indttest_equal_var = ""
 
-#spss_test = ""
+spss_test = "mr"
 #spss_indttest_nOne = ""
 #spss_indttest_nTwo = ""
 #spss_indttest_groupOneLabel = ""
@@ -53,7 +54,7 @@ raw_corr_type = "pearson" #could be "spearman" or "kendall"
 #spss_pairttest_nTwo = ""
 
 #effect_size_choice = ""
-correction_type = "fdr_bh" #see global_vars.master_dict for other values
+correction_type = "" #see global_vars.master_dict for other values
 
 non_numeric_input_raise_errors = True #or False
 #raw_ttest_output_descriptives = ""
@@ -64,25 +65,21 @@ non_numeric_input_raise_errors = True #or False
 def get_raw_data_df():
 	raw_data_df = pd.read_excel(input_filename, sheet_name=0)
 
-	raw_data_df.to_excel("Progress dataframes\\raw_correlations\\raw_data_df.xlsx")
+	raw_data_df.to_excel("Progress dataframes\\spss_mr\\raw_data_df.xlsx")
 
 	return raw_data_df
 
 def modify_raw_data_df(raw_data_df):
-	numeric_cols = get_numeric_cols(raw_data_df)
-	if non_numeric_input_raise_errors == True:
-		error_on_non_numeric_input(raw_data_df, numeric_cols)
-	
-	mod_raw_data_df = raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols)
+	mod_raw_data_df = spss_mr_generate_mod_raw_data_df(raw_data_df) #might remove the function depending on whether I add logical checks
 
-	mod_raw_data_df.to_excel("Progress dataframes\\raw_correlations\\mod_raw_data_df.xlsx")
+	mod_raw_data_df.to_excel("Progress dataframes\\spss_mr\\mod_raw_data_df.xlsx")
 
 	return mod_raw_data_df
 
 def generate_output_df(mod_raw_data_df):
-	output_df = raw_corr_generate_output_df(mod_raw_data_df)
+	output_df = spss_mr_generate_output_df(mod_raw_data_df)
 
-	output_df.to_excel("Progress dataframes\\raw_correlations\\output_df.xlsx")
+	output_df.to_excel("Progress dataframes\\spss_mr\\output_df.xlsx")
 
 	return output_df
 
@@ -108,18 +105,30 @@ def multitest_correction(output_df):
 	output_df[sign_col_label] = output_df[sign_col_label].replace(True,"Significant")
 	output_df[sign_col_label] = output_df[sign_col_label].replace(False,"Non-significant")
 
-	output_df.to_excel("Progress dataframes\\raw_correlations\\output_df_corrections.xlsx")
+	output_df.to_excel("Progress dataframes\\spss_mr\\output_df_corrections.xlsx")
 
 	return output_df
 
 def save_output(mod_raw_data_df, output_df):
-	raw_corr_apa_table(mod_raw_data_df, output_df)
+	spss_mr_apa_table(mod_raw_data_df, output_df)
 
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Helper functions fo generating modified raw data dataframes - all not just function-specific ones
 def get_numeric_cols(raw_data_df):
 	numeric_cols = list(raw_data_df.columns)
-
+	if raw_test == "indttest":
+		try:
+			numeric_cols.remove(raw_indttest_groupvar)
+		except ValueError:
+			raise Exception("The grouping variable \'{}\' is not found in the file. Please make sure it is type correctly.".format(raw_indttest_groupvar))
+	elif input_type == "summ_corr":
+		#no need for error handling as the summ_corr_colNames_check func has already taken care of that
+		numeric_cols.remove(summ_corr_varOne)
+		numeric_cols.remove(summ_corr_varTwo)
+	elif input_type == "summ_indttest":
+		numeric_cols.remove(summ_indttest_var)
+		numeric_cols.remove(summ_indttest_equal_var)
+		
 	return numeric_cols
 
 def error_on_non_numeric_input(raw_data_df, numeric_cols):
@@ -134,22 +143,49 @@ def error_on_non_numeric_input(raw_data_df, numeric_cols):
 			error_msg += "In column {c}, there are non-numerical/blank entries on the following rows: {i}\n".format(c=col, i=(", ").join([str(x+2) for x in ind_arr]))
 		raise Exception(error_msg)
 
+def raw_input_pairttest_colNames_check(raw_data_df):
+	inputVars_unique = []
+	for var_time1, var_time2 in raw_pairttest_inputVars_list:
+		if var_time1 not in raw_data_df.columns:
+			raise Exception("The entered column \'{}\' is not found in the provided file.".format(var_time1))
+		elif var_time2 not in raw_data_df.columns:
+			raise Exception("The entered column \'{}\' is not found in the provided file.".format(var_time2))
+		else:
+			inputVars_unique.append(var_time1)
+			inputVars_unique.append(var_time2)
+	inputVars_unique = list(set(inputVars_unique))
+	if len(inputVars_unique) > len(list(raw_data_df.columns)):
+		raise Exception("The provided number of unique variable columns is {i}, while the number of columns in the provided file is {f}".format(i=len(inputVars_unique), f=len(list(raw_data_df.columns))))
+
+def summ_input_colNames_check(raw_data_df, provided_cols):
+	for var in provided_cols:
+		if var not in list(raw_data_df.columns):
+			raise Exception("Column {} is not found in the provided file.\nPlease ensure that the column names are typed correctly.".format(var))
+	if len(list(raw_data_df.columns)) > len(provided_cols):
+		raise Exception("The provided file contains too many columns. Please provide only {}.".format(len(provided_cols)))
+
 #2.1.  Main function for generating the modified raw data dataframe
-def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols):
-	if raw_test == "pairttest":
-		#Treaing paired ttest input separately (as separate dataframes based on pairs) as it's possible for 1 pair 
-		#to have 200 entires and another one with 400 entries
-		df_list = []
-		for var_time1, var_time2 in raw_pairttest_inputVars_list:
-			df = raw_data_df[[var_time1, var_time2]]
-			df = df.apply(pd.to_numeric, errors="coerce").dropna().reset_index(drop=True)
-			df_list.append(df)
-		mod_raw_data_df = pd.concat(df_list, axis=1)
-	else:  
-		mod_raw_data_df = raw_data_df.copy()
-		mod_raw_data_df[numeric_cols] = mod_raw_data_df[numeric_cols].apply(pd.to_numeric, errors="coerce")
-		mod_raw_data_df = mod_raw_data_df.dropna().reset_index(drop=True)
-	
+def spss_mr_generate_mod_raw_data_df(raw_data_df):
+	mod_raw_data_df = raw_data_df.copy()
+
+	#renaming columns as the multi-level formatting of the spss table makes it difficult to work with
+	renaming_dict = {}
+	for ind, col_name in enumerate(mod_raw_data_df.columns):
+		if "Unnamed" in col_name:
+			if not pd.isna(mod_raw_data_df.iloc[0, ind]):
+				renaming_dict[col_name] = mod_raw_data_df.iloc[0, ind]
+			elif not pd.isna(mod_raw_data_df.iloc[1, ind]):
+				renaming_dict[col_name] = mod_raw_data_df.iloc[1, ind]
+
+	mod_raw_data_df = mod_raw_data_df.rename(columns=renaming_dict).drop([mod_raw_data_df.index[0], mod_raw_data_df.index[1]]).reset_index(drop=True)
+
+	if mod_raw_data_df[mod_raw_data_df.columns[1]][0] != "(Constant)":
+		raise Exception("There was a problem reading the variable column. Please try entering a correct data file. Please see the documentation for help.")
+	fields_to_check = ["Unstandardized Coefficients", "Standardized Coefficients", "t", "Sig."]
+	for field in fields_to_check:
+		if field not in mod_raw_data_df.columns:
+			raise Exception("The column \'{}\' was not found in the file. Please try entering a correct data file. Please see the documentation for help.".format(field))
+
 	return mod_raw_data_df
 
 #-----------------------------------------------------------3. Output dataframe----------------------------------------------------
@@ -183,20 +219,31 @@ def corr_coeff_ci(r, n):
 	
 	return low, high
 
-#3.2.  Main function for generating the output  data dataframe
-def raw_corr_generate_output_df(mod_raw_data_df):
-	data_list = []
+#3.2.  Main function for generating the output data dataframe
+def spss_mr_generate_output_df(mod_raw_data_df):
+	variables_list = ["(Constant)"] + list(mod_raw_data_df[mod_raw_data_df.columns[1]])[1:-1]
+	
+	b_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["Unstandardized Coefficients"])[:-1]]
+	try:
+		ci_low_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["95.0% Confidence Interval for B"])[:-1]]
+	except KeyError:
+		ci_low_list = [""] * (len(variables_list))
+	try:
+		ci_high_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["Upper Bound"])[:-1]]
+	except KeyError:
+		ci_high_list = [""] * (len(variables_list))
+	beta_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["Standardized Coefficients"])[:-1]]
+	t_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["t"])[:-1]]
+	pvalues_list = [pvalue_formatting(x) for x in list(mod_raw_data_df["Sig."])[:-1]] #can afford to format here as there will be no multitest corrections applied
 
-	i=0
-	for var1 in mod_raw_data_df.columns:
-		for var2 in mod_raw_data_df.columns[i:]:
-			if not var1 == var2:
-				r, p = raw_input_corr_coeff(mod_raw_data_df[var1],mod_raw_data_df[var2])
-				ci_low, ci_high = corr_coeff_ci(r, n=mod_raw_data_df[var1].count())
-				data_list.append((var1, var2, r, ci_low, ci_high, p))
-		i += 1
-	output_df = pd.DataFrame(data_list, columns=["Variable1", "Variable2", "Correlation Coefficient", "CI_low", "CI_high", "pvalues"])
-
+	output_df = pd.DataFrame()
+	output_df["Variable"] = variables_list
+	output_df["B"] = b_list
+	output_df["95% CI"] = ["["+low+","+high+"]" for low,high in zip(ci_low_list, ci_high_list)]
+	output_df["beta"] = ['' if x=='nan' else x for x in beta_list] #the beta for the constant is missing from the spss output
+	output_df["t"] = t_list
+	output_df["p"] = pvalues_list
+	
 	return output_df
 
 #-----------------------------------------------------------4. Saving data----------------------------------------------------
@@ -248,78 +295,40 @@ def save_file(output_name, wb):
 	wb.save(filename=filename)
 
 #4.2.  Main function for saving data
-def raw_corr_apa_table(mod_raw_data_df, output_df):
+def spss_mr_apa_table(mod_raw_data_df, output_df):
 	wb = Workbook()
 	ws = wb.active
-	
-	variables_list = list(mod_raw_data_df.columns)
-	
-	ws.append([""] + variables_list[:-1] + ["Mean", "SD"])
-	ws["A2"] = variables_list[0]
-	for ind,var in enumerate(variables_list[1:]):
-		ws.cell(row=(ind*2)+3, column=1).value = var
-	
-	start_row = 3
-	for col in range(2, len(variables_list)+3):
-		col_var = ws.cell(row=1, column=col).value
-		for row in range(start_row, len(variables_list)*2, 2):
-			row_var = ws.cell(row=row, column=1).value
-			#query method is slightly slower for smaller datasets
-			r = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))]["Correlation Coefficient"].item()
-			p = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))]["adjusted_pvalues"].item()
-			ci_low = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))]["CI_low"].item()
-			ci_high = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))]["CI_high"].item()
-			#r = output_df.query("(Variable1 == @row_var and Variable2==@col_var) or (Variable1 == @col_var and Variable2==@row_var)")["Correlation Coefficient"].item()
-			#p = output_df.query("(Variable1 == @row_var and Variable2==@col_var) or (Variable1 == @col_var and Variable2==@row_var)")["adjusted_pvalues"].item()
-			#ci_low = output_df.query("(Variable1 == @row_var and Variable2==@col_var) or (Variable1 == @col_var and Variable2==@row_var)")["CI_low"].item()
-			#ci_high = output_df.query("(Variable1 == @row_var and Variable2==@col_var) or (Variable1 == @col_var and Variable2==@row_var)")["CI_high"].item()
-			r, ci_low, ci_high = correlations_format_val(r, p), correlations_format_val(ci_low), correlations_format_val(ci_high)
-			ws.cell(row=row, column=col).value = r
-			ws.cell(row=row+1, column=col).value = "[" + ci_low + ", " + ci_high + "]"
-		start_row += 2
-	
-	ws.cell(row=2, column=len(variables_list)+1).value = "{:.2f}".format(mod_raw_data_df[variables_list[0]].mean(skipna=True))
-	ws.cell(row=2, column=len(variables_list)+2).value = "{:.2f}".format(mod_raw_data_df[variables_list[0]].std(skipna=True))
-	for row in range(3, len(variables_list)*2, 2):
-		ws.cell(row=row, column=len(variables_list)+1).value = "{:.2f}".format(mod_raw_data_df[variables_list[int((row-1)/2)]].mean(skipna=True))
-		ws.cell(row=row, column=len(variables_list)+2).value = "{:.2f}".format(mod_raw_data_df[variables_list[int((row-1)/2)]].std(skipna=True))    
-	
-	for row in range(3, len(variables_list)*2, 2):
-		ws.merge_cells(start_row=row, start_column=1, end_row=row+1, end_column=1)
-		ws.merge_cells(start_row=row, start_column=len(variables_list)+1, end_row=row+1, end_column=len(variables_list)+1)
-		ws.merge_cells(start_row=row, start_column=len(variables_list)+2, end_row=row+1, end_column=len(variables_list)+2)
-		
-	for row in ws[1:len(variables_list)*2]:
-		for cell in row:
-			if cell.row > 2 and (cell.column == 1 or cell.column == len(variables_list)+1 or cell.column == len(variables_list)+2):
-				cell.alignment = alignment_top
-			else:
-				cell.alignment = alignment_center
-				
+
+	for row in dataframe_to_rows(output_df, index=False, header=True):
+		ws.append(row)
+
 	for cell in ws[1]:
 		cell.font = font_header
-	
-	ci_font = Font(size=9)
-	for row in range(4, len(variables_list)*2+1, 2):
+		
+	for row in range(1, len(output_df)+2):
 		for cell in ws[row]:
-			cell.font = ci_font
+			cell.alignment = alignment_center
 	
 	for cell in ws[1]:
-		cell.border = Border(top=border_APA, bottom=border_APA)
-	for cell in ws[len(variables_list)*2]:
-		cell.border = Border(bottom = border_APA)
-	
-	table_notes = ["Note. M and SD represent mean and standard deviation, respectively. Values in square brackets indicate 95% confidence interval for the correlation coefficient."]
-	table_notes.append("Correlation coefficient used: {}".format(raw_corr_type))
-	table_notes.append("**p < 0.01")
-	table_notes.append("*p < {}".format(alpha_threshold))
-	add_table_notes(ws, table_notes) 
-	
-	save_file("raw_data_correlations", wb)
+		cell.border = Border(bottom=border_APA, top=border_APA)
+
+	for cell in ws[len(output_df)+1]:
+		cell.border = Border(bottom=border_APA)
+
+	DV_cell = mod_raw_data_df[mod_raw_data_df.columns[0]][len(mod_raw_data_df[mod_raw_data_df.columns[0]])-1]
+	DV = DV_cell[DV_cell.find(":")+2:]
+	table_notes = ["R squared adjusted = X.XX", "Dependent variable: {}".format(DV)]
+	if output_df["95% CI"][0] == "[,]":
+		table_notes.append("Confidence intervals were not found in the SPSS table. Please add them to your SPSS table and re-run the program or add them manually.")
+
+	add_table_notes(ws, table_notes)
+
+	save_file("spss_mr", wb)
 
 
 raw_data_df = get_raw_data_df()
 mod_raw_data_df = modify_raw_data_df(raw_data_df)
 output_df = generate_output_df(mod_raw_data_df)
-output_df = multitest_correction(output_df)
+if spss_test != "mr":
+	output_df = multitest_correction(output_df)
 save_output(mod_raw_data_df, output_df)

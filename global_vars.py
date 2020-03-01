@@ -31,9 +31,10 @@ raw_test = ""
 
 raw_corr_type = ""
 raw_mr_outcomevar = ""
+raw_mr_predictors = ""
 raw_indttest_groupvar = ""
-raw_pairttest_var1 = ""
-raw_pairttest_var2 = ""
+raw_indttest_dv = ""
+raw_pairttest_var_pairs = ""
 
 summ_corr_varOne = ""
 summ_corr_varTwo = ""
