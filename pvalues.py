@@ -98,6 +98,12 @@ def multitest_correction(output_df):
 
 		adjusted_pvalues = multitest.multipletests(pvalues_list, alpha=alpha_threshold, method=correction_type, is_sorted=False, returnsorted=False)[1]
 		sign_bools = multitest.multipletests(pvalues_list, alpha=alpha_threshold, method=correction_type, is_sorted=False, returnsorted=False)[0]
+
+		'''
+		test = multitest.multipletests(pvalues_list, alpha=alpha_threshold, method=correction_type, is_sorted=False, returnsorted=False)
+		adjusted_pvalues = test[1]
+		sign_bools = test[0]
+		'''
 	else:
 		adjusted_pvalues = pvalues_list
 		sign_bools = [bool(x < alpha_threshold) for x in pvalues_list]
@@ -273,6 +279,7 @@ def pvalues_table(mod_raw_data_df, output_df):
 	for cell in ws[1] + ws[len(output_df)+1]:
 		cell.border = Border(bottom=border_APA)
 
+		
 	add_table_notes(ws, [])
 
 	save_file("pvalues", wb)
