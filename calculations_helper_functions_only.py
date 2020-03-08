@@ -16,10 +16,7 @@ import global_vars
 def get_numeric_cols(raw_data_df):
 	numeric_cols = list(raw_data_df.columns)
 	if global_vars.raw_test == "indttest":
-		try:
-			numeric_cols.remove(global_vars.raw_indttest_groupvar)
-		except ValueError:
-			raise Exception("The grouping variable \'{}\' is not found in the file. Please make sure it is typed correctly.".format(global_vars.raw_indttest_groupvar))
+		numeric_cols
 	elif global_vars.input_type == "summ_corr":
 		#no need for error handling as the summ_corr_colNames_check func has already taken care of that
 		numeric_cols.remove(global_vars.summ_corr_varOne)
@@ -149,10 +146,10 @@ def multitest_correction(output_df):
 	sign_col_label = "Adjusted p value significant at alpha = {alpha}".format(alpha=global_vars.alpha_threshold)
 
 	if global_vars.correction_type != "":    
-		if global_vars.correction_type == "sidak":
-			sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[2],5))
-		elif global_vars.correction_type == "bonferroni":
-			sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[3],5))
+		#if global_vars.correction_type == "sidak":
+		#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[2],5))
+		#elif global_vars.correction_type == "bonferroni":
+		#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[3],5))
 
 		correction_results = multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)
 		adjusted_pvalues = correction_results[1]

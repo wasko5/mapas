@@ -25,6 +25,7 @@ global_vars.input_type = "raw"
 global_vars.raw_test = "corr"
 
 global_vars.raw_corr_type = "pearson" #could be "spearman" or "kendall"
+global_vars.raw_corr_vars = ["var1", "var2", "var3", "var4", "var5", "var6", "var7", "var8"] #ASAP - to implement & test
 #raw_mr_outcomevar = ""
 #raw_indttest_groupvar = ""
 #raw_pairttest_var1 = ""
@@ -95,20 +96,14 @@ def save_output(mod_raw_data_df, output_df):
 
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
-def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols):
-	if global_vars.raw_test == "pairttest":
-		#Treaing paired ttest input separately (as separate dataframes based on pairs) as it's possible for 1 pair 
-		#to have 200 entires and another one with 400 entries
-		df_list = []
-		for var_time1, var_time2 in raw_pairttest_inputVars_list:
-			df = raw_data_df[[var_time1, var_time2]]
-			df = df.apply(pd.to_numeric, errors="coerce").dropna().reset_index(drop=True)
-			df_list.append(df)
-		mod_raw_data_df = pd.concat(df_list, axis=1)
-	else:  
-		mod_raw_data_df = raw_data_df.copy()
-		mod_raw_data_df[numeric_cols] = mod_raw_data_df[numeric_cols].apply(pd.to_numeric, errors="coerce")
-		#mod_raw_data_df = mod_raw_data_df.dropna().reset_index(drop=True) NEVER DOROP NA HERE - JUST COERCE TO KNOW WHERE NA VALUES ARE BUT DO NOT ALTER!!!!
+def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols=[]):
+	mod_raw_data_df = raw_data_df.copy()
+	mod_raw_data_df[numeric_cols] = mod_raw_data_df[numeric_cols].apply(pd.to_numeric, errors="coerce") #non-numeric values will be np.nan
+	try:
+		mod_raw_data_df[non_numeric_cols] = mod_raw_data_df[non_numeric_cols].astype(str) #does NOT raise errors when array is blank (default arg)
+	except:
+		raise Exception("The data could not be processed. Please ensure that the non-numeric columns contain only strings.")
+	#mod_raw_data_df = mod_raw_data_df.dropna().reset_index(drop=True) NEVER DOROP NA HERE - JUST COERCE TO KNOW WHERE NA VALUES ARE BUT DO NOT ALTER!!!!
 	
 	return mod_raw_data_df
 

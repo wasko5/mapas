@@ -44,6 +44,7 @@ input_type_tk = tk.StringVar()
 raw_test_tk = tk.StringVar()
 
 raw_corr_type_tk = tk.StringVar()
+raw_corr_vars_tk = tk.StringVar()
 raw_mr_outcomevar_tk = tk.StringVar()
 raw_indttest_groupvar_tk = tk.StringVar()
 raw_pairttest_var1_tk = tk.StringVar()
@@ -141,6 +142,7 @@ test_specifications_master_Frame.grid(row=3, column=0, columnspan=3, sticky="NW"
 raw_test_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Statistical test")
 
 raw_corr_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Correlation type")
+raw_corr_vars_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Variables to correlate")
 
 raw_mr_outcomevar_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Outcome variable")
 raw_mr_predictors_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Predictors")
@@ -271,16 +273,18 @@ def raw_test_clear_vars():
 
 
 def raw_test_frames_layout(event):
-	frames_list = [raw_corr_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_dv_Frame, raw_pairttest_master_Frame,
+	frames_list = [raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_dv_Frame, raw_pairttest_master_Frame,
 					col_names_Frame, effect_size_Frame, correction_type_Frame, raw_ttest_output_descriptives_Frame, non_numeric_input_raise_errors_Frame]
 
 	raw_test_clear_vars()
 	remove_frames(frames_list)
 
 	if global_vars.master_dict[raw_test_tk.get()] == "corr":
-		raw_corr_Frame.grid(row=1, column=0, sticky="NW", pady=(5, 0), padx=0)
-		correction_type_Frame.grid(row=0, column=1, sticky="NW", padx=15, pady=0)
-		non_numeric_input_raise_errors_Frame.grid(row=1, column=1, sticky="NW", padx=15, pady=(5, 0))
+		raw_corr_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=(5, 0))
+		correction_type_Frame.grid(row=2, column=0, sticky="NW", padx=0, pady=5)
+		non_numeric_input_raise_errors_Frame.grid(row=3, column=0, sticky="NW", padx=0, pady=0)
+		col_names_Frame.grid(row=0, column=1, rowspan=4, sticky="NW", padx=15, pady=0)
+		raw_corr_vars_Frame.grid(row=0, column=2, rowspan=4, sticky="NW", padx=0, pady=0)
 	elif global_vars.master_dict[raw_test_tk.get()] == "mr":
 		non_numeric_input_raise_errors_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=5)
 		col_names_Frame.grid(row=0, column=1, rowspan=2, sticky="NW", padx=15, pady=0)
@@ -392,6 +396,18 @@ raw_test_drop.grid(row=0, column=0)
 raw_corr_options = ("Pearson's r", "Spearman's rho", "Kendall's tau")
 raw_corr_drop = ttk.Combobox(raw_corr_Frame, values=raw_corr_options, state="readonly", width=30, textvariable=raw_corr_type_tk)
 raw_corr_drop.grid(row=0, column=0)
+
+#Raw data // test // Correlations // Variables
+raw_corr_vars_lb = tk.Listbox(raw_corr_vars_Frame, selectmode="extended", height=7, width=23)
+raw_corr_vars_scroll_y = ttk.Scrollbar(raw_corr_vars_Frame, orient="vertical", command=raw_corr_vars_lb.yview)
+raw_corr_vars_lb.configure(yscrollcommand=raw_corr_vars_scroll_y.set)
+raw_corr_vars_lb.grid(row=0, column=1, rowspan=2, sticky="W")
+raw_corr_vars_scroll_y.grid(row=0, column=2, rowspan=2, sticky="NS")
+
+raw_corr_vars_add_btn = ttk.Button(raw_corr_vars_Frame, text="--->", command=lambda listbox=raw_corr_vars_lb: add_variables_to_listbox(listbox)) 
+raw_corr_vars_add_btn.grid(row=0, column=0, sticky="EWNS", padx=(5, 5), pady=(5, 5))
+raw_corr_vars_remove_btn = ttk.Button(raw_corr_vars_Frame, text="X", command=lambda listbox=raw_corr_vars_lb: remove_variables_from_listbox(listbox))
+raw_corr_vars_remove_btn.grid(row=1, column=0, sticky="EWNS", padx=(5, 5), pady=(5, 5))
 
 #Raw data // test // Multiple Regression // Outcome variable
 raw_mr_outcomevar_drop = ttk.Combobox(raw_mr_outcomevar_Frame, state="readonly", width=30, textvariable=raw_mr_outcomevar_tk)
@@ -587,10 +603,11 @@ def set_global_variables():
 	global_vars.raw_test = "" if raw_test_tk.get() == global_vars.tk_vars_defaults["raw_test_tk"] else global_vars.master_dict[raw_test_tk.get()]
 
 	global_vars.raw_corr_type =  "" if raw_corr_type_tk.get() == global_vars.tk_vars_defaults["raw_corr_type_tk"] else global_vars.master_dict[raw_corr_type_tk.get()]
+	global_vars.raw_corr_vars = list(raw_corr_vars_lb.get(0, tk.END))
 	global_vars.raw_mr_outcomevar = "" if raw_mr_outcomevar_tk.get() == global_vars.tk_vars_defaults["raw_mr_outcomevar_tk"] else raw_mr_outcomevar_tk.get()
 	global_vars.raw_mr_predictors = raw_mr_predictors_lb.get(0, tk.END)
 	global_vars.raw_indttest_groupvar = "" if raw_indttest_groupvar_tk.get() == global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"] else raw_indttest_groupvar_tk.get()
-	global_vars.raw_indttest_dv = raw_indttest_dv_lb.get(0, tk.END)
+	global_vars.raw_indttest_dv = list(raw_indttest_dv_lb.get(0, tk.END))
 	global_vars.raw_pairttest_var_pairs = raw_pairttest_pairs_lb.get(0, tk.END)
 
 	global_vars.summ_corr_varOne = "" if summ_corr_varOne_tk.get() == global_vars.tk_vars_defaults["summ_corr_varOne_tk"] else summ_corr_varOne_tk.get()
@@ -712,7 +729,7 @@ def input_validation():
 				raise Exception("")
 			if global_vars.raw_indttest_groupvar == "":
 				raise Exception("")
-			if global_vars.raw_indttest_dv == ():
+			if global_vars.raw_indttest_dv == []:
 				raise Exception("")
 		elif global_vars.raw_test == "pairttest":
 			if global_vars.correction_type == "":

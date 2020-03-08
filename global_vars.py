@@ -89,6 +89,7 @@ input_type = ""
 raw_test = ""
 
 raw_corr_type = ""
+raw_corr_vars = ""
 raw_mr_outcomevar = ""
 raw_mr_predictors = ""
 raw_indttest_groupvar = ""
