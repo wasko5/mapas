@@ -74,9 +74,9 @@ def get_raw_data_df():
 	return raw_data_df
 
 def modify_raw_data_df(raw_data_df):
-	numeric_cols = helper_funcs.get_numeric_cols(raw_data_df)
+	numeric_cols = global_vars.raw_corr_vars
 	if global_vars.non_numeric_input_raise_errors == True:
-		helper_funcs.error_on_non_numeric_input(raw_data_df, numeric_cols)
+		helper_funcs.error_on_input(df=raw_data_df, cols=numeric_cols, input_type="numeric")
 	
 	mod_raw_data_df = raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols)
 
@@ -97,7 +97,7 @@ def save_output(mod_raw_data_df, output_df):
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
 def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols=[]):
-	mod_raw_data_df = raw_data_df.copy()
+	mod_raw_data_df = raw_data_df[numeric_cols + non_numeric_cols] #does NOT raise errors when array is blank (default arg)
 	mod_raw_data_df[numeric_cols] = mod_raw_data_df[numeric_cols].apply(pd.to_numeric, errors="coerce") #non-numeric values will be np.nan
 	try:
 		mod_raw_data_df[non_numeric_cols] = mod_raw_data_df[non_numeric_cols].astype(str) #does NOT raise errors when array is blank (default arg)
@@ -120,7 +120,7 @@ def raw_corr_generate_output_df(mod_raw_data_df):
 	data_list = []
 
 	i=0
-	for var1 in mod_raw_data_df.columns:
+	for var1 in mod_raw_data_df.columns: #can use .columns as all columns are now only of relevant vars (done in raw_input_generate_mod_raw_data_df func)
 		for var2 in mod_raw_data_df.columns[i:]:
 			if not var1 == var2:
 				r, p = helper_funcs.raw_input_corr_coeff(mod_raw_data_df[var1],mod_raw_data_df[var2])
@@ -137,7 +137,7 @@ def raw_corr_apa_table(mod_raw_data_df, output_df):
 	wb = Workbook()
 	ws = wb.active
 	
-	variables_list = list(mod_raw_data_df.columns)
+	variables_list = list(mod_raw_data_df.columns) #local var and .columns preferred to minimize use of global scope
 	
 	ws.append([""] + variables_list[:-1] + ["Mean", "SD"])
 	ws["A2"] = variables_list[0]

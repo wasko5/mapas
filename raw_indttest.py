@@ -54,8 +54,8 @@ global_vars.raw_indttest_dv = ["var1", "var2", "var3", "var4", "var5", "var6", "
 #spss_pairttest_nOne = ""
 #spss_pairttest_nTwo = ""
 
-global_vars.effect_size_choice = "Cohen's d" #could also be "Hedge's g", "Glass's delta" or blank/none (no idea which one it was)
-global_vars.correction_type = "bonferroni" #see global_vars.master_dict for other values
+global_vars.effect_size_choice = "none" #could also be "Hedge's g", "Glass's delta" or blank/none (no idea which one it was)
+global_vars.correction_type = "fdr_bh" #see global_vars.master_dict for other values
 
 global_vars.non_numeric_input_raise_errors = True #or False
 global_vars.raw_ttest_output_descriptives = True
@@ -76,9 +76,9 @@ def get_raw_data_df():
 
 def modify_raw_data_df(raw_data_df):
 	numeric_cols = global_vars.raw_indttest_dv
-	non_numeric_cols = global_vars.raw_indttest_groupvar ###list(set(list(raw_data_df.columns)) - set(numeric_cols)) #this is fine because numeric_cols is a subset of df.columns; could be a problem only if numeric_cols could contain unique values - https://stackoverflow.com/questions/3462143/get-difference-between-two-lists
+	non_numeric_cols = [global_vars.raw_indttest_groupvar] ###list(set(list(raw_data_df.columns)) - set(numeric_cols)) #this is fine because numeric_cols is a subset of df.columns; could be a problem only if numeric_cols could contain unique values - https://stackoverflow.com/questions/3462143/get-difference-between-two-lists
 	if global_vars.non_numeric_input_raise_errors == True:
-		helper_funcs.error_on_non_numeric_input(raw_data_df, numeric_cols)
+		helper_funcs.error_on_input(df=raw_data_df, cols=numeric_cols, input_type="numeric")
 	
 	mod_raw_data_df = raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols)
 
@@ -94,14 +94,14 @@ def generate_output_df(mod_raw_data_df):
 	return output_df
 
 def save_output(mod_raw_data_df, output_df):
-	raw_indttest_apa_table(mod_raw_data_df, output_df)
+	#raw_indttest_apa_table(mod_raw_data_df, output_df)
 	if global_vars.raw_ttest_output_descriptives == True:
 		raw_indttest_descriptives_table(mod_raw_data_df, output_df)
 
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
 def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols=[]):
-	mod_raw_data_df = raw_data_df.copy()
+	mod_raw_data_df = raw_data_df[numeric_cols + non_numeric_cols] #does NOT raise errors when array is blank (default arg)
 	mod_raw_data_df[numeric_cols] = mod_raw_data_df[numeric_cols].apply(pd.to_numeric, errors="coerce") #non-numeric values will be np.nan
 	try:
 		mod_raw_data_df[non_numeric_cols] = mod_raw_data_df[non_numeric_cols].astype(str) #does NOT raise errors when array is blank (default arg)
@@ -114,52 +114,47 @@ def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_co
 #-----------------------------------------------------------3. Output dataframe----------------------------------------------------
 #3.2.  Main function for generating the output data dataframe
 def raw_indttest_generate_output_df(mod_raw_data_df):
-	unique_groups = mod_raw_data_df[global_vars.raw_indttest_groupvar].unique()
+	unique_groups = [x.strip() for x in mod_raw_data_df[global_vars.raw_indttest_groupvar].unique() if len(x.strip()) > 0]
 	if len(unique_groups) > 2:
 		raise Exception("More than two unique values found in the grouping variable \'{}\'. Please supply data with only two groups.".format(global_vars.raw_indttest_groupvar))
 	group1_label, group2_label = unique_groups[0], unique_groups[1] #columns already passed as relevant types so no longer need to control types
 
 	group1_df = mod_raw_data_df[mod_raw_data_df[global_vars.raw_indttest_groupvar]==group1_label]
 	group2_df = mod_raw_data_df[mod_raw_data_df[global_vars.raw_indttest_groupvar]==group2_label]
-	
-	if global_vars.effect_size_choice == "Cohen's d":
-		effect_size_dfrow = 6
-	elif global_vars.effect_size_choice == "Hedge's g":
-		effect_size_dfrow = 7
-	elif global_vars.effect_size_choice == "Glass's delta":
-		effect_size_dfrow = 8
 
+	effect_size_df_row_lookup = {"Cohen's d": 6, "Hedge's g": 7, "Glass's delta": 8}
 	dictionaries_list=[]
 	for var in global_vars.raw_indttest_dv:
-		ttest_stats_df1 = rp.ttest(group1_df[var], group2_df[var], group1_name=group1_label, group2_name=group2_label, 
-			 equal_variances=stats.levene(group1_df[var], group2_df[var])[1]>0.05, paired=False)[0]
-		ttest_stats_df2 = rp.ttest(group1_df[var], group2_df[var], group1_name=group1_label, group2_name=group2_label, 
-			 equal_variances=stats.levene(group1_df[var], group2_df[var])[1]>0.05, paired=False)[1]
+
+		result = rp.ttest(group1_df[var], group2_df[var], group1_name=group1_label, group2_name=group2_label, 
+			 equal_variances=stats.levene(group1_df[var], group2_df[var])[1]>0.05, paired=False)
+		ttest_stats_df1 = result[0]
+		ttest_stats_df2 = result[1]
 		
 		current_dict={}
 		current_dict["Variable"] = var
 		current_dict["All_N"] = int(ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["N"])
-		current_dict["All_Mean"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == "combined"].iloc[0]["Mean"]
-		current_dict["All_SD"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == "combined"].iloc[0]["SD"]
-		current_dict["All_Std Err"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == "combined"].iloc[0]["SE"]
-		current_dict["All_95% CI_Low"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == "combined"].iloc[0]["95% Conf."]
-		current_dict["All_95% CI_High"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == "combined"].iloc[0]["Interval"]
-		current_dict[group1_label+"_N"] = int(ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group1_label].iloc[0]["N"])
-		current_dict[group1_label+"_Mean"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group1_label].iloc[0]["Mean"]
-		current_dict[group1_label+"_SD"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group1_label].iloc[0]["SD"]
-		current_dict[group1_label+"_Std Err"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group1_label].iloc[0]["SE"]
-		current_dict[group1_label+"_95% CI_Low"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group1_label].iloc[0]["95% Conf."]
-		current_dict[group1_label+"_95% CI_High"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group1_label].iloc[0]["Interval"]
-		current_dict[group2_label+"_N"] = int(ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group2_label].iloc[0]["N"])
-		current_dict[group2_label+"_Mean"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group2_label].iloc[0]["Mean"]
-		current_dict[group2_label+"_SD"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group2_label].iloc[0]["SD"]
-		current_dict[group2_label+"_Std Err"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group2_label].iloc[0]["SE"]
-		current_dict[group2_label+"_95% CI_Low"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group2_label].iloc[0]["95% Conf."]
-		current_dict[group2_label+"_95% CI_High"] = ttest_stats_df1.loc[ttest_stats_df1["Variable"] == group2_label].iloc[0]["Interval"]
+		current_dict["All_Mean"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["Mean"]
+		current_dict["All_SD"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["SD"]
+		current_dict["All_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["SE"]
+		current_dict["All_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["95% Conf."]
+		current_dict["All_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["Interval"]
+		current_dict[group1_label+"_N"] = int(ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["N"])
+		current_dict[group1_label+"_Mean"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["Mean"]
+		current_dict[group1_label+"_SD"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["SD"]
+		current_dict[group1_label+"_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["SE"]
+		current_dict[group1_label+"_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["95% Conf."]
+		current_dict[group1_label+"_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["Interval"]
+		current_dict[group2_label+"_N"] = int(ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["N"])
+		current_dict[group2_label+"_Mean"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["Mean"]
+		current_dict[group2_label+"_SD"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["SD"]
+		current_dict[group2_label+"_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["SE"]
+		current_dict[group2_label+"_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["95% Conf."]
+		current_dict[group2_label+"_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["Interval"]
 		current_dict["Equal Variances Assumed"] = "Yes" if stats.levene(group1_df[var], group2_df[var])[1]>0.05 else "No"
 		current_dict["Degrees of Freedom"] = ttest_stats_df2.iloc[1, 1]
 		current_dict["t"] = ttest_stats_df2.iloc[2, 1]
-		current_dict[global_vars.effect_size_choice] = ttest_stats_df2.iloc[effect_size_dfrow, 1]
+		current_dict[global_vars.effect_size_choice] = np.nan if global_vars.effect_size_choice == "none" else ttest_stats_df2.iloc[effect_size_df_row_lookup[global_vars.effect_size_choice], 1]
 		current_dict["pvalues"] = ttest_stats_df2.iloc[3,1]
 
 		dictionaries_list.append(current_dict)
@@ -171,7 +166,7 @@ def raw_indttest_generate_output_df(mod_raw_data_df):
 #-----------------------------------------------------------4. Saving data----------------------------------------------------
 #4.2.  Main function for saving data
 def raw_indttest_apa_table(mod_raw_data_df, output_df):
-	unique_groups = mod_raw_data_df[global_vars.raw_indttest_groupvar].unique()
+	unique_groups = [x.strip() for x in mod_raw_data_df[global_vars.raw_indttest_groupvar].unique() if len(x.strip()) > 0]
 	group1_label, group2_label = unique_groups[0], unique_groups[1]
 
 	sign_bool_label = list(output_df.columns)[-1]
@@ -236,17 +231,26 @@ def raw_indttest_apa_table(mod_raw_data_df, output_df):
 	for cell in ws[2] + ws[len(apa_output_df)+2]:
 		cell.border = Border(bottom=global_vars.border_APA)
 
+	if global_vars.effect_size_choice == "none":
+		ws.delete_cols(10)
+
 	helper_funcs.add_table_notes(ws, [])
 
 	helper_funcs.save_file("raw_data_indttest", wb)
 
 def raw_indttest_descriptives_table(mod_raw_data_df, output_df):
-	if global_vars.correction_type == "":
+	if global_vars.correction_type == "none":
 		output_df.drop(columns = ["adjusted_pvalues", list(output_df.columns)[-1]], inplace=True)
 	
 	test_stats_df = output_df[list(output_df.columns)[0:1] + list(output_df.columns)[19:]]
 	descriptive_stats_df = output_df.drop(columns = list(output_df.columns)[19:]) #returns what's dropped, not the dropped df
-	
+
+	#the operation below is correct so the SettingWithCopyWarning pandas error is supressed temporarily
+	pd.options.mode.chained_assignment = None
+	if global_vars.effect_size_choice == "none":
+		test_stats_df.drop(columns = [global_vars.effect_size_choice], inplace=True)
+	pd.options.mode.chained_assignment = "warn"
+
 	wb = Workbook()
 	ws = wb.active
 	

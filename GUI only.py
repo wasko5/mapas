@@ -608,7 +608,7 @@ def set_global_variables():
 	global_vars.raw_mr_predictors = raw_mr_predictors_lb.get(0, tk.END)
 	global_vars.raw_indttest_groupvar = "" if raw_indttest_groupvar_tk.get() == global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"] else raw_indttest_groupvar_tk.get()
 	global_vars.raw_indttest_dv = list(raw_indttest_dv_lb.get(0, tk.END))
-	global_vars.raw_pairttest_var_pairs = raw_pairttest_pairs_lb.get(0, tk.END)
+	global_vars.raw_pairttest_var_pairs = [pair.split(" <---> ") for pair in list(raw_pairttest_pairs_lb.get(0, tk.END))]
 
 	global_vars.summ_corr_varOne = "" if summ_corr_varOne_tk.get() == global_vars.tk_vars_defaults["summ_corr_varOne_tk"] else summ_corr_varOne_tk.get()
 	global_vars.summ_corr_varTwo = "" if summ_corr_varTwo_tk.get() == global_vars.tk_vars_defaults["summ_corr_varTwo_tk"] else summ_corr_varTwo_tk.get()

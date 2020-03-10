@@ -15,18 +15,13 @@ import global_vars
 #1.1.1. Helper functions fo generating modified raw data dataframes
 def get_numeric_cols(raw_data_df):
 	numeric_cols = list(raw_data_df.columns)
-	if global_vars.raw_test == "indttest":
-		numeric_cols
-	elif global_vars.input_type == "summ_corr":
-		#no need for error handling as the summ_corr_colNames_check func has already taken care of that
-		numeric_cols.remove(global_vars.summ_corr_varOne)
-		numeric_cols.remove(global_vars.summ_corr_varTwo)
-	elif global_vars.input_type == "summ_indttest":
+	if global_vars.input_type == "summ_indttest":
 		numeric_cols.remove(global_vars.summ_indttest_var)
 		numeric_cols.remove(global_vars.summ_indttest_equal_var)
 		
 	return numeric_cols
 
+'''
 def error_on_non_numeric_input(raw_data_df, numeric_cols):
 	bad_vals_dict = {}
 	for var in numeric_cols:
@@ -38,7 +33,30 @@ def error_on_non_numeric_input(raw_data_df, numeric_cols):
 		for col, ind_arr in bad_vals_dict.items():
 			error_msg += "In column {c}, there are non-numerical/blank entries on the following rows: {i}\n".format(c=col, i=(", ").join([str(x+2) for x in ind_arr]))
 		raise Exception(error_msg)
+'''
+def error_on_input(df, cols, input_type):
+	'''
+	df - the dataframe to check
+	cols - the cols to check
+	input_type - the input type to check for - can be either 'numeric' or 'nan'
+	'''
+	bad_vals_dict = {}
+	for var in cols:
+		if input_type == "numeric":
+			current_series = pd.to_numeric(df[var], errors="coerce")
+		elif input_type == "nan":
+			current_series = df[var]
+		ind_list = list(current_series.isnull().to_numpy().nonzero()[0])
+		if ind_list != []:
+			bad_vals_dict[var] = ind_list
+	if bad_vals_dict != {}:
+		error_msg = "Non-numerical or blank entries found in the data!\n"
+		for col, ind_arr in bad_vals_dict.items():
+			error_msg += "In column {c}, there are non-numerical/blank entries on the following rows: {i}\n".format(c=col, i=(", ").join([str(x+2) for x in ind_arr]))
+		raise Exception(error_msg)
 
+'''
+#--------------------------------------------------------probably delete
 def raw_input_pairttest_colNames_check(raw_data_df):
 	inputVars_unique = []
 	for var_time1, var_time2 in raw_pairttest_inputVars_list:
@@ -52,7 +70,7 @@ def raw_input_pairttest_colNames_check(raw_data_df):
 	inputVars_unique = list(set(inputVars_unique))
 	if len(inputVars_unique) > len(list(raw_data_df.columns)):
 		raise Exception("The provided number of unique variable columns is {i}, while the number of columns in the provided file is {f}".format(i=len(inputVars_unique), f=len(list(raw_data_df.columns))))
-
+'''
 def summ_input_colNames_check(raw_data_df, provided_cols):
 	for var in provided_cols:
 		if var not in list(raw_data_df.columns):
@@ -121,7 +139,7 @@ def correlations_format_val(x, p=None):
 	return x
 
 def add_table_notes(ws, table_notes=[], adjusted_pvalues_threshold=None):
-	if global_vars.correction_type != "":
+	if global_vars.correction_type != "none":
 		#currently using the master_dict indexing for the correction lookup, but might separate the master_dict into different ones later
 		#however, consider a helper lookup func for the long expression - see also raw_correlations
 		table_notes.append("Multiple tests correction applied to p values: {c}".format(c=list(global_vars.master_dict.keys())[list(global_vars.master_dict.values()).index(global_vars.correction_type)]))
@@ -145,7 +163,7 @@ def multitest_correction(output_df):
 	pvalues_list = output_df["pvalues"]
 	sign_col_label = "Adjusted p value significant at alpha = {alpha}".format(alpha=global_vars.alpha_threshold)
 
-	if global_vars.correction_type != "":    
+	if global_vars.correction_type != "none":    
 		#if global_vars.correction_type == "sidak":
 		#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[2],5))
 		#elif global_vars.correction_type == "bonferroni":
@@ -159,10 +177,7 @@ def multitest_correction(output_df):
 		sign_bools = [bool(x < global_vars.alpha_threshold) for x in pvalues_list]
 		
 	output_df["adjusted_pvalues"] = adjusted_pvalues
-	output_df[sign_col_label] = sign_bools
-
-	output_df[sign_col_label] = output_df[sign_col_label].replace(True,"Significant")
-	output_df[sign_col_label] = output_df[sign_col_label].replace(False,"Non-significant")
+	output_df[sign_col_label] = ["Significant" if significant else "Non-significant" for significant in sign_bools]
 
 	return output_df
 

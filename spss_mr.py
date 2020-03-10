@@ -10,19 +10,18 @@ from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
 from datetime import datetime
 import global_vars
-
-output_pvalues_type = "" #temporary to work until functionality is fixed
+import calculations_helper_functions_only as helper_funcs
 
 #-----------------------------------------------------------0. Input----------------------------------------------------
 #Commented out variables would either not be used or are considered for removal
-input_filename = "Input files\\spss\\input_spss_mr_all stats requested.xlsx"
+global_vars.input_path_and_filename = "Input files\\spss\\input_spss_mr_all stats requested.xlsx"
 #input_fileext = ""
-alpha_threshold = 0.05
-output_filename = "Output files for testing\\spss_mr_" #this does not end in .xlsx just for testing; in real app it should end with .xlsx (reason: function will add random numbers to prevent overwriting)
+global_vars.alpha_threshold = 0.05
+global_vars.output_filename = "Output files for testing\\spss_mr_" #this does not end in .xlsx just for testing; in real app it should end with .xlsx (reason: function will add random numbers to prevent overwriting)
 
-input_type = "spss"
+global_vars.input_type = "spss"
 
-raw_test = ""
+global_vars.raw_test = ""
 
 #raw_corr_type = ""
 #raw_mr_outcomevar = ""
@@ -45,7 +44,7 @@ raw_test = ""
 #summ_indttest_nTwo = ""
 #summ_indttest_equal_var = ""
 
-spss_test = "mr"
+global_vars.spss_test = "mr"
 #spss_indttest_nOne = ""
 #spss_indttest_nTwo = ""
 #spss_indttest_groupOneLabel = ""
@@ -54,25 +53,27 @@ spss_test = "mr"
 #spss_pairttest_nTwo = ""
 
 #effect_size_choice = ""
-correction_type = "" #see global_vars.master_dict for other values
+global_vars.correction_type = "none" #see global_vars.master_dict for other values
 
-non_numeric_input_raise_errors = True #or False
+#global_vars.non_numeric_input_raise_errors = True #or False
 #raw_ttest_output_descriptives = ""
 
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
 def get_raw_data_df():
-	raw_data_df = pd.read_excel(input_filename, sheet_name=0)
-
-	raw_data_df.to_excel("Progress dataframes\\spss_mr\\raw_data_df.xlsx")
+	if global_vars.input_path_and_filename.endswith(".xlsx"):
+		try:
+			raw_data_df = pd.read_excel(global_vars.input_path_and_filename)
+		except:
+			raise Exception("Oh-oh. For some reason we cannot read the provided file. Please try another file - make sure it's an excel spreadsheet.")
 
 	return raw_data_df
 
 def modify_raw_data_df(raw_data_df):
 	mod_raw_data_df = spss_mr_generate_mod_raw_data_df(raw_data_df) #might remove the function depending on whether I add logical checks
 
-	mod_raw_data_df.to_excel("Progress dataframes\\spss_mr\\mod_raw_data_df.xlsx")
+	#mod_raw_data_df.to_excel("Progress dataframes\\spss_mr\\mod_raw_data_df.xlsx")
 
 	return mod_raw_data_df
 
@@ -83,89 +84,13 @@ def generate_output_df(mod_raw_data_df):
 
 	return output_df
 
-def multitest_correction(output_df):
-	pvalues_list = output_df["pvalues"]
-	sign_col_label = "Adjusted p value significant at alpha = {alpha}".format(alpha=alpha_threshold)
-
-	if correction_type != "":    
-		if correction_type == "sidak":
-			sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=alpha_threshold, method=correction_type, is_sorted=False, returnsorted=False)[2],5))
-		elif correction_type == "bonferroni":
-			sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=alpha_threshold, method=correction_type, is_sorted=False, returnsorted=False)[3],5))
-
-		adjusted_pvalues = multitest.multipletests(pvalues_list, alpha=alpha_threshold, method=correction_type, is_sorted=False, returnsorted=False)[1]
-		sign_bools = multitest.multipletests(pvalues_list, alpha=alpha_threshold, method=correction_type, is_sorted=False, returnsorted=False)[0]
-	else:
-		adjusted_pvalues = pvalues_list
-		sign_bools = [bool(x < alpha_threshold) for x in pvalues_list]
-		
-	output_df["adjusted_pvalues"] = adjusted_pvalues
-	output_df[sign_col_label] = sign_bools
-
-	output_df[sign_col_label] = output_df[sign_col_label].replace(True,"Significant")
-	output_df[sign_col_label] = output_df[sign_col_label].replace(False,"Non-significant")
-
-	output_df.to_excel("Progress dataframes\\spss_mr\\output_df_corrections.xlsx")
-
-	return output_df
-
 def save_output(mod_raw_data_df, output_df):
 	spss_mr_apa_table(mod_raw_data_df, output_df)
 
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
-#2.1.  Helper functions fo generating modified raw data dataframes - all not just function-specific ones
-def get_numeric_cols(raw_data_df):
-	numeric_cols = list(raw_data_df.columns)
-	if raw_test == "indttest":
-		try:
-			numeric_cols.remove(raw_indttest_groupvar)
-		except ValueError:
-			raise Exception("The grouping variable \'{}\' is not found in the file. Please make sure it is type correctly.".format(raw_indttest_groupvar))
-	elif input_type == "summ_corr":
-		#no need for error handling as the summ_corr_colNames_check func has already taken care of that
-		numeric_cols.remove(summ_corr_varOne)
-		numeric_cols.remove(summ_corr_varTwo)
-	elif input_type == "summ_indttest":
-		numeric_cols.remove(summ_indttest_var)
-		numeric_cols.remove(summ_indttest_equal_var)
-		
-	return numeric_cols
-
-def error_on_non_numeric_input(raw_data_df, numeric_cols):
-	bad_vals_dict = {}
-	for var in numeric_cols:
-		ind_list = list(pd.to_numeric(raw_data_df[var], errors='coerce').isnull().to_numpy().nonzero()[0])
-		if ind_list != []:
-			bad_vals_dict[var] = ind_list
-	if bad_vals_dict != {}:
-		error_msg = "Non-numerical or blank entries found in the data!\n"
-		for col, ind_arr in bad_vals_dict.items():
-			error_msg += "In column {c}, there are non-numerical/blank entries on the following rows: {i}\n".format(c=col, i=(", ").join([str(x+2) for x in ind_arr]))
-		raise Exception(error_msg)
-
-def raw_input_pairttest_colNames_check(raw_data_df):
-	inputVars_unique = []
-	for var_time1, var_time2 in raw_pairttest_inputVars_list:
-		if var_time1 not in raw_data_df.columns:
-			raise Exception("The entered column \'{}\' is not found in the provided file.".format(var_time1))
-		elif var_time2 not in raw_data_df.columns:
-			raise Exception("The entered column \'{}\' is not found in the provided file.".format(var_time2))
-		else:
-			inputVars_unique.append(var_time1)
-			inputVars_unique.append(var_time2)
-	inputVars_unique = list(set(inputVars_unique))
-	if len(inputVars_unique) > len(list(raw_data_df.columns)):
-		raise Exception("The provided number of unique variable columns is {i}, while the number of columns in the provided file is {f}".format(i=len(inputVars_unique), f=len(list(raw_data_df.columns))))
-
-def summ_input_colNames_check(raw_data_df, provided_cols):
-	for var in provided_cols:
-		if var not in list(raw_data_df.columns):
-			raise Exception("Column {} is not found in the provided file.\nPlease ensure that the column names are typed correctly.".format(var))
-	if len(list(raw_data_df.columns)) > len(provided_cols):
-		raise Exception("The provided file contains too many columns. Please provide only {}.".format(len(provided_cols)))
-
 #2.1.  Main function for generating the modified raw data dataframe
 def spss_mr_generate_mod_raw_data_df(raw_data_df):
+	#-------------------------------------------------MORE RIGOROUS CHECKS HERE--------------------------------------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	mod_raw_data_df = raw_data_df.copy()
 
 	#renaming columns as the multi-level formatting of the spss table makes it difficult to work with
@@ -189,36 +114,6 @@ def spss_mr_generate_mod_raw_data_df(raw_data_df):
 	return mod_raw_data_df
 
 #-----------------------------------------------------------3. Output dataframe----------------------------------------------------
-#3.1. Helper functions for generating output dataframes - all not just function-specific ones
-def raw_input_corr_coeff(x, y):
-	if raw_corr_type == "pearson":
-		x = np.array(x)
-		y = np.array(y)
-		nas = ~np.logical_or(np.isnan(x), np.isnan(y))
-		x = np.compress(nas, x)
-		y = np.compress(nas, y)
-
-		r, p = stats.pearsonr(x, y)
-	elif raw_corr_type == "spearman":
-		r, p = stats.spearmanr(x, y, nan_policy="omit")
-	elif raw_corr_type == "kendall":
-		r, p = stats.kendalltau(x, y, nan_policy="omit")
-
-	return r, p
-
-def corr_coeff_ci(r, n):
-	if n < 4:
-		raise Exception("Sample size is too low for correlations. Minimum of 4 observations per variable required.")
-
-	r_z = np.arctanh(r)
-	se = 1/np.sqrt(n-3)
-	z = stats.norm.ppf(1-0.05/2)
-	low_z = r_z - z*se 
-	high_z = r_z + z*se
-	low, high = np.tanh((low_z, high_z))
-	
-	return low, high
-
 #3.2.  Main function for generating the output data dataframe
 def spss_mr_generate_output_df(mod_raw_data_df):
 	variables_list = ["(Constant)"] + list(mod_raw_data_df[mod_raw_data_df.columns[1]])[1:-1]
@@ -234,7 +129,7 @@ def spss_mr_generate_output_df(mod_raw_data_df):
 		ci_high_list = [""] * (len(variables_list))
 	beta_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["Standardized Coefficients"])[:-1]]
 	t_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["t"])[:-1]]
-	pvalues_list = [pvalue_formatting(x) for x in list(mod_raw_data_df["Sig."])[:-1]] #can afford to format here as there will be no multitest corrections applied
+	pvalues_list = [helper_funcs.pvalue_formatting(x) for x in list(mod_raw_data_df["Sig."])[:-1]] #can afford to format here as there will be no multitest corrections applied
 
 	output_df = pd.DataFrame()
 	output_df["Variable"] = variables_list
@@ -247,53 +142,6 @@ def spss_mr_generate_output_df(mod_raw_data_df):
 	return output_df
 
 #-----------------------------------------------------------4. Saving data----------------------------------------------------
-#4.1. Helper functions for saving data - all not just function-specific ones
-alignment_top = Alignment(horizontal="center", vertical="top")
-alignment_center = Alignment(horizontal="center", vertical="center")
-font_title = Font(size=20, bold=True)
-font_header = Font(italic=True)
-font_bold = Font(bold=True)
-border_APA = Side(border_style="medium", color="000000")
-
-def pvalue_formatting(x):
-	if x<0.001:
-		return "<.001"
-	else:
-		return "{:.3f}".format(x).replace("0", "", 1)
-
-def correlations_format_val(x, p=None):
-	try:
-		if isinstance(x, str): #covers the case when the correlations come from SPSS input and are flagged significant
-			x = "{:.2f}".format(float("".join([char for char in x if char!="*"]))).replace("0","",1)
-		elif abs(x) == 1.0:
-			x = "{:.2f}".format(val)
-		else:
-			x = "{:.2f}".format(x).replace("0","",1)
-	except:
-		raise Exception("Something went wrong with formatting the correlation coefficients. Please try again.")
-	if p != None:
-		if p < 0.001:
-			x = x + "**"
-		elif p < 0.05:
-			x = x + "*"
-	return x
-
-def add_table_notes(ws, table_notes, adjusted_pvalues_threshold=None):
-	if correction_type != "":
-		table_notes.append("Multiple tests correction applied to p values: {c}".format(c=list(global_vars.master_dict.keys())[list(global_vars.master_dict.values()).index(correction_type)]))
-		if output_pvalues_type == "adjusted":
-			table_notes.append("Adjusted p values used; significant at {alpha}".format(alpha=alpha_threshold))
-		elif output_pvalues_type == "original":
-			table_notes.append("Original p values used; significant at {alpha}".format(alpha=adjusted_pvalues_threshold))
-		
-	for note in table_notes:
-		ws.append([note])
-
-def save_file(output_name, wb):
-	time_now = datetime.now().strftime("%H%M%S-%Y%m%d")
-	filename = output_filename + time_now + ".xlsx"
-	wb.save(filename=filename)
-
 #4.2.  Main function for saving data
 def spss_mr_apa_table(mod_raw_data_df, output_df):
 	wb = Workbook()
@@ -303,17 +151,17 @@ def spss_mr_apa_table(mod_raw_data_df, output_df):
 		ws.append(row)
 
 	for cell in ws[1]:
-		cell.font = font_header
+		cell.font = global_vars.font_header
 		
 	for row in range(1, len(output_df)+2):
 		for cell in ws[row]:
-			cell.alignment = alignment_center
+			cell.alignment = global_vars.alignment_center
 	
 	for cell in ws[1]:
-		cell.border = Border(bottom=border_APA, top=border_APA)
+		cell.border = Border(bottom=global_vars.border_APA, top=global_vars.border_APA)
 
 	for cell in ws[len(output_df)+1]:
-		cell.border = Border(bottom=border_APA)
+		cell.border = Border(bottom=global_vars.border_APA)
 
 	DV_cell = mod_raw_data_df[mod_raw_data_df.columns[0]][len(mod_raw_data_df[mod_raw_data_df.columns[0]])-1]
 	DV = DV_cell[DV_cell.find(":")+2:]
@@ -321,14 +169,14 @@ def spss_mr_apa_table(mod_raw_data_df, output_df):
 	if output_df["95% CI"][0] == "[,]":
 		table_notes.append("Confidence intervals were not found in the SPSS table. Please add them to your SPSS table and re-run the program or add them manually.")
 
-	add_table_notes(ws, table_notes)
+	helper_funcs.add_table_notes(ws, table_notes)
 
-	save_file("spss_mr", wb)
+	helper_funcs.save_file("spss_mr", wb)
 
 
 raw_data_df = get_raw_data_df()
 mod_raw_data_df = modify_raw_data_df(raw_data_df)
 output_df = generate_output_df(mod_raw_data_df)
-if spss_test != "mr":
-	output_df = multitest_correction(output_df)
+if global_vars.spss_test != "mr":
+	output_df = helper_funcs.multitest_correction(output_df)
 save_output(mod_raw_data_df, output_df)
