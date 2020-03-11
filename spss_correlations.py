@@ -13,7 +13,8 @@ import global_vars
 import calculations_helper_functions_only as helper_funcs
 
 #-----------------------------------------------------------0. Input----------------------------------------------------
-#Commented out variables would either not be used or are considered for removal
+#TESTING ONLY
+'''
 global_vars.input_path_and_filename = "C:\\Users\\Nikolay Petrov\\Desktop\\spearman.xlsx"
 #input_fileext = ""
 global_vars.alpha_threshold = 0.05
@@ -57,7 +58,7 @@ global_vars.correction_type = "fdr_bh" #see global_vars.master_dict for other va
 
 #global_vars.non_numeric_input_raise_errors = True #or False
 #raw_ttest_output_descriptives = ""
-
+'''
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
@@ -233,8 +234,9 @@ def spss_corr_apa_table(mod_raw_data_df, output_df):
 	save_file("spss_correlations", wb)
 '''
 
-raw_data_df = get_raw_data_df()
-mod_raw_data_df = modify_raw_data_df(raw_data_df)
-output_df = generate_output_df(mod_raw_data_df)
-output_df = helper_funcs.multitest_correction(output_df)
-save_output(mod_raw_data_df, output_df)
+def main():
+	raw_data_df = get_raw_data_df()
+	mod_raw_data_df = modify_raw_data_df(raw_data_df)
+	output_df = generate_output_df(mod_raw_data_df)
+	output_df = helper_funcs.multitest_correction(output_df)
+	save_output(mod_raw_data_df, output_df)

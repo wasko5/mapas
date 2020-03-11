@@ -15,7 +15,8 @@ import calculations_helper_functions_only as helper_funcs
 output_pvalues_type = "" #temporary to work until functionality is fixed
 
 #-----------------------------------------------------------0. Input----------------------------------------------------
-#Commented out variables would either not be used or are considered for removal
+#TESTING ONLY
+'''
 global_vars.input_path_and_filename = "Input files\\raw data\\input_raw_correlations.xlsx"
 global_vars.alpha_threshold = 0.05
 global_vars.output_filename = "Test outputs\\output_raw_correlations" #this does not end in .xlsx just for testing; in real app it should end with .xlsx (reason: function will add random numbers to prevent overwriting)
@@ -58,7 +59,7 @@ global_vars.correction_type = "fdr_bh" #see global_vars.master_dict for other va
 
 global_vars.non_numeric_input_raise_errors = True #or False
 #raw_ttest_output_descriptives = ""
-
+'''
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
@@ -201,8 +202,9 @@ def raw_corr_apa_table(mod_raw_data_df, output_df):
 	helper_funcs.save_file("raw_data_correlations", wb)
 
 
-raw_data_df = get_raw_data_df()
-mod_raw_data_df = modify_raw_data_df(raw_data_df)
-output_df = generate_output_df(mod_raw_data_df)
-output_df = helper_funcs.multitest_correction(output_df)
-save_output(mod_raw_data_df, output_df)
+def main():
+	raw_data_df = get_raw_data_df()
+	mod_raw_data_df = modify_raw_data_df(raw_data_df)
+	output_df = generate_output_df(mod_raw_data_df)
+	output_df = helper_funcs.multitest_correction(output_df)
+	save_output(mod_raw_data_df, output_df)

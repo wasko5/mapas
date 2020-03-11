@@ -12,6 +12,18 @@ from datetime import datetime
 import global_vars
 
 
+#Helper functions for GUI
+def get_df_columns(path_and_filename):
+	try:
+		if path_and_filename.endswith(".xlsx"):
+			df_columns = list(pd.read_excel(path_and_filename, sheet_name=0).columns)
+		elif path_and_filename.endsiwth(".csv"):
+			df_columns = list(pd.read_csv(path_and_filename).columns)
+
+		return df_columns
+	except:
+		raise Exception("There was a problem reading the columns from the file.")
+
 #1.1.1. Helper functions fo generating modified raw data dataframes
 def get_numeric_cols(raw_data_df):
 	numeric_cols = list(raw_data_df.columns)
@@ -160,24 +172,25 @@ def save_file(output_name, wb):
 	wb.save(filename=filename)
 
 def multitest_correction(output_df):
-	pvalues_list = output_df["pvalues"]
-	sign_col_label = "Adjusted p value significant at alpha = {alpha}".format(alpha=global_vars.alpha_threshold)
+	if global_vars.spss_test != "mr":
+		pvalues_list = output_df["pvalues"]
+		sign_col_label = "Adjusted p value significant at alpha = {alpha}".format(alpha=global_vars.alpha_threshold)
 
-	if global_vars.correction_type != "none":    
-		#if global_vars.correction_type == "sidak":
-		#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[2],5))
-		#elif global_vars.correction_type == "bonferroni":
-		#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[3],5))
+		if global_vars.correction_type != "none":    
+			#if global_vars.correction_type == "sidak":
+			#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[2],5))
+			#elif global_vars.correction_type == "bonferroni":
+			#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[3],5))
 
-		correction_results = multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)
-		adjusted_pvalues = correction_results[1]
-		sign_bools = correction_results[0]
-	else:
-		adjusted_pvalues = pvalues_list
-		sign_bools = [bool(x < global_vars.alpha_threshold) for x in pvalues_list]
-		
-	output_df["adjusted_pvalues"] = adjusted_pvalues
-	output_df[sign_col_label] = ["Significant" if significant else "Non-significant" for significant in sign_bools]
+			correction_results = multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)
+			adjusted_pvalues = correction_results[1]
+			sign_bools = correction_results[0]
+		else:
+			adjusted_pvalues = pvalues_list
+			sign_bools = [bool(x < global_vars.alpha_threshold) for x in pvalues_list]
+			
+		output_df["adjusted_pvalues"] = adjusted_pvalues
+		output_df[sign_col_label] = ["Significant" if significant else "Non-significant" for significant in sign_bools]
 
 	return output_df
 

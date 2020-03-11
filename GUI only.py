@@ -4,8 +4,22 @@
 			reset to default these listboxes upon successful run of the program (i.e. when someone clicks "more analysis" in the popup)
 '''
 
-import Calculations_only as calcs
+import raw_indttest
+import raw_correlations
+#import raw_mr
+import raw_indttest
+import raw_pairttest
+import summ_correlations
+import summ_indttest
+import spss_correlations
+import spss_mr
+import spss_indttest
+import spss_pairttest
+#import pvalues
+
+
 import global_vars
+import calculations_helper_functions_only as helper_funcs
 import tkinter as tk
 from ttkthemes import themed_tk as thk #not needed if theme is not used
 from tkinter import ttk
@@ -236,7 +250,7 @@ def remove_frames(frames_list):
 
 def input_type_frames_layout():
 	#the only frames it does not include are master or input_type
-	frames_list = [raw_test_Frame, raw_corr_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_dv_Frame,
+	frames_list = [raw_test_Frame, raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_dv_Frame,
 					raw_pairttest_master_Frame, summ_corr_master_Frame, summ_indttest_master_Frame, spss_test_Frame, spss_indttest_sampleSize_Frame,
 					spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame,
 					raw_ttest_output_descriptives_Frame, non_numeric_input_raise_errors_Frame]
@@ -343,14 +357,14 @@ instr_label.grid(row=0, column=0, columnspan=3)
 
 #Input file button & label
 def select_file():
-	path_and_filename = askopenfilename(title="Select input file. Must be Excel file.", filetypes=(("Excel files","*.xlsx"),("All files","*.*")))
+	path_and_filename = askopenfilename(initialdir = "D:\\Desktop_current\\NPSoftware\\GitHub", title="Select input file. Must be Excel file.", filetypes=(("Excel files","*.xlsx"),("All files","*.*")))
 	
 	if path_and_filename.endswith(".xlsx"): # or filename[ext_sep_idx:] == ".csv" - for later use when csv is integrated
 		update_filename_label(filename = path_and_filename[path_and_filename.rfind("/")+1:], label = filename_label, char_limit=50)
 
 		input_path_and_filename_tk.set(path_and_filename)
 
-		df_cols = calcs.get_df_columns(path_and_filename)
+		df_cols = helper_funcs.get_df_columns(path_and_filename)
 		col_names_lb.configure(state="normal")
 		col_names_lb.delete(0, tk.END)
 		col_names_lb.insert(tk.END, *df_cols)
@@ -868,13 +882,42 @@ about.add_command(label="Info", command=submit_window)
 menubar.add_cascade(label="About", menu=about)
 
 #------------------------
+def run_individual_funcs():
+	if global_vars.input_type == "raw":
+		if global_vars.raw_test == "corr":
+			raw_correlations.main()
+		elif global_vars.raw_test == "mr":
+			pass
+			#raw_mr.main()
+		elif global_vars.raw_test == "indttest":
+			raw_indttest.main()
+		elif global_vars.raw_test == "pairttest":
+			raw_pairttest.main()
+	elif global_vars.input_type == "summ_corr":
+		summ_correlations.main()
+	elif global_vars.input_type == "summ_indttest":
+		summ_indttest.main()
+	elif global_vars.input_type == "spss":
+		if global_vars.spss_test == "corr":
+			spss_correlations.main()
+		elif global_vars.spss_test == "mr":
+			spss_mr.main()
+		elif global_vars.spss_test == "indttest":
+			spss_indttest.main()
+		elif global_vars.spss_test == "pairttest":
+			spss_pairttest.main()
+	elif global_vars.input_type == "pvalues":
+		pass
+		#pvalues.main()
 
+#------------------------------------------------------------------------------------
 def submit():
 	set_global_variables()
 	input_validation()
+	run_individual_funcs()
 	print("Success")
 	#another_window_test() #the progess bar stuff for later
-	#submit_window(show_buttons=1)
+	submit_window(show_buttons=1)
 	#master.destroy()
 	#make sure to catch exceptions and do stuff to reset all variables
 

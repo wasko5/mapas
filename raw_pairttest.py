@@ -13,7 +13,8 @@ import global_vars
 import calculations_helper_functions_only as helper_funcs
 
 #-----------------------------------------------------------0. Input----------------------------------------------------
-#Commented out variables would either not be used or are considered for removal
+#TESTING ONLY
+'''
 global_vars.input_path_and_filename = "Input files\\raw data\\input_raw_pairedTtest.xlsx"
 #input_fileext = ""
 global_vars.alpha_threshold = 0.05
@@ -57,7 +58,7 @@ global_vars.correction_type = "bonferroni" #see global_vars.master_dict for othe
 
 global_vars.non_numeric_input_raise_errors = True #or False
 global_vars.raw_ttest_output_descriptives = True
-
+'''
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
@@ -93,7 +94,7 @@ def generate_output_df(mod_raw_data_df):
 	return output_df
 
 def save_output(mod_raw_data_df, output_df):
-	#raw_pairttest_apa_table(mod_raw_data_df, output_df)
+	raw_pairttest_apa_table(mod_raw_data_df, output_df)
 	if global_vars.raw_ttest_output_descriptives == True:
 		raw_pairttest_descriptives_table(mod_raw_data_df, output_df)
 
@@ -257,8 +258,9 @@ def raw_pairttest_descriptives_table(mod_raw_data_df, output_df):
 
 	helper_funcs.save_file("raw_data_pairttest_descriptives", wb)
 
-raw_data_df = get_raw_data_df()
-mod_raw_data_df = modify_raw_data_df(raw_data_df)
-output_df = generate_output_df(mod_raw_data_df)
-output_df = helper_funcs.multitest_correction(output_df)
-save_output(mod_raw_data_df, output_df)
+def main():
+	raw_data_df = get_raw_data_df()
+	mod_raw_data_df = modify_raw_data_df(raw_data_df)
+	output_df = generate_output_df(mod_raw_data_df)
+	output_df = helper_funcs.multitest_correction(output_df)
+	save_output(mod_raw_data_df, output_df)

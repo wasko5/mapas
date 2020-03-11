@@ -13,11 +13,11 @@ import global_vars
 import calculations_helper_functions_only as helper_funcs
 
 #-----------------------------------------------------------0. Input----------------------------------------------------
-#Commented out variables would either not be used or are considered for removal
+#TESTING ONLY
+'''
 global_vars.input_path_and_filename = "Input files\\spss\\input_spss_mr_all stats requested.xlsx"
-#input_fileext = ""
 global_vars.alpha_threshold = 0.05
-global_vars.output_filename = "Output files for testing\\spss_mr_" #this does not end in .xlsx just for testing; in real app it should end with .xlsx (reason: function will add random numbers to prevent overwriting)
+global_vars.output_filename = "Output files for testing\\spss_mr" #this does not end in .xlsx just for testing; in real app it should end with .xlsx (reason: function will add random numbers to prevent overwriting)
 
 global_vars.input_type = "spss"
 
@@ -57,7 +57,7 @@ global_vars.correction_type = "none" #see global_vars.master_dict for other valu
 
 #global_vars.non_numeric_input_raise_errors = True #or False
 #raw_ttest_output_descriptives = ""
-
+'''
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
@@ -80,7 +80,7 @@ def modify_raw_data_df(raw_data_df):
 def generate_output_df(mod_raw_data_df):
 	output_df = spss_mr_generate_output_df(mod_raw_data_df)
 
-	output_df.to_excel("Progress dataframes\\spss_mr\\output_df.xlsx")
+	#output_df.to_excel("Progress dataframes\\spss_mr\\output_df.xlsx")
 
 	return output_df
 
@@ -117,8 +117,7 @@ def spss_mr_generate_mod_raw_data_df(raw_data_df):
 #3.2.  Main function for generating the output data dataframe
 def spss_mr_generate_output_df(mod_raw_data_df):
 	variables_list = ["(Constant)"] + list(mod_raw_data_df[mod_raw_data_df.columns[1]])[1:-1]
-	
-	b_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["Unstandardized Coefficients"])[:-1]]
+
 	try:
 		ci_low_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["95.0% Confidence Interval for B"])[:-1]]
 	except KeyError:
@@ -128,16 +127,14 @@ def spss_mr_generate_output_df(mod_raw_data_df):
 	except KeyError:
 		ci_high_list = [""] * (len(variables_list))
 	beta_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["Standardized Coefficients"])[:-1]]
-	t_list = ["{:.2f}".format(x) for x in list(mod_raw_data_df["t"])[:-1]]
-	pvalues_list = [helper_funcs.pvalue_formatting(x) for x in list(mod_raw_data_df["Sig."])[:-1]] #can afford to format here as there will be no multitest corrections applied
 
 	output_df = pd.DataFrame()
 	output_df["Variable"] = variables_list
-	output_df["B"] = b_list
+	output_df["B"] = ["{:.2f}".format(x) for x in list(mod_raw_data_df["Unstandardized Coefficients"])[:-1]]
 	output_df["95% CI"] = ["["+low+","+high+"]" for low,high in zip(ci_low_list, ci_high_list)]
 	output_df["beta"] = ['' if x=='nan' else x for x in beta_list] #the beta for the constant is missing from the spss output
-	output_df["t"] = t_list
-	output_df["p"] = pvalues_list
+	output_df["t"] = ["{:.2f}".format(x) for x in list(mod_raw_data_df["t"])[:-1]]
+	output_df["p"] = [helper_funcs.pvalue_formatting(x) for x in list(mod_raw_data_df["Sig."])[:-1]] #can afford to format here as there will be no multitest corrections applied
 	
 	return output_df
 
@@ -173,10 +170,9 @@ def spss_mr_apa_table(mod_raw_data_df, output_df):
 
 	helper_funcs.save_file("spss_mr", wb)
 
-
-raw_data_df = get_raw_data_df()
-mod_raw_data_df = modify_raw_data_df(raw_data_df)
-output_df = generate_output_df(mod_raw_data_df)
-if global_vars.spss_test != "mr":
+def main():
+	raw_data_df = get_raw_data_df()
+	mod_raw_data_df = modify_raw_data_df(raw_data_df)
+	output_df = generate_output_df(mod_raw_data_df)
 	output_df = helper_funcs.multitest_correction(output_df)
-save_output(mod_raw_data_df, output_df)
+	save_output(mod_raw_data_df, output_df)
