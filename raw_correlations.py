@@ -12,8 +12,6 @@ from datetime import datetime
 import global_vars
 import calculations_helper_functions_only as helper_funcs
 
-output_pvalues_type = "" #temporary to work until functionality is fixed
-
 #-----------------------------------------------------------0. Input----------------------------------------------------
 #TESTING ONLY
 '''

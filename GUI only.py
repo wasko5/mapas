@@ -6,7 +6,7 @@
 
 import raw_indttest
 import raw_correlations
-#import raw_mr
+import raw_mr
 import raw_indttest
 import raw_pairttest
 import summ_correlations
@@ -15,7 +15,7 @@ import spss_correlations
 import spss_mr
 import spss_indttest
 import spss_pairttest
-#import pvalues
+import pvalues
 
 
 import global_vars
@@ -619,7 +619,7 @@ def set_global_variables():
 	global_vars.raw_corr_type =  "" if raw_corr_type_tk.get() == global_vars.tk_vars_defaults["raw_corr_type_tk"] else global_vars.master_dict[raw_corr_type_tk.get()]
 	global_vars.raw_corr_vars = list(raw_corr_vars_lb.get(0, tk.END))
 	global_vars.raw_mr_outcomevar = "" if raw_mr_outcomevar_tk.get() == global_vars.tk_vars_defaults["raw_mr_outcomevar_tk"] else raw_mr_outcomevar_tk.get()
-	global_vars.raw_mr_predictors = raw_mr_predictors_lb.get(0, tk.END)
+	global_vars.raw_mr_predictors = list(raw_mr_predictors_lb.get(0, tk.END))
 	global_vars.raw_indttest_groupvar = "" if raw_indttest_groupvar_tk.get() == global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"] else raw_indttest_groupvar_tk.get()
 	global_vars.raw_indttest_dv = list(raw_indttest_dv_lb.get(0, tk.END))
 	global_vars.raw_pairttest_var_pairs = [pair.split(" <---> ") for pair in list(raw_pairttest_pairs_lb.get(0, tk.END))]
@@ -658,8 +658,8 @@ def set_global_variables():
 	except ValueError:
 		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_pairttest_nTwo_tk.get()))
 
-	global_vars.effect_size_choice = "" if effect_size_choice_tk.get() == global_vars.tk_vars_defaults["effect_size_choice_tk"] else effect_size_choice_tk.get()
-	global_vars.correction_type = "" if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"] else global_vars.master_dict[correction_type_tk.get()]
+	global_vars.effect_size_choice = "none" if effect_size_choice_tk.get() == global_vars.tk_vars_defaults["effect_size_choice_tk"] else effect_size_choice_tk.get()
+	global_vars.correction_type = "none" if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"] else global_vars.master_dict[correction_type_tk.get()]
 
 	global_vars.non_numeric_input_raise_errors = "" if non_numeric_input_raise_errors_tk.get() == global_vars.tk_vars_defaults["non_numeric_input_raise_errors_tk"] else global_vars.master_dict[non_numeric_input_raise_errors_tk.get()]
 	global_vars.raw_ttest_output_descriptives = True if raw_ttest_output_descriptives_tk.get() == "Yes" else False
@@ -887,8 +887,7 @@ def run_individual_funcs():
 		if global_vars.raw_test == "corr":
 			raw_correlations.main()
 		elif global_vars.raw_test == "mr":
-			pass
-			#raw_mr.main()
+			raw_mr.main()
 		elif global_vars.raw_test == "indttest":
 			raw_indttest.main()
 		elif global_vars.raw_test == "pairttest":
@@ -907,8 +906,7 @@ def run_individual_funcs():
 		elif global_vars.spss_test == "pairttest":
 			spss_pairttest.main()
 	elif global_vars.input_type == "pvalues":
-		pass
-		#pvalues.main()
+		pvalues.main()
 
 #------------------------------------------------------------------------------------
 def submit():
