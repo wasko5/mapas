@@ -1,4 +1,3 @@
-#df = pd.read_excel("Input files\\raw data\\input_raw_correlations.xlsx")
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -13,12 +12,12 @@ from datetime import datetime
 
 
 #------------------------------------------------------------0. Additional helper functions-----------------------------------------
-def get_df_columns(filename):
+def get_df_columns(path_and_filename):
 	try:
-		if filename.endswith(".xlsx"):
-			df_columns = list(pd.read_excel(filename, sheet_name=0).columns)
-		elif filename.endsiwth(".csv"):
-			df_columns = list(pd.read_csv(filename).columns)
+		if path_and_filename.endswith(".xlsx"):
+			df_columns = list(pd.read_excel(path_and_filename, sheet_name=0).columns)
+		elif path_and_filename.endsiwth(".csv"):
+			df_columns = list(pd.read_csv(path_and_filename).columns)
 
 		return df_columns
 	except:

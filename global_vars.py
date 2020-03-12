@@ -1,8 +1,24 @@
+import pandas as pd
+import numpy as np
+from scipy import stats
+import statsmodels.api as sm
+from statsmodels.stats import multitest
+import researchpy as rp
+from openpyxl import Workbook
+from openpyxl.styles import Border, Side, Alignment, Font
+from openpyxl.utils import get_column_letter
+from openpyxl.utils.dataframe import dataframe_to_rows
+from datetime import datetime
+
 master_dict = {
 	"Correlations" : "corr",
 	"(Multiple) Regression - Standard" : "mr",
 	"Independent Samples t-test" : "indttest",
 	"Paired samples t-test" : "pairttest",
+
+	"Pearson's r" : "pearson",
+	"Spearman's rho" : "spearman",
+	"Kendall's tau" : "kendall",
 
 	"Raise errors" : True,
 	"Ignore case-wise" : False,
@@ -17,11 +33,54 @@ master_dict = {
 	"Benjamini-Yekutieli" : "fdr_by",
 	"Benjamini-Hochberg (2-stage\nnon-negative correction) " : "fdr_tsbh",
 	"Benjamini-Yekutieli (2-stage\nnon-negative correction)" : "fdr_tsbky",
-	"None" : ""
+	"None" : "none"
 }
 
-input_filename = ""
-input_fileext = ""
+tk_vars_defaults = {
+	"input_type_tk" : "0",
+	"input_path_and_filename_tk" : "", #not going to work as I cannot map multiple values to the same key
+	"output_filename_tk" : "",
+	"alpha_threshold_tk" : "0.05",
+
+	"raw_test_tk" : "Select a test...",
+
+	"raw_corr_type_tk" : "Select a correlation...",
+	"raw_mr_outcomevar_tk" : "Select outcome variable...",
+	"raw_indttest_groupvar_tk" : "Select grouping variable...",
+	"raw_pairttest_var1_tk" : "Select first variable...",
+	"raw_pairttest_var2_tk" : "Select second variable...",
+
+	"summ_corr_varOne_tk" : "Select var 1 column",
+	"summ_corr_varTwo_tk" : "Select var 2 column",
+	"summ_corr_coeff_tk" : "Select correlation coeff column",
+	"summ_corr_pvalues_tk" : "Select p-values column",
+
+	"summ_indttest_var_tk" : "", #not going to work as I cannot map multiple values to the same key
+	"summ_indttest_meanOne_tk" : "",
+	"summ_indttest_sdOne_tk" : "",
+	"summ_indttest_nOne_tk" : "",
+	"summ_indttest_meanTwo_tk" : "",
+	"summ_indttest_sdTwo_tk" : "",
+	"summ_indttest_nTwo_tk" : "",
+	"summ_indttest_equal_var_tk" : "",
+
+	"spss_test_tk" : "Select a test...",
+
+	"spss_indttest_nOne_tk" : "Enter an integer", #not going to work as I cannot map multiple values to the same key
+	"spss_indttest_nTwo_tk" : "Enter an integer",
+	"spss_indttest_groupOneLabel_tk" : "",
+	"spss_indttest_groupTwoLabel_tk" : "",
+	"spss_pairttest_nOne_tk" : "Enter an integer",
+	"spss_pairttest_nTwo_tk" : "Enter an integer",
+
+	"effect_size_choice_tk" : "Select effect size...",
+	"correction_type_tk" : "Select correction...",
+
+	"raw_ttest_output_descriptives_tk" : "No",
+	"non_numeric_input_raise_errors_tk" : "Select error handling..."
+}
+
+input_path_and_filename = "" #to be used instead of filename and fileext; replace if checks on the ext w/ 'endswith'
 alpha_threshold = ""
 output_filename = ""
 
@@ -30,6 +89,7 @@ input_type = ""
 raw_test = ""
 
 raw_corr_type = ""
+raw_corr_vars = ""
 raw_mr_outcomevar = ""
 raw_mr_predictors = ""
 raw_indttest_groupvar = ""
@@ -63,3 +123,13 @@ correction_type = ""
 
 non_numeric_input_raise_errors = ""
 raw_ttest_output_descriptives = ""
+
+alignment_top = Alignment(horizontal="center", vertical="top")
+alignment_center = Alignment(horizontal="center", vertical="center")
+font_title = Font(size=20, bold=True)
+font_header = Font(italic=True)
+font_bold = Font(bold=True)
+border_APA = Side(border_style="medium", color="000000")
+
+
+output_pvalues_type = "" #temporary until hlper functions are fixed
