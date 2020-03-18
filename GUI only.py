@@ -2,6 +2,7 @@
 - One current 'feature' is that when you move between tests (correlations-mr in raw test) the things you put in the listbox (e.g. for MR) stay there despite clicking away.
 			Might leave it like that for listboxes but reset for everything else. Might add a parameter to the reset_defaults function such that it can also
 			reset to default these listboxes upon successful run of the program (i.e. when someone clicks "more analysis" in the popup)
+- Raw indttests: make users hand-enter their group labels for the grouping variable
 '''
 
 import raw_indttest
@@ -25,6 +26,7 @@ from ttkthemes import themed_tk as thk #not needed if theme is not used
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename, asksaveasfilename
+from PIL import Image, ImageTk
 from webbrowser import open_new
 import time #temporary for testing
 
@@ -49,6 +51,9 @@ s.configure("TLabelframe", padding=5, borderwidth=3)
 #------------------------------------------------------------------------------
 
 #-----------------2.1. Variable and Frame declaration
+columns_current_indices_dict = {}
+previous_combobox_vals_dict = {}
+
 input_path_and_filename_tk = tk.StringVar()
 alpha_threshold_tk = tk.StringVar()
 output_filename_tk = tk.StringVar()
@@ -198,6 +203,7 @@ summ_indttest_sdTwo_Frame.grid(row=2, column=1)
 summ_indttest_nTwo_Frame = ttk.LabelFrame(summ_indttest_master_Frame, text="N of Group 2 column")
 summ_indttest_nTwo_Frame.grid(row=3, column=1, pady=(5,0))
 
+spss_get_table_info_Frame = tk.Frame(master)
 spss_test_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Statistical test")
 spss_indttest_sampleSize_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Sample size")
 spss_indttest_groupLabels_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Group labels (optional)")
@@ -226,22 +232,105 @@ def get_values_for_dropdown(dropdown):
 	dropdown.configure(values=col_names_lb.get(0, tk.END))
 
 def add_variables_to_listbox(listbox):
-	col_names_selection = list(col_names_lb.curselection())
+	current_sel_ind = list(col_names_lb.curselection())
+	current_sel_items = [col_names_lb.get(ele) for ele in current_sel_ind]
+	
+	listbox.insert(tk.END, *[col_names_lb.get(ele) for ele in current_sel_ind])
+	delete_lbitems(col_names_lb, ind=current_sel_ind)
 
-	#check for duplicates
-	already_added_items = list(listbox.get(0, tk.END))
-	already_added_indices = [col_names_lb.get(0, tk.END).index(item) for item in already_added_items]
-	common_elements_indices = list(set(col_names_selection) & set(already_added_indices))
-	if len(common_elements_indices) < 1:
-		listbox.insert(tk.END, *[col_names_lb.get(s) for s in col_names_selection])
+def move_lbvars_to_master(listbox): #TO CHANGE NAME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	current_sel_ind = list(listbox.curselection())
+	current_sel_items = []
+	if global_vars.master_dict[raw_test_tk.get()] == "pairttest":
+		for ind in current_sel_ind:
+			for item in listbox.get(ind).split(" <---> "):
+				current_sel_items.append(item)
 	else:
-		common_elements_items = [col_names_lb.get(ind) for ind in common_elements_indices]
-		messagebox.showerror("Error!", "You tried to add the following variable(s): {}\nHowever, you cannot add the same variable(s) twice.".format("; ".join(common_elements_items)))
+		current_sel_items = [listbox.get(ele) for ele in current_sel_ind]
 
-def remove_variables_from_listbox(listbox):
-	current_selection = list(listbox.curselection())
-	for index in current_selection[::-1]: #have to start backwards as each deletion changes item indices
-		listbox.delete(index)
+	if not any(val in global_vars.tk_vars_defaults.values() for val in current_sel_items): #avoids adding default combobox values to listboxes
+		move_back_to_master(current_sel_items)
+
+	delete_lbitems(listbox, ind=current_sel_ind)
+
+def move_back_to_master(items):
+	for item in items:
+		update_columns_current_indices_dict()
+		if item not in col_names_lb.get(0, tk.END):
+		#this if handles the following case: on pairttest select var1-var2 and add, then select var3-var4 and add, then select var5 and BEFORE
+		#selecting anything else, select the added var3 <---> var4 pair and remove it; then as pair to the already selected var5, select anything but var4
+		#the result will be 2 var4s in the master lb as the previous value coincides with an already existing value
+			current_ind_arr = list(columns_current_indices_dict.values())
+			index_to_start_search = list(columns_current_indices_dict.keys()).index(item)
+			for loop_ind, ele_ind in enumerate(current_ind_arr[index_to_start_search:]):
+				if loop_ind + index_to_start_search == len(current_ind_arr[index_to_start_search:]) + index_to_start_search - 1 and ele_ind == -1:
+					#corner case - checks if the item to be moved back should be last
+					insert_in_master_lb(tk.END, item)
+				if ele_ind != -1:
+					insert_in_master_lb(ele_ind, item)
+					break
+
+def insert_in_master_lb(ind, item):
+	if item in columns_current_indices_dict.keys():
+		col_names_lb.insert(ind, item)
+
+def delete_lbitems(listbox, values=[], ind=[]):
+	if values != []:
+		lb_items = listbox.get(0, tk.END)
+		ind = []
+		for val in values:
+			ind.append(lb_items.index(val))
+
+	for i in ind[::-1]:
+		listbox.delete(i)
+
+def update_columns_current_indices_dict():
+	col_names_lb_current = list(col_names_lb.get(0, tk.END))  
+	for key in columns_current_indices_dict.keys():
+		if key not in col_names_lb_current:
+			columns_current_indices_dict[key] = -1
+		else:
+			columns_current_indices_dict[key] = col_names_lb_current.index(key)
+
+def reset_columns_dict_and_lb():
+	col_names_lb.delete(0, tk.END)
+	col_names_lb.insert(tk.END, *list(columns_current_indices_dict.keys()))
+
+	for ind, ele in enumerate(list(columns_current_indices_dict.keys())):
+		columns_current_indices_dict[ele] = ind
+
+def reset_all_lb():
+	reset_columns_dict_and_lb()
+	raw_corr_vars_lb.delete(0, tk.END)
+	raw_mr_predictors_lb.delete(0, tk.END)
+	raw_indttest_dv_lb.delete(0, tk.END)
+	raw_pairttest_pairs_lb.delete(0, tk.END)
+
+def pairttest_remove_added_vars_from_master():
+	col_names_lb_vars = col_names_lb.get(0, tk.END)
+	pairttest_added_vars = [var for pair in list(raw_pairttest_pairs_lb.get(0, tk.END)) for var in pair.split(" <---> ")]
+	
+	for var in pairttest_added_vars:
+		if var in col_names_lb_vars:
+			delete_lbitems(col_names_lb, values=[var])
+
+def move_comboboboxvar_to_master(event):
+	combobox_id = str(event.widget) #takes advantage of the fact that a combobox is linked to a single variable
+	combobox_current_val = event.widget.getvar(event.widget.cget("textvariable"))
+	if combobox_id in previous_combobox_vals_dict.keys():
+		combobox_prev_val = previous_combobox_vals_dict[combobox_id]
+	else:
+		combobox_prev_val = ""
+
+	if combobox_prev_val != "" and combobox_prev_val != "Select input file first...":
+		move_back_to_master([combobox_prev_val])
+
+	if combobox_id == ".!frame.!labelframe8.!frame.!combobox" or combobox_id == ".!frame.!labelframe8.!frame.!combobox2": #ids for the 2 pairttest dropdowns
+		pairttest_remove_added_vars_from_master()
+
+	previous_combobox_vals_dict[combobox_id] = combobox_current_val
+	delete_lbitems(col_names_lb, values=[combobox_current_val])
+	update_columns_current_indices_dict()
 
 #-----------------2.2. Layout control
 def remove_frames(frames_list):
@@ -251,28 +340,31 @@ def remove_frames(frames_list):
 def input_type_frames_layout():
 	#the only frames it does not include are master or input_type
 	frames_list = [raw_test_Frame, raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_dv_Frame,
-					raw_pairttest_master_Frame, summ_corr_master_Frame, summ_indttest_master_Frame, spss_test_Frame, spss_indttest_sampleSize_Frame,
+					raw_pairttest_master_Frame, summ_corr_master_Frame, summ_indttest_master_Frame, spss_get_table_info_Frame, spss_test_Frame, spss_indttest_sampleSize_Frame,
 					spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame,
 					raw_ttest_output_descriptives_Frame, non_numeric_input_raise_errors_Frame]
 
+	
 	set_variables_default()
+	reset_all_lb()
 	remove_frames(frames_list)
 	test_specifications_master_Frame.grid_rowconfigure(index=1, weight=0)
 
 	if input_type_tk.get() == "raw":
 		raw_test_Frame.grid(row=0, column=0, sticky="NW")
 	elif input_type_tk.get() == "summ_corr":
-		correction_type_Frame.grid(row=0, column=0, sticky="NW", padx=0, pady=0)
-		summ_corr_master_Frame.grid(row=0, column=1, columnspan=2, sticky="NW", padx=15, pady=0)
+		correction_type_Frame.grid(row=0, column=0, rowspan=1, sticky="NW", padx=0, pady=0)
+		summ_corr_master_Frame.grid(row=0, column=1, columnspan=2, sticky="NW", padx=(15, 0), pady=0)
 	elif input_type_tk.get() == "summ_indttest":
 		test_specifications_master_Frame.grid_rowconfigure(index=1, weight=1)
-		correction_type_Frame.grid(row=0, column=0, sticky="NW", padx=(0, 15), pady=0)
+		correction_type_Frame.grid(row=0, column=0, rowspan=1, sticky="NW", padx=(0, 15), pady=0)
 		effect_size_Frame.grid(row=1, column=0, sticky="NW", padx=(0, 15), pady=5)
-		summ_indttest_master_Frame.grid(row=0, column=1, columnspan=2, rowspan=2, sticky="NW", padx=(0, 15), pady=0)
+		summ_indttest_master_Frame.grid(row=0, column=1, columnspan=2, rowspan=2, sticky="NW", padx=0, pady=0)
 	elif input_type_tk.get() == "spss":
 		spss_test_Frame.grid(row=0, column=0, sticky="NW")
+		spss_get_table_info_Frame.grid(row=3, column=2, sticky="NE", padx=15, pady=0)
 	elif input_type_tk.get() == "pvalues":
-		correction_type_Frame.grid(row=0, column=0, sticky="NW", padx=0, pady=0)
+		correction_type_Frame.grid(row=0, column=0, rowspan=1, sticky="NW", padx=0, pady=0)
 
 def raw_test_clear_vars():
 	raw_corr_type_tk.set(global_vars.tk_vars_defaults["raw_corr_type_tk"])
@@ -284,13 +376,12 @@ def raw_test_clear_vars():
 	raw_ttest_output_descriptives_tk.set(global_vars.tk_vars_defaults["raw_ttest_output_descriptives_tk"])
 	non_numeric_input_raise_errors_tk.set(global_vars.tk_vars_defaults["non_numeric_input_raise_errors_tk"])
 
-
-
 def raw_test_frames_layout(event):
 	frames_list = [raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_dv_Frame, raw_pairttest_master_Frame,
 					col_names_Frame, effect_size_Frame, correction_type_Frame, raw_ttest_output_descriptives_Frame, non_numeric_input_raise_errors_Frame]
 
 	raw_test_clear_vars()
+	reset_all_lb()
 	remove_frames(frames_list)
 
 	if global_vars.master_dict[raw_test_tk.get()] == "corr":
@@ -305,7 +396,7 @@ def raw_test_frames_layout(event):
 		raw_mr_outcomevar_Frame.grid(row=0, column=2, sticky="NW", padx=(0, 15), pady=0)
 		raw_mr_predictors_Frame.grid(row=1, column=2, sticky="NW", padx=(0, 15), pady=(5, 0))
 	elif global_vars.master_dict[raw_test_tk.get()] == "indttest":
-		correction_type_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=5)
+		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=5)
 		effect_size_Frame.grid(row=2, column=0, sticky="NW", padx=0, pady=0)
 		non_numeric_input_raise_errors_Frame.grid(row=3, column=0, sticky="NW", padx=0, pady=5)
 		raw_ttest_output_descriptives_Frame.grid(row=4, column=0, sticky="NW", padx=0, pady=0)
@@ -313,7 +404,7 @@ def raw_test_frames_layout(event):
 		raw_indttest_groupvar_Frame.grid(row=0, column=2, sticky="NW", padx=15, pady=0)
 		raw_indttest_dv_Frame.grid(row=1, column=2, rowspan=4, sticky="NW", padx=15, pady=(5, 0))
 	elif global_vars.master_dict[raw_test_tk.get()] == "pairttest":
-		correction_type_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=5)
+		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=5)
 		effect_size_Frame.grid(row=2, column=0, sticky="NW", padx=0, pady=0)
 		non_numeric_input_raise_errors_Frame.grid(row=3, column=0, sticky="NW", padx=0, pady=5)
 		raw_ttest_output_descriptives_Frame.grid(row=4, column=0, sticky="NW", padx=0, pady=0)
@@ -337,16 +428,16 @@ def spss_test_frames_layout(event):
 	remove_frames(frames_list)
 
 	if global_vars.master_dict[spss_test_tk.get()] == "corr":
-		correction_type_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=(5, 0))
+		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=(5, 0))
 	elif global_vars.master_dict[spss_test_tk.get()] == "mr":
 		pass #i.e. nothing needs to be done
 	elif global_vars.master_dict[spss_test_tk.get()] == "indttest":
-		correction_type_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=5)
-		effect_size_Frame.grid(row=2, column=0, sticky="NW", padx=0, pady=0)
-		spss_indttest_sampleSize_Frame.grid(row=0, column=1, rowspan=3, sticky="NW", padx=15, pady=0)
-		spss_indttest_groupLabels_Frame.grid(row=0, column=2, rowspan=3, sticky="NW", padx=0, pady=0)
+		correction_type_Frame.grid(row=1, column=0, rowspan=4, sticky="NW", padx=0, pady=5)
+		effect_size_Frame.grid(row=5, column=0, sticky="NW", padx=0, pady=0)
+		spss_indttest_sampleSize_Frame.grid(row=0, column=1, rowspan=3, sticky="NW", padx=15, pady=(0, 5))
+		spss_indttest_groupLabels_Frame.grid(row=3, column=1, rowspan=3, sticky="NW", padx=15, pady=0)
 	elif global_vars.master_dict[spss_test_tk.get()] == "pairttest":
-		correction_type_Frame.grid(row=1, column=0, sticky="NW", padx=(0, 15), pady=5)
+		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=(0, 15), pady=5)
 		effect_size_Frame.grid(row=2, column=0, sticky="NW", padx=0, pady=0)
 		spss_pairttest_sampleSize_Frame.grid(row=0, column=1, rowspan=3, sticky="NW", padx=0, pady=0)
 
@@ -357,10 +448,15 @@ instr_label.grid(row=0, column=0, columnspan=3)
 
 #Input file button & label
 def select_file():
-	path_and_filename = askopenfilename(initialdir = "D:\\Desktop_current\\NPSoftware\\GitHub", title="Select input file. Must be Excel file.", filetypes=(("Excel files","*.xlsx"),("All files","*.*")))
+	path_and_filename = askopenfilename(initialdir = "D:\\Desktop_current\\NPSoftware\\GitHub\\Input files\\raw data", title="Select input file. Must be Excel file.", filetypes=(("Excel files","*.xlsx"),("All files","*.*")))
 	
 	if path_and_filename.endswith(".xlsx"): # or filename[ext_sep_idx:] == ".csv" - for later use when csv is integrated
 		update_filename_label(filename = path_and_filename[path_and_filename.rfind("/")+1:], label = filename_label, char_limit=50)
+		if input_path_and_filename_tk.get() != global_vars.tk_vars_defaults["input_path_and_filename_tk"]:
+			columns_current_indices_dict.clear()
+			reset_all_lb()
+			set_variables_default()
+			input_type_frames_layout()
 
 		input_path_and_filename_tk.set(path_and_filename)
 
@@ -368,6 +464,8 @@ def select_file():
 		col_names_lb.configure(state="normal")
 		col_names_lb.delete(0, tk.END)
 		col_names_lb.insert(tk.END, *df_cols)
+		for ind, col in enumerate(df_cols):
+			columns_current_indices_dict[col] = ind
 
 	elif path_and_filename != "":
 		messagebox.showerror("Error!", "Please select a valid file - XLSX only.")
@@ -420,12 +518,13 @@ raw_corr_vars_scroll_y.grid(row=0, column=2, rowspan=2, sticky="NS")
 
 raw_corr_vars_add_btn = ttk.Button(raw_corr_vars_Frame, text="--->", command=lambda listbox=raw_corr_vars_lb: add_variables_to_listbox(listbox)) 
 raw_corr_vars_add_btn.grid(row=0, column=0, sticky="EWNS", padx=(5, 5), pady=(5, 5))
-raw_corr_vars_remove_btn = ttk.Button(raw_corr_vars_Frame, text="X", command=lambda listbox=raw_corr_vars_lb: remove_variables_from_listbox(listbox))
+raw_corr_vars_remove_btn = ttk.Button(raw_corr_vars_Frame, text="X", command=lambda listbox=raw_corr_vars_lb: move_lbvars_to_master(listbox))
 raw_corr_vars_remove_btn.grid(row=1, column=0, sticky="EWNS", padx=(5, 5), pady=(5, 5))
 
 #Raw data // test // Multiple Regression // Outcome variable
 raw_mr_outcomevar_drop = ttk.Combobox(raw_mr_outcomevar_Frame, state="readonly", width=30, textvariable=raw_mr_outcomevar_tk)
 raw_mr_outcomevar_drop.configure(postcommand=lambda dropdown=raw_mr_outcomevar_drop: get_values_for_dropdown(dropdown))
+raw_mr_outcomevar_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 raw_mr_outcomevar_drop.grid(row=0, column=0)
 
 #Raw data // test // Multiple Regression // Predictors
@@ -437,12 +536,13 @@ raw_mr_predictors_scroll_y.grid(row=0, column=2, rowspan=2, sticky="NS")
 
 raw_mr_predictors_add_btn = ttk.Button(raw_mr_predictors_Frame, text="--->", command=lambda listbox=raw_mr_predictors_lb: add_variables_to_listbox(listbox))
 raw_mr_predictors_add_btn.grid(row=0, column=0, sticky="EWNS", padx=(5, 5), pady=(5, 5))
-raw_mr_predictors_remove_btn = ttk.Button(raw_mr_predictors_Frame, text="X", command=lambda listbox=raw_mr_predictors_lb: remove_variables_from_listbox(listbox))
+raw_mr_predictors_remove_btn = ttk.Button(raw_mr_predictors_Frame, text="X", command=lambda listbox=raw_mr_predictors_lb: move_lbvars_to_master(listbox))
 raw_mr_predictors_remove_btn.grid(row=1, column=0, sticky="EWNS", padx=(5, 5), pady=(5, 5))
 
 #Raw data // test // Independent samples t-test // Grouping variable
 raw_indttest_groupvar_drop = ttk.Combobox(raw_indttest_groupvar_Frame, state="readonly", width=30, textvariable=raw_indttest_groupvar_tk)
 raw_indttest_groupvar_drop.configure(postcommand=lambda dropdown=raw_indttest_groupvar_drop: get_values_for_dropdown(dropdown))
+raw_indttest_groupvar_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 raw_indttest_groupvar_drop.grid(row=0, column=0)
 
 #Raw data // test // Independent samples t-test // DVs
@@ -454,7 +554,7 @@ raw_indttest_dv_scroll_y.grid(row=0, column=2, rowspan=2, sticky="NS")
 
 raw_indttest_dv_add_btn = ttk.Button(raw_indttest_dv_Frame, text="--->", command=lambda listbox=raw_indttest_dv_lb: add_variables_to_listbox(listbox)) 
 raw_indttest_dv_add_btn.grid(row=0, column=0, sticky="EWNS", padx=(5, 5), pady=(5, 5))
-raw_indttest_dv_remove_btn = ttk.Button(raw_indttest_dv_Frame, text="X", command=lambda listbox=raw_indttest_dv_lb: remove_variables_from_listbox(listbox))
+raw_indttest_dv_remove_btn = ttk.Button(raw_indttest_dv_Frame, text="X", command=lambda listbox=raw_indttest_dv_lb: move_lbvars_to_master(listbox))
 raw_indttest_dv_remove_btn.grid(row=1, column=0, sticky="EWNS", padx=(5, 5), pady=(5, 5))
 
 #Raw data // test // Paired samples t-test // Pair choices
@@ -462,28 +562,24 @@ raw_pairttest_var1_label = ttk.Label(raw_pairttest_pairs_Frame, text="Select the
 raw_pairttest_var1_label.grid(row=0, column=0, sticky="NW", padx=(0,15), pady=0)
 raw_pairttest_var1_drop = ttk.Combobox(raw_pairttest_pairs_Frame, state="readonly", width=20, textvariable=raw_pairttest_var1_tk)
 raw_pairttest_var1_drop.configure(postcommand=lambda dropdown=raw_pairttest_var1_drop: get_values_for_dropdown(dropdown))
+raw_pairttest_var1_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 raw_pairttest_var1_drop.grid(row=1, column=0, sticky="NW", padx=(0,15), pady=0)
 
 raw_pairttest_var2_label = ttk.Label(raw_pairttest_pairs_Frame, text="Select the second variable")
 raw_pairttest_var2_label.grid(row=0, column=1, sticky="NW")
 raw_pairttest_var2_drop = ttk.Combobox(raw_pairttest_pairs_Frame, state="readonly", width=20, textvariable=raw_pairttest_var2_tk)
 raw_pairttest_var2_drop.configure(postcommand=lambda dropdown=raw_pairttest_var2_drop: get_values_for_dropdown(dropdown))
+raw_pairttest_var2_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 raw_pairttest_var2_drop.grid(row=1, column=1, sticky="NW")
 
 #Raw data // test // Paired samples t-test // Pairs - buttons and listbox
 def raw_pairttest_add_pair():
-	if filename_label["text"] == "No file selected.":
-		messagebox.showerror("Error!", "Please select input file first.")
-	elif raw_pairttest_var1_tk == "Select first variable..." or raw_pairttest_var2_tk.get() == "Select second variable...":
-		messagebox.showerror("Error!", "Please select variable 1 and variable 2 to create a pair.")
-	elif raw_pairttest_var1_tk.get() == raw_pairttest_var2_tk.get():
-		messagebox.showerror("Error!", "Make sure your variable 1 choice and variable 2 choice are not the same.")
+	if raw_pairttest_var1_tk.get() == global_vars.tk_vars_defaults["raw_pairttest_var1_tk"] or raw_pairttest_var2_tk.get() == global_vars.tk_vars_defaults["raw_pairttest_var2_tk"]:
+		messagebox.showerror("Error!", "Please select both variable columns of your pair.")
 	else:
-		already_added_vars = [item for sublist in list(raw_pairttest_pairs_lb.get(0, tk.END)) for item in sublist.split(" <---> ")] #works on magic a bit - https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-list-of-lists
-		if raw_pairttest_var1_tk.get() in already_added_vars or raw_pairttest_var2_tk.get() in already_added_vars:
-			messagebox.showerror("Error!", "You tried to add the following pair: {p1} <---> {p2}.\nHowever, you cannot add the same variable twice.".format(p1=raw_pairttest_var1_tk.get(), p2=raw_pairttest_var2_tk.get()))
-		else:
-			raw_pairttest_pairs_lb.insert(tk.END, "{p1} <---> {p2}".format(p1=raw_pairttest_var1_tk.get(), p2=raw_pairttest_var2_tk.get()))
+		raw_pairttest_pairs_lb.insert(tk.END, "{p1} <---> {p2}".format(p1=raw_pairttest_var1_tk.get(), p2=raw_pairttest_var2_tk.get()))
+		raw_pairttest_var1_tk.set(global_vars.tk_vars_defaults["raw_pairttest_var1_tk"])
+		raw_pairttest_var2_tk.set(global_vars.tk_vars_defaults["raw_pairttest_var2_tk"])
 
 raw_pairttest_pairs_lb = tk.Listbox(raw_pairttest_btn_list_Frame, selectmode="extended", height=9, width=40)
 raw_pairttest_pairs_scroll_y = ttk.Scrollbar(raw_pairttest_btn_list_Frame, orient="vertical", command=raw_pairttest_pairs_lb.yview)
@@ -493,58 +589,174 @@ raw_pairttest_pairs_scroll_y.grid(row=1, column=3, sticky="NS")
 
 raw_pairttest_add_btn = ttk.Button(raw_pairttest_btn_list_Frame, text="Add pair", command=raw_pairttest_add_pair)
 raw_pairttest_add_btn.grid(row=0, column=0, sticky="EWNS", padx=(0,50))
-raw_pairttest_remove_btn = ttk.Button(raw_pairttest_btn_list_Frame, text="Remove", command=lambda listbox=raw_pairttest_pairs_lb: remove_variables_from_listbox(listbox))
+raw_pairttest_remove_btn = ttk.Button(raw_pairttest_btn_list_Frame, text="Remove", command=lambda listbox=raw_pairttest_pairs_lb: move_lbvars_to_master(listbox))
 raw_pairttest_remove_btn.grid(row=0, column=1, sticky="EWNS")
 
 #Summary statistics - Correlations
 summ_corr_varOne_drop = ttk.Combobox(summ_corr_varOne_Frame, state="readonly", width=30, textvariable=summ_corr_varOne_tk)
 summ_corr_varOne_drop.configure(postcommand=lambda dropdown=summ_corr_varOne_drop: get_values_for_dropdown(dropdown))
+summ_corr_varOne_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_corr_varOne_drop.grid(row=0, column=0)
 
 summ_corr_varTwo_drop = ttk.Combobox(summ_corr_varTwo_Frame, state="readonly", width=30, textvariable=summ_corr_varTwo_tk)
 summ_corr_varTwo_drop.configure(postcommand=lambda dropdown=summ_corr_varTwo_drop: get_values_for_dropdown(dropdown))
+summ_corr_varTwo_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_corr_varTwo_drop.grid(row=0, column=0)
 
 summ_corr_coeff_drop = ttk.Combobox(summ_corr_coeff_Frame, state="readonly", width=30, textvariable=summ_corr_coeff_tk)
 summ_corr_coeff_drop.configure(postcommand=lambda dropdown=summ_corr_coeff_drop: get_values_for_dropdown(dropdown))
+summ_corr_coeff_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_corr_coeff_drop.grid(row=0, column=0)
 
 summ_corr_pvalues_drop = ttk.Combobox(summ_corr_pvalues_Frame, state="readonly", width=30, textvariable=summ_corr_pvalues_tk)
 summ_corr_pvalues_drop.configure(postcommand=lambda dropdown=summ_corr_pvalues_drop: get_values_for_dropdown(dropdown))
+summ_corr_pvalues_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_corr_pvalues_drop.grid(row=0, column=0)
 
 #Summary statistics - Independent samples t-test
 summ_indttest_var_drop = ttk.Combobox(summ_indttest_var_Frame, state="readonly", width=30, textvariable=summ_indttest_var_tk)
 summ_indttest_var_drop.configure(postcommand=lambda dropdown=summ_indttest_var_drop: get_values_for_dropdown(dropdown))
+summ_indttest_var_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_indttest_var_drop.grid(row=0, column=0)
 
 summ_indttest_equal_var_drop = ttk.Combobox(summ_indttest_equal_var_Frame, state="readonly", width=30, textvariable=summ_indttest_equal_var_tk)
 summ_indttest_equal_var_drop.configure(postcommand=lambda dropdown=summ_indttest_equal_var_drop: get_values_for_dropdown(dropdown))
+summ_indttest_equal_var_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_indttest_equal_var_drop.grid(row=0, column=0)
 
 summ_indttest_meanOne_drop = ttk.Combobox(summ_indttest_meanOne_Frame, state="readonly", width=30, textvariable=summ_indttest_meanOne_tk)
 summ_indttest_meanOne_drop.configure(postcommand=lambda dropdown=summ_indttest_meanOne_drop: get_values_for_dropdown(dropdown))
+summ_indttest_meanOne_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_indttest_meanOne_drop.grid(row=0, column=0)
 
 summ_indttest_sdOne_drop = ttk.Combobox(summ_indttest_sdOne_Frame, state="readonly", width=30, textvariable=summ_indttest_sdOne_tk)
 summ_indttest_sdOne_drop.configure(postcommand=lambda dropdown=summ_indttest_sdOne_drop: get_values_for_dropdown(dropdown))
+summ_indttest_sdOne_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_indttest_sdOne_drop.grid(row=0, column=0)
 
 summ_indttest_nOne_drop = ttk.Combobox(summ_indttest_nOne_Frame, state="readonly", width=30, textvariable=summ_indttest_nOne_tk)
 summ_indttest_nOne_drop.configure(postcommand=lambda dropdown=summ_indttest_nOne_drop: get_values_for_dropdown(dropdown))
+summ_indttest_nOne_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_indttest_nOne_drop.grid(row=0, column=0)
 
 summ_indttest_meanTwo_drop = ttk.Combobox(summ_indttest_meanTwo_Frame, state="readonly", width=30, textvariable=summ_indttest_meanTwo_tk)
 summ_indttest_meanTwo_drop.configure(postcommand=lambda dropdown=summ_indttest_meanTwo_drop: get_values_for_dropdown(dropdown))
+summ_indttest_meanTwo_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_indttest_meanTwo_drop.grid(row=0, column=0)
 
 summ_indttest_sdTwo_drop = ttk.Combobox(summ_indttest_sdTwo_Frame, state="readonly", width=30, textvariable=summ_indttest_sdTwo_tk)
 summ_indttest_sdTwo_drop.configure(postcommand=lambda dropdown=summ_indttest_sdTwo_drop: get_values_for_dropdown(dropdown))
+summ_indttest_sdTwo_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_indttest_sdTwo_drop.grid(row=0, column=0)
 
 summ_indttest_nTwo_drop = ttk.Combobox(summ_indttest_nTwo_Frame, state="readonly", width=30, textvariable=summ_indttest_nTwo_tk)
 summ_indttest_nTwo_drop.configure(postcommand=lambda dropdown=summ_indttest_nTwo_drop: get_values_for_dropdown(dropdown))
+summ_indttest_nTwo_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 summ_indttest_nTwo_drop.grid(row=0, column=0)
+
+#SPSS // SPSS table additional info
+def spss_table_info_popup(event):
+	#good enough.........
+	top = tk.Toplevel()
+	top.grab_set()
+	top.title("Exporting SPSS table")
+	def exit(event):
+		top.destroy()
+	top.bind("<Escape>", exit)
+
+	frame = tk.Frame(top)
+	frame.grid(row=0, column=0)
+
+	canvas = tk.Canvas(frame)
+	canvas.grid(row=0, column=0)
+
+	img_1 = tk.PhotoImage(file="D:\\Desktop_current\\NPSoftware\\GitHub\\Images\\spss_instr3.gif")
+	img_1_label = tk.Label(canvas, image=img_1)
+	img_1_label.image = img_1
+	img_1_label.grid(row=0, column=0)
+
+	center(top)
+
+	'''
+	#top.maxsize(height=450, width=0)
+	#top.geometry("450x600")
+
+	
+	def onFrameConfigure(canvas):
+	    #Reset the scroll region to encompass the inner frame
+	    canvas.configure(scrollregion=canvas.bbox("all"))
+
+
+	canvas = tk.Canvas(top)
+	frame = tk.Frame(canvas)	
+	top_scroll = ttk.Scrollbar(top, command=canvas.yview, orient=tk.VERTICAL)
+	
+	canvas.configure(yscrollcommand=top_scroll.set)
+
+	top_scroll.grid(row=0, column=1, sticky="NS")
+	canvas.grid(row=0, column=0)
+	canvas.create_window((4,4), window=frame, anchor="nw")
+	#frame.grid(row=0, column=0)
+
+	frame.bind("<Configure>", lambda event, canvas=canvas: onFrameConfigure(canvas))
+
+	img_loc_1 = Image.open("spss_table_1.png")
+	img_loc_1 = img_loc_1.resize((370, 300), Image.ANTIALIAS)
+	img_1 = ImageTk.PhotoImage(img_loc_1)
+
+	img_loc_2 = Image.open("spss_table_2.png")
+	img_loc_2 = img_loc_2.resize((389, 450), Image.ANTIALIAS)
+	img_2 =ImageTk.PhotoImage(img_loc_2)
+	print(img_loc_1, img_loc_2)
+
+	spss_table_info_text1 = tk.Label(frame, text=text_1)
+	spss_table_info_img1 = tk.Label(frame, image=img_1)
+	spss_table_info_img1.image = img_1
+	spss_table_info_text2 = tk.Label(frame, text=text_2)
+	spss_table_info_img2 = tk.Label(frame, image=img_2)
+	spss_table_info_img2.image = img_2
+	spss_table_info_text1.grid(row=0, column=0, sticky="W", padx=15, pady=5)
+	spss_table_info_img1.grid(row=1, column=0, sticky="EW", padx=15, pady=0)
+	spss_table_info_text2.grid(row=2, column=0, sticky="W", padx=15, pady=5)
+	spss_table_info_img2.grid(row=3, column=0, sticky="EW", padx=15, pady=(0, 5))
+
+	text_1 = """
+	To export any table from SPSS output, follow the steps below (Correlations
+	table is used as an example but works with any table):
+	
+	First, right-click on the SPSS table in the SPSS output, then click Export:
+	"""
+	img_1 = tk.PhotoImage("spss_table_1.pgm")
+	text_2 = """
+	Then under Document, for Type, select “Excel 2007 and Higher (*.xlsx)”.
+	Then click Browse to select where to export the table.
+
+	Finally, hit OK:
+	"""
+	img_2 = tk.PhotoImage("spss_table_2.pgm")
+	
+	spss_table_info_textbox_1 = tk.Text(top, height=20, width=50)
+	spss_table_info_textbox_2 = tk.Text(top, height=20, width=50)
+	spss_table_info_textbox_3 = tk.Text(top, height=20, width=50)
+	spss_table_info_textbox_4 = tk.Text(top, height=20, width=50)
+
+	spss_table_info_scroll = ttk.Scrollbar(top, command=spss_table_info_textbox.yview)
+	spss_table_info_textbox.configure(yscrollcommand=spss_table_info_scroll.set)
+
+	spss_table_info_textbox.insert(tk.END, text_1)
+	spss_table_info_textbox.image_create(tk.END, image=img_1)
+	spss_table_info_textbox.insert(tk.END, text_2)
+	spss_table_info_textbox.image_create(tk.END, image=img_2)
+
+	spss_table_info_textbox.grid(row=0, column=0)
+	spss_table_info_scroll.grid(row=0, column=1, sticky="NS")
+	'''
+
+	
+
+spss_table_info_label = ttk.Label(spss_get_table_info_Frame, text="How to import SPSS table?", foreground="blue", cursor="hand2")
+spss_table_info_label.grid(row=0, column=0, sticky="NE", padx=0, pady=5)
+spss_table_info_label.bind("<Button-1>", spss_table_info_popup)
 
 #SPSS // test
 spss_test_options = ("Correlations", "(Multiple) Regression - Standard", "Independent Samples t-test", "Paired samples t-test")
