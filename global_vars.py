@@ -47,6 +47,8 @@ tk_vars_defaults = {
 	"raw_corr_type_tk" : "Select a correlation...",
 	"raw_mr_outcomevar_tk" : "Select outcome variable...",
 	"raw_indttest_groupvar_tk" : "Select grouping variable...",
+	"raw_indttest_grouplevel1_tk" : "Select Group 1",
+	"raw_indttest_grouplevel2_tk" : "Select Group 2",
 	"raw_pairttest_var1_tk" : "Select first variable...",
 	"raw_pairttest_var2_tk" : "Select second variable...",
 
@@ -93,6 +95,8 @@ raw_corr_vars = ""
 raw_mr_outcomevar = ""
 raw_mr_predictors = ""
 raw_indttest_groupvar = ""
+raw_indttest_grouplevel1 = ""
+raw_indttest_grouplevel2 = ""
 raw_indttest_dv = ""
 raw_pairttest_var_pairs = ""
 

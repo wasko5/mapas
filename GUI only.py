@@ -2,7 +2,9 @@
 - One current 'feature' is that when you move between tests (correlations-mr in raw test) the things you put in the listbox (e.g. for MR) stay there despite clicking away.
 			Might leave it like that for listboxes but reset for everything else. Might add a parameter to the reset_defaults function such that it can also
 			reset to default these listboxes upon successful run of the program (i.e. when someone clicks "more analysis" in the popup)
-- Raw indttests: make users hand-enter their group labels for the grouping variable
+- Fix the ability to end up with "Please elect input file first..." in the comboboxes.
+- Consider adding more menu options
+- selecting None to correction on ind ttest brings up an error
 '''
 
 import raw_indttest
@@ -66,6 +68,8 @@ raw_corr_type_tk = tk.StringVar()
 raw_corr_vars_tk = tk.StringVar()
 raw_mr_outcomevar_tk = tk.StringVar()
 raw_indttest_groupvar_tk = tk.StringVar()
+raw_indttest_grouplevel1_tk = tk.StringVar()
+raw_indttest_grouplevel2_tk = tk.StringVar()
 raw_pairttest_var1_tk = tk.StringVar()
 raw_pairttest_var2_tk = tk.StringVar()
 
@@ -104,6 +108,8 @@ def set_variables_default():
 	raw_corr_type_tk.set(global_vars.tk_vars_defaults["raw_corr_type_tk"])
 	raw_mr_outcomevar_tk.set(global_vars.tk_vars_defaults["raw_mr_outcomevar_tk"])
 	raw_indttest_groupvar_tk.set(global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"])
+	raw_indttest_grouplevel1_tk.set(global_vars.tk_vars_defaults["raw_indttest_grouplevel1_tk"])
+	raw_indttest_grouplevel2_tk.set(global_vars.tk_vars_defaults["raw_indttest_grouplevel2_tk"])
 	raw_pairttest_var1_tk.set(global_vars.tk_vars_defaults["raw_pairttest_var1_tk"])
 	raw_pairttest_var2_tk.set(global_vars.tk_vars_defaults["raw_pairttest_var2_tk"])
 
@@ -167,6 +173,7 @@ raw_mr_outcomevar_Frame = ttk.LabelFrame(test_specifications_master_Frame, text=
 raw_mr_predictors_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Predictors")
 
 raw_indttest_groupvar_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Grouping variable")
+raw_indttest_grouplevels_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Groups")
 raw_indttest_dv_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Dependent variables")
 
 raw_pairttest_master_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Choose variable pairs")
@@ -188,7 +195,7 @@ summ_corr_pvalues_Frame.grid(row=1, column=1, pady=(5, 0))
 summ_indttest_master_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Map columns")
 summ_indttest_var_Frame = ttk.LabelFrame(summ_indttest_master_Frame, text="Variables column")
 summ_indttest_var_Frame.grid(row=0, column=0, padx=(0, 10), pady=0)
-summ_indttest_equal_var_Frame = ttk.LabelFrame(summ_indttest_master_Frame, text="Equal variances column")
+summ_indttest_equal_var_Frame = ttk.LabelFrame(summ_indttest_master_Frame, text="Equal variances column (optional)")
 summ_indttest_equal_var_Frame.grid(row=0, column=1)
 summ_indttest_meanOne_Frame = ttk.LabelFrame(summ_indttest_master_Frame, text="Mean of Group 1 column")
 summ_indttest_meanOne_Frame.grid(row=1, column=0, padx=(0, 10), pady=5)
@@ -339,10 +346,10 @@ def remove_frames(frames_list):
 
 def input_type_frames_layout():
 	#the only frames it does not include are master or input_type
-	frames_list = [raw_test_Frame, raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_dv_Frame,
-					raw_pairttest_master_Frame, summ_corr_master_Frame, summ_indttest_master_Frame, spss_get_table_info_Frame, spss_test_Frame, spss_indttest_sampleSize_Frame,
-					spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame,
-					raw_ttest_output_descriptives_Frame, non_numeric_input_raise_errors_Frame]
+	frames_list = [raw_test_Frame, raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame,
+					raw_indttest_grouplevels_Frame, raw_indttest_dv_Frame, raw_pairttest_master_Frame, summ_corr_master_Frame, summ_indttest_master_Frame,
+					spss_get_table_info_Frame, spss_test_Frame, spss_indttest_sampleSize_Frame, spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame,
+					col_names_Frame, effect_size_Frame, correction_type_Frame, raw_ttest_output_descriptives_Frame, non_numeric_input_raise_errors_Frame]
 
 	
 	set_variables_default()
@@ -377,8 +384,9 @@ def raw_test_clear_vars():
 	non_numeric_input_raise_errors_tk.set(global_vars.tk_vars_defaults["non_numeric_input_raise_errors_tk"])
 
 def raw_test_frames_layout(event):
-	frames_list = [raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_dv_Frame, raw_pairttest_master_Frame,
-					col_names_Frame, effect_size_Frame, correction_type_Frame, raw_ttest_output_descriptives_Frame, non_numeric_input_raise_errors_Frame]
+	frames_list = [raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_grouplevels_Frame,
+					raw_indttest_dv_Frame, raw_pairttest_master_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame, raw_ttest_output_descriptives_Frame,
+					non_numeric_input_raise_errors_Frame]
 
 	raw_test_clear_vars()
 	reset_all_lb()
@@ -402,7 +410,8 @@ def raw_test_frames_layout(event):
 		raw_ttest_output_descriptives_Frame.grid(row=4, column=0, sticky="NW", padx=0, pady=0)
 		col_names_Frame.grid(row=0, column=1, rowspan=5, sticky="NW", padx=(15, 0), pady=0)
 		raw_indttest_groupvar_Frame.grid(row=0, column=2, sticky="NW", padx=15, pady=0)
-		raw_indttest_dv_Frame.grid(row=1, column=2, rowspan=4, sticky="NW", padx=15, pady=(5, 0))
+		raw_indttest_grouplevels_Frame.grid(row=1, column=2, sticky="NW", padx=15, pady=5)
+		raw_indttest_dv_Frame.grid(row=2, column=2, rowspan=3, sticky="NW", padx=15, pady=0)
 	elif global_vars.master_dict[raw_test_tk.get()] == "pairttest":
 		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=5)
 		effect_size_Frame.grid(row=2, column=0, sticky="NW", padx=0, pady=0)
@@ -468,9 +477,9 @@ def select_file():
 			columns_current_indices_dict[col] = ind
 
 	elif path_and_filename != "":
-		messagebox.showerror("Error!", "Please select a valid file - XLSX only.")
+		messagebox.showerror("Oh-oh!", "As we agreed, you will need to select a valid file - .xlsx files only.")
 
-ttk.Button(input_filename_Frame, text="Select input file (xlsx only)", command=select_file).grid(row=0, column=0, sticky="W", padx=(0, 10))
+ttk.Button(input_filename_Frame, text="Select input file (.xlsx only)", command=select_file).grid(row=0, column=0, sticky="W", padx=(0, 10))
 filename_label = ttk.Label(input_filename_Frame, text="No file selected.")
 filename_label.grid(row=0, column=1, columnspan=1, sticky="W")
 
@@ -544,6 +553,26 @@ raw_indttest_groupvar_drop = ttk.Combobox(raw_indttest_groupvar_Frame, state="re
 raw_indttest_groupvar_drop.configure(postcommand=lambda dropdown=raw_indttest_groupvar_drop: get_values_for_dropdown(dropdown))
 raw_indttest_groupvar_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 raw_indttest_groupvar_drop.grid(row=0, column=0)
+
+
+#Raw data // test // Independent samples t-test // Grouping variable
+def get_values_for_raw_indttest_dropdowns(dropdown):
+	if input_path_and_filename_tk != "" and raw_indttest_groupvar_tk.get() != global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"] and raw_indttest_groupvar_tk.get() != "Select input file first...":
+		dropdown.configure(values=helper_funcs.get_raw_indttest_grouplevels(input_path_and_filename_tk.get(), raw_indttest_groupvar_tk.get()))
+
+def raw_indttest_dropdowns_validation(event):
+	if raw_indttest_grouplevel1_tk.get() == raw_indttest_grouplevel2_tk.get():
+		raise Exception("You can't select the same level for both groups.")
+
+raw_indttest_grouplevels_drop1 = ttk.Combobox(raw_indttest_grouplevels_Frame, state="readonly", width=15, textvariable=raw_indttest_grouplevel1_tk)
+raw_indttest_grouplevels_drop1.configure(postcommand=lambda dropdown=raw_indttest_grouplevels_drop1: get_values_for_raw_indttest_dropdowns(dropdown))
+raw_indttest_grouplevels_drop1.bind("<<ComboboxSelected>>", raw_indttest_dropdowns_validation)
+raw_indttest_grouplevels_drop1.grid(row=0, column=0, padx=(0, 10))
+
+raw_indttest_grouplevels_drop2 = ttk.Combobox(raw_indttest_grouplevels_Frame, state="readonly", width=15, textvariable=raw_indttest_grouplevel2_tk)
+raw_indttest_grouplevels_drop2.configure(postcommand=lambda dropdown=raw_indttest_grouplevels_drop2: get_values_for_raw_indttest_dropdowns(dropdown))
+raw_indttest_grouplevels_drop2.bind("<<ComboboxSelected>>", raw_indttest_dropdowns_validation)
+raw_indttest_grouplevels_drop2.grid(row=0, column=1)
 
 #Raw data // test // Independent samples t-test // DVs
 raw_indttest_dv_lb = tk.Listbox(raw_indttest_dv_Frame, selectmode="extended", height=7, width=23)
@@ -750,9 +779,7 @@ def spss_table_info_popup(event):
 
 	spss_table_info_textbox.grid(row=0, column=0)
 	spss_table_info_scroll.grid(row=0, column=1, sticky="NS")
-	'''
-
-	
+	'''	
 
 spss_table_info_label = ttk.Label(spss_get_table_info_Frame, text="How to import SPSS table?", foreground="blue", cursor="hand2")
 spss_table_info_label.grid(row=0, column=0, sticky="NE", padx=0, pady=5)
@@ -833,6 +860,8 @@ def set_global_variables():
 	global_vars.raw_mr_outcomevar = "" if raw_mr_outcomevar_tk.get() == global_vars.tk_vars_defaults["raw_mr_outcomevar_tk"] else raw_mr_outcomevar_tk.get()
 	global_vars.raw_mr_predictors = list(raw_mr_predictors_lb.get(0, tk.END))
 	global_vars.raw_indttest_groupvar = "" if raw_indttest_groupvar_tk.get() == global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"] else raw_indttest_groupvar_tk.get()
+	global_vars.raw_indttest_grouplevel1 = "" if raw_indttest_grouplevel1_tk.get() == global_vars.tk_vars_defaults["raw_indttest_grouplevel1_tk"] else raw_indttest_grouplevel1_tk.get()
+	global_vars.raw_indttest_grouplevel2 = "" if raw_indttest_grouplevel2_tk.get() == global_vars.tk_vars_defaults["raw_indttest_grouplevel2_tk"] else raw_indttest_grouplevel2_tk.get()
 	global_vars.raw_indttest_dv = list(raw_indttest_dv_lb.get(0, tk.END))
 	global_vars.raw_pairttest_var_pairs = [pair.split(" <---> ") for pair in list(raw_pairttest_pairs_lb.get(0, tk.END))]
 
@@ -889,6 +918,8 @@ def set_global_variables():
 	print("raw_mr_outcomevar - ", global_vars.raw_mr_outcomevar)
 	print("raw_mr_predictors - ", global_vars.raw_mr_predictors)
 	print("raw_indttest_groupvar - ", global_vars.raw_indttest_groupvar)
+	print("raw_indttest_grouplevel1 - ", global_vars.raw_indttest_grouplevel1)
+	print("raw_indttest_grouplevel2 - ", global_vars.raw_indttest_grouplevel2)
 	print("raw_indttest_dv - ", global_vars.raw_indttest_dv)
 	print("raw_pairttest_var_pairs - ", global_vars.raw_pairttest_var_pairs)
 
@@ -932,113 +963,101 @@ def input_validation():
 			raise Exception("DO YOU WANT US TO DELETE YOUR DATA?\n\nNaah, just kidding. But we are really not sure what to do with it.\n\nPlease tell us what want kind of statistical test you want us to perform.")
 		if global_vars.raw_test == "corr":
 			if global_vars.raw_corr_type == "":
-				raise Exception("")
-			if global_vars.correction_type == "":
-				raise Exception("")
+				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correlation (pearson, spearman, kendall) you want to perform.")
+			if global_vars.correction_type == "none":
+				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 			if global_vars.non_numeric_input_raise_errors == "":
-				raise Exception("")
+				raise Exception("What happens if you have missing or invalid data? Well, we don't know either so you will need to tell us your preference.\n\nPlease select how to handle non-numeric data.")
 		elif global_vars.raw_test == "mr":
 			if global_vars.non_numeric_input_raise_errors == "":
-				raise Exception("")
+				raise Exception("What happens if you have missing or invalid data? Well, we don't know either so you will need to tell us your preference.\n\nPlease select how to handle non-numeric data.")
 			if global_vars.raw_mr_outcomevar == "":
-				raise Exception("")
+				raise Exception("We can certainly perform a multiple regression but what are we predicting?\n\nPlease select your outcome (dependent) variable.")
 			if global_vars.raw_mr_predictors == ():
-				raise Exception("")
+				raise Exception("Although we are currently working on it, we still can't predict your predictors (ha, get it? predict the predictors... please send help).\n\nSpeaking of help, you might as well help us by telling us what your predictors are.")
 		elif global_vars.raw_test == "indttest":
-			if global_vars.correction_type == "":
-				raise Exception("")
-			if global_vars.effect_size_choice == "":
-				raise Exception("")
+			if global_vars.correction_type == "none":
+				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
+			if global_vars.effect_size_choice == "none":
+				raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
 			if global_vars.non_numeric_input_raise_errors == "":
-				raise Exception("")
-			if global_vars.raw_ttest_output_descriptives == "":
-				raise Exception("")
-			if global_vars.raw_indttest_groupvar == "":
-				raise Exception("")
+				raise Exception("What happens if you have missing or invalid data? Well, we don't know either so you will need to tell us your preference.\n\nPlease select how to handle non-numeric data.")
+			if global_vars.raw_indttest_groupvar == "" or global_vars.raw_indttest_grouplevel1 == "" or global_vars.raw_indttest_grouplevel2 == "":
+				raise Exception("So far so good - we will be comparing independent groups. But what are those groups?\n\nPlease select your grouping variables and the labels for the groups we are comparing.")
 			if global_vars.raw_indttest_dv == []:
-				raise Exception("")
+				raise Exception("Right, so we are comparing those two groups - but we are not sure what to comapre them on.\n\nPlease select your dependent variables.")
 		elif global_vars.raw_test == "pairttest":
-			if global_vars.correction_type == "":
-				raise Exception("")
-			if global_vars.effect_size_choice == "":
-				raise Exception("")
+			if global_vars.correction_type == "none":
+				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
+			if global_vars.effect_size_choice == "none":
+				raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
 			if global_vars.non_numeric_input_raise_errors == "":
-				raise Exception("")
-			if global_vars.raw_ttest_output_descriptives == "":
-				raise Exception("")
+				raise Exception("What happens if you have missing or invalid data? Well, we don't know either so you will need to tell us your preference.\n\nPlease select how to handle non-numeric data.")
 			if global_vars.raw_pairttest_var_pairs == ():
-				raise Exception("")
+				raise Exception("In order to run that paired sample t-test, we first need to know what your pair of varialbes are.\n\nPlease add your pairs to the box using the dropdown menus and the buttons.")
 	elif global_vars.input_type == "summ_corr":
-		if global_vars.correction_type == "":
-			raise Exception("")
+		if global_vars.correction_type == "none":
+			raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 		if global_vars.summ_corr_varOne == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your variable one labels.")
 		if global_vars.summ_corr_varTwo == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your variable two labels.")
 		if global_vars.summ_corr_coeff == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your correlation coefficients.")
 		if global_vars.summ_corr_pvalues == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your pvalues.")
 	elif global_vars.input_type == "summ_indttest":
-		if global_vars.correction_type == "":
-			raise Exception("")
-		if global_vars.effect_size_choice == "":
-			raise Exception("")
+		if global_vars.correction_type == "none":
+			raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
+		if global_vars.effect_size_choice == "none":
+			raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
 		if global_vars.summ_indttest_var == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your variable labels.")
 		if global_vars.summ_indttest_meanOne == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your mean values for group 1.")
 		if global_vars.summ_indttest_sdOne == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your standard deviation values for group 1.")
 		if global_vars.summ_indttest_nOne == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your sample size for group 1.")
 		if global_vars.summ_indttest_meanTwo == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your mean values for group 2.")
 		if global_vars.summ_indttest_sdTwo == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your standard deviation values for group 2.")
 		if global_vars.summ_indttest_nTwo == "":
-			raise Exception("")
-		if global_vars.summ_indttest_equal_var == "":
-			raise Exception("")
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your sample size for group 2.")
 	elif global_vars.input_type == "spss":
 		if global_vars.spss_test == "":
-			raise Exception("")
+			raise Exception("Where's the rush? First you will need to tell us what kind of SPSS table you have there first.")
 		elif global_vars.spss_test == "corr":
-			if global_vars.correction_type == "":
-				raise Exception("")
+			if global_vars.correction_type == "none":
+				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 		elif global_vars.spss_test == "mr":
 			pass
 		elif global_vars.spss_test == "indttest":
-			if global_vars.correction_type == "":
-				raise Exception("")
-			if global_vars.effect_size_choice == "":
-				raise Exception("")
+			if global_vars.correction_type == "none":
+				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
+			if global_vars.effect_size_choice == "none":
+				raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
 			if global_vars.spss_indttest_nOne == -1 or global_vars.spss_indttest_nTwo == -1:
-				raise Exception("")
+				raise Exception("To run some of the statistics for the t-test you will need to tell us what your sample size is.")
 		elif global_vars.spss_test == "pairttest":
-			if global_vars.correction_type == "":
-				raise Exception("")
-			if global_vars.effect_size_choice == "":
-				raise Exception("")
+			if global_vars.correction_type == "none":
+				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
+			if global_vars.effect_size_choice == "none":
+				raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
 			if global_vars.spss_pairttest_nOne == -1 or global_vars.spss_pairttest_nTwo == -1:
-				raise Exception("")
+				raise Exception("To run some of the statistics for the t-test you will need to tell us what your sample size is.")
 	elif global_vars.input_type == "pvalues":
-		if global_vars.correction_type == "":
-			raise Exception("")
+		if global_vars.correction_type == "none":
+			raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 
 
 	if global_vars.effect_size_choice == "Glass's delta" and (global_vars.input_type == "summindttest" or global_vars.spss_test == "indttest" or global_vars.spss_test == "pairttest"):
 		raise Exception("Sorry! Glass's delta is not available for this time of test. Glass's delta can only be requested if raw data is provided. For more information, see the documentation.")
 	
 	if global_vars.output_filename == "":
-		raise Exception("")
-		
-'''
-	####THIS SHOULD BE FIXED!!!
-	if effect_size_choice == "" and (raw_test == "indttest" or raw_test == "pairttest" or spss_test == "indttest" or spss_test == "pairttest" or input_type == "summ_indttest"):
-		raise Exception("Unfortunately, as this software is still in beta version, you need to select an effect size to add to your APA table.\n\nFeel free to select any effect size and delete the column in the produced output if not needed.")
+		raise Exception("We're almost there... Your output file is ready and waiting for you. You will just need to tell it where to pop up.\n\nPlease select an output file.")
 
-'''
 def center(win):
 		"""
 		centers a tkinter window
@@ -1063,7 +1082,10 @@ def submit_window(show_buttons=0):
 	top.grab_set()
 	top.title("Popup name")
 
-	some_message = "ALL DONE NOW! (and some other msg)"
+	some_message = '''Your file is ready and waiting for you.
+	
+	If you've found this software useful in your work, please cite us as:
+	Petrov, N., Atanasov, V., & Thompson, T. (2020). Open-source Software for Apply Multiple-tests Corrections and Printing APA Tables (MAPAS)...'''
 	tk.Label(top, text=some_message).grid(row=0, column=0, columnspan=3, sticky="NWES", padx=15, pady=(5, 0))
 
 	if show_buttons == 1:
@@ -1076,8 +1098,6 @@ def submit_window(show_buttons=0):
 		ttk.Button(top, text="Close the app", command=master.destroy).grid(row=1,column=2, padx=(0, 15), pady=5)
 
 	center(top)
-
-
 
 #--------------------Menu
 menubar = tk.Menu(master)
@@ -1129,6 +1149,9 @@ def submit():
 	#another_window_test() #the progess bar stuff for later
 	submit_window(show_buttons=1)
 	#master.destroy()
+	#except Exception as error_msg:
+	#	messagebox.showerror("Oopsie!", error_msg)
+
 	#make sure to catch exceptions and do stuff to reset all variables
 
 ttk.Button(master, text="Submit", command=submit).grid(row=4, column=2, sticky="E", padx=(0,15), pady=5)
