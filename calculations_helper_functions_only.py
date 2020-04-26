@@ -24,6 +24,20 @@ def get_df_columns(path_and_filename):
 	except:
 		raise Exception("There was a problem reading the columns from the file.")
 
+def get_raw_indttest_grouplevels(path_and_filename, group_var):
+	try:
+		if path_and_filename.endswith(".xlsx"):
+			df = pd.read_excel(path_and_filename, sheet_name=0)
+		elif path_and_filename.endsiwth(".csv"):
+			df = pd.read_csv(path_and_filename)
+	except:
+		raise Exception("There was a problem reading the columns from the file.")
+
+	
+	unique_groups = [x.strip() for x in df[group_var].astype(str).unique() if len(x.strip()) > 0]
+
+	return unique_groups
+
 #1.1.1. Helper functions fo generating modified raw data dataframes
 def get_numeric_cols(raw_data_df):
 	numeric_cols = list(raw_data_df.columns)

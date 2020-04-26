@@ -63,7 +63,6 @@ global_vars.raw_ttest_output_descriptives = True
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
 def get_raw_data_df():
-	print(global_vars.input_path_and_filename)
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
 			raw_data_df = pd.read_excel(global_vars.input_path_and_filename)
@@ -114,19 +113,13 @@ def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_co
 #-----------------------------------------------------------3. Output dataframe----------------------------------------------------
 #3.2.  Main function for generating the output data dataframe
 def raw_indttest_generate_output_df(mod_raw_data_df):
-	unique_groups = [x.strip() for x in mod_raw_data_df[global_vars.raw_indttest_groupvar].unique() if len(x.strip()) > 0]
-	if len(unique_groups) > 2:
-		raise Exception("More than two unique values found in the grouping variable \'{}\'. Please supply data with only two groups.".format(global_vars.raw_indttest_groupvar))
-	group1_label, group2_label = unique_groups[0], unique_groups[1] #columns already passed as relevant types so no longer need to control types
-
-	group1_df = mod_raw_data_df[mod_raw_data_df[global_vars.raw_indttest_groupvar]==group1_label]
-	group2_df = mod_raw_data_df[mod_raw_data_df[global_vars.raw_indttest_groupvar]==group2_label]
+	group1_df = mod_raw_data_df[mod_raw_data_df[global_vars.raw_indttest_groupvar]==global_vars.raw_indttest_grouplevel1]
+	group2_df = mod_raw_data_df[mod_raw_data_df[global_vars.raw_indttest_groupvar]==global_vars.raw_indttest_grouplevel2]
 
 	effect_size_df_row_lookup = {"Cohen's d": 6, "Hedge's g": 7, "Glass's delta": 8}
 	dictionaries_list=[]
 	for var in global_vars.raw_indttest_dv:
-
-		result = rp.ttest(group1_df[var], group2_df[var], group1_name=group1_label, group2_name=group2_label, 
+		result = rp.ttest(group1_df[var], group2_df[var], group1_name=global_vars.raw_indttest_grouplevel1, group2_name=global_vars.raw_indttest_grouplevel2, 
 			 equal_variances=stats.levene(group1_df[var], group2_df[var])[1]>0.05, paired=False)
 		ttest_stats_df1 = result[0]
 		ttest_stats_df2 = result[1]
@@ -139,18 +132,18 @@ def raw_indttest_generate_output_df(mod_raw_data_df):
 		current_dict["All_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["SE"]
 		current_dict["All_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["95% Conf."]
 		current_dict["All_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["Interval"]
-		current_dict[group1_label+"_N"] = int(ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["N"])
-		current_dict[group1_label+"_Mean"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["Mean"]
-		current_dict[group1_label+"_SD"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["SD"]
-		current_dict[group1_label+"_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["SE"]
-		current_dict[group1_label+"_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["95% Conf."]
-		current_dict[group1_label+"_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group1_label].iloc[0]["Interval"]
-		current_dict[group2_label+"_N"] = int(ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["N"])
-		current_dict[group2_label+"_Mean"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["Mean"]
-		current_dict[group2_label+"_SD"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["SD"]
-		current_dict[group2_label+"_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["SE"]
-		current_dict[group2_label+"_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["95% Conf."]
-		current_dict[group2_label+"_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == group2_label].iloc[0]["Interval"]
+		current_dict[global_vars.raw_indttest_grouplevel1+"_N"] = int(ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["N"])
+		current_dict[global_vars.raw_indttest_grouplevel1+"_Mean"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["Mean"]
+		current_dict[global_vars.raw_indttest_grouplevel1+"_SD"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["SD"]
+		current_dict[global_vars.raw_indttest_grouplevel1+"_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["SE"]
+		current_dict[global_vars.raw_indttest_grouplevel1+"_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["95% Conf."]
+		current_dict[global_vars.raw_indttest_grouplevel1+"_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["Interval"]
+		current_dict[global_vars.raw_indttest_grouplevel2+"_N"] = int(ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["N"])
+		current_dict[global_vars.raw_indttest_grouplevel2+"_Mean"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["Mean"]
+		current_dict[global_vars.raw_indttest_grouplevel2+"_SD"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["SD"]
+		current_dict[global_vars.raw_indttest_grouplevel2+"_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["SE"]
+		current_dict[global_vars.raw_indttest_grouplevel2+"_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["95% Conf."]
+		current_dict[global_vars.raw_indttest_grouplevel2+"_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["Interval"]
 		current_dict["Equal Variances Assumed"] = "Yes" if stats.levene(group1_df[var], group2_df[var])[1]>0.05 else "No"
 		current_dict["Degrees of Freedom"] = ttest_stats_df2.iloc[1, 1]
 		current_dict["t"] = ttest_stats_df2.iloc[2, 1]
@@ -166,13 +159,10 @@ def raw_indttest_generate_output_df(mod_raw_data_df):
 #-----------------------------------------------------------4. Saving data----------------------------------------------------
 #4.2.  Main function for saving data
 def raw_indttest_apa_table(mod_raw_data_df, output_df):
-	unique_groups = [x.strip() for x in mod_raw_data_df[global_vars.raw_indttest_groupvar].unique() if len(x.strip()) > 0]
-	group1_label, group2_label = unique_groups[0], unique_groups[1]
-
 	sign_bool_label = list(output_df.columns)[-1]
 	
-	apa_output_df = output_df[["Variable","All_Mean","All_SD", group1_label+"_Mean", group1_label+"_SD", group2_label+"_Mean", 
-							group2_label+"_SD", "Degrees of Freedom", "t", global_vars.effect_size_choice, "adjusted_pvalues"]]
+	apa_output_df = output_df[["Variable","All_Mean","All_SD", global_vars.raw_indttest_grouplevel1+"_Mean", global_vars.raw_indttest_grouplevel1+"_SD", global_vars.raw_indttest_grouplevel2+"_Mean", 
+							global_vars.raw_indttest_grouplevel2+"_SD", "Degrees of Freedom", "t", global_vars.effect_size_choice, "adjusted_pvalues"]]
 
 	#the two operations below are correct so the SettingWithCopyWarning pandas error is supressed temporarily
 	pd.options.mode.chained_assignment = None
@@ -191,10 +181,10 @@ def raw_indttest_apa_table(mod_raw_data_df, output_df):
 	ws.cell(row=1, column=2).value = "All, n={}".format(output_df.iloc[0, 1])
 	ws.merge_cells('B1:C1')
 	
-	ws.cell(row=1, column=4).value = "{g}, n={n}".format(g=group1_label, n=output_df.iloc[0,7])
+	ws.cell(row=1, column=4).value = "{g}, n={n}".format(g=global_vars.raw_indttest_grouplevel1, n=output_df.iloc[0,7])
 	ws.merge_cells('D1:E1')
 	
-	ws.cell(row=1, column=6).value = "{g}, n={n}".format(g=group2_label, n=output_df.iloc[0,13])
+	ws.cell(row=1, column=6).value = "{g}, n={n}".format(g=global_vars.raw_indttest_grouplevel2, n=output_df.iloc[0,13])
 	ws.merge_cells('F1:G1')
 	
 	ws.cell(row=1, column=8).value = "df"
