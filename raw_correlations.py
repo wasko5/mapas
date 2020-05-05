@@ -126,7 +126,7 @@ def raw_corr_generate_output_df(mod_raw_data_df):
 				ci_low, ci_high = helper_funcs.corr_coeff_ci(r, n=min(mod_raw_data_df[var1].count(), mod_raw_data_df[var2].count())) #takes the smallest number as this would be the number of correlations done
 				data_list.append((var1, var2, r, ci_low, ci_high, p))
 		i += 1
-	output_df = pd.DataFrame(data_list, columns=["Variable1", "Variable2", "Correlation Coefficient", "CI_low", "CI_high", "pvalues"])
+	output_df = pd.DataFrame(data_list, columns=["Variable1", "Variable2", "Correlation_Coefficient", "CI_low", "CI_high", "pvalues"])
 
 	return output_df
 
@@ -149,7 +149,7 @@ def raw_corr_apa_table(mod_raw_data_df, output_df):
 		for row in range(start_row, len(variables_list)*2, 2):
 			row_var = ws.cell(row=row, column=1).value
 			#Using the query method is slower than using conditionals - in my tests query was between 65 and 80 % slower for 1,000 and 10,000 runs
-			r = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))].iloc[0]["Correlation Coefficient"]
+			r = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))].iloc[0]["Correlation_Coefficient"]
 			p = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))].iloc[0]["adjusted_pvalues"]
 			ci_low = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))].iloc[0]["CI_low"]
 			ci_high = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))].iloc[0]["CI_high"]

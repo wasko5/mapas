@@ -915,6 +915,7 @@ def set_global_variables():
 	print("raw_test - ", global_vars.raw_test)
 
 	print("raw_corr_type - ", global_vars.raw_corr_type)
+	print("raw_corr_vars - ", global_vars.raw_corr_vars)
 	print("raw_mr_outcomevar - ", global_vars.raw_mr_outcomevar)
 	print("raw_mr_predictors - ", global_vars.raw_mr_predictors)
 	print("raw_indttest_groupvar - ", global_vars.raw_indttest_groupvar)
