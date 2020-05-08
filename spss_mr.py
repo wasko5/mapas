@@ -61,6 +61,7 @@ global_vars.correction_type = "none" #see global_vars.master_dict for other valu
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
+'''
 def get_raw_data_df():
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
@@ -86,7 +87,7 @@ def generate_output_df(mod_raw_data_df):
 
 def save_output(mod_raw_data_df, output_df):
 	spss_mr_apa_table(mod_raw_data_df, output_df)
-
+'''
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
 def spss_mr_generate_mod_raw_data_df(raw_data_df):
@@ -168,11 +169,13 @@ def spss_mr_apa_table(mod_raw_data_df, output_df):
 
 	helper_funcs.add_table_notes(ws, table_notes)
 
-	helper_funcs.save_file("spss_mr", wb)
-
+	#helper_funcs.save_file("spss_mr", wb)
+	wb.save(filename=global_vars.output_filename + ".xlsx")
+'''
 def main():
 	raw_data_df = get_raw_data_df()
 	mod_raw_data_df = modify_raw_data_df(raw_data_df)
 	output_df = generate_output_df(mod_raw_data_df)
 	output_df = helper_funcs.multitest_correction(output_df)
 	save_output(mod_raw_data_df, output_df)
+'''

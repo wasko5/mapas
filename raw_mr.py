@@ -61,6 +61,7 @@ global_vars.non_numeric_input_raise_errors = True #or False
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
+'''
 def get_raw_data_df():
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
@@ -92,9 +93,10 @@ def generate_output_df(mod_raw_data_df):
 
 def save_output(mod_raw_data_df, output_df):
 	raw_mr_apa_table(mod_raw_data_df, output_df)
-
+'''
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
+'''
 def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols=[]):
 	mod_raw_data_df = raw_data_df[numeric_cols + non_numeric_cols] #does NOT raise errors when array is blank (default arg)
 	mod_raw_data_df[numeric_cols] = mod_raw_data_df[numeric_cols].apply(pd.to_numeric, errors="coerce") #non-numeric values will be np.nan
@@ -105,7 +107,7 @@ def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_co
 	#mod_raw_data_df = mod_raw_data_df.dropna().reset_index(drop=True) NEVER DOROP NA HERE - JUST COERCE TO KNOW WHERE NA VALUES ARE BUT DO NOT ALTER!!!!
 	
 	return mod_raw_data_df
-
+'''
 #-----------------------------------------------------------3. Output dataframe----------------------------------------------------
 #3.2.  Main function for generating the output data dataframe
 def raw_mr_generate_output_df(mod_raw_data_df):	
@@ -183,12 +185,14 @@ def raw_mr_apa_table(mod_raw_data_df, output_df):
 	table_notes = ["R squared adjusted = {R}".format(R="{:.2f}".format(output_df["R2adj"][0])), "Dependent Variable: {DV}".format(DV=global_vars.raw_mr_outcomevar)]
 	helper_funcs.add_table_notes(ws, table_notes)
 
-	helper_funcs.save_file("raw_data_MR", wb)
+	#helper_funcs.save_file("raw_data_MR", wb)
+	wb.save(filename=global_vars.output_filename + ".xlsx")
 
-
+'''
 def main():
 	raw_data_df = get_raw_data_df()
 	mod_raw_data_df = modify_raw_data_df(raw_data_df)
 	output_df = generate_output_df(mod_raw_data_df)
 	output_df = helper_funcs.multitest_correction(output_df)
 	save_output(mod_raw_data_df, output_df)
+'''

@@ -62,6 +62,7 @@ global_vars.correction_type = "bonferroni" #see global_vars.master_dict for othe
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
+'''
 def get_raw_data_df():
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
@@ -89,6 +90,7 @@ def generate_output_df(mod_raw_data_df):
 
 def save_output(mod_raw_data_df, output_df):
 	spss_pairttest_apa_table(mod_raw_data_df, output_df)
+'''
 
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
@@ -125,7 +127,7 @@ def spss_pairttest_generate_output_df(mod_raw_data_df):
 		for t in t_stat_list:
 			effect_size = (t*np.sqrt(1/global_vars.spss_pairttest_nOne + 1/global_vars.spss_pairttest_nTwo))*np.sqrt(1/global_vars.spss_pairttest_nOne + 1/global_vars.spss_pairttest_nTwo)
 			effectsize_list.append(effect_size)
-	elif global_vars.effect_size_choice == "none":
+	elif global_vars.effect_size_choice == "None":
 		effectsize_list = [np.nan] * len(t_stat_list)
 			
 	output_dict["Variables"] = list(mod_raw_data_df["Variables"])
@@ -201,11 +203,13 @@ def spss_pairttest_apa_table(mod_raw_data_df, output_df):
 	table_notes = ["Means and Standard Deviations cannot be read from the SPSS table. Please add them yourself or remove those columns if they are not needed."]
 	helper_funcs.add_table_notes(ws, table_notes)
 
-	helper_funcs.save_file("spss_data_pairttest", wb)
-
+	#helper_funcs.save_file("spss_data_pairttest", wb)
+	wb.save(filename=global_vars.output_filename + ".xlsx")
+'''
 def main():
 	raw_data_df = get_raw_data_df()
 	mod_raw_data_df = modify_raw_data_df(raw_data_df)
 	output_df = generate_output_df(mod_raw_data_df)
 	output_df = helper_funcs.multitest_correction(output_df)
 	save_output(mod_raw_data_df, output_df)
+'''

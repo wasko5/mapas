@@ -1,36 +1,37 @@
-library(readxl)
-data <- read_excel("D:/Desktop_current/NPSoftware/GitHub/df5.xlsx")
-str(data)
-round(cor(data, method="pearson"), 2)
-
-install.packages("Hmisc")
+library("readxl")
 library("Hmisc")
-res2 <- 
-res2
-?rcorr
-rcorr(as.matrix(data))
+library("writexl")
+library("psychometric")
+library("dplyr")
+
+base_dir = "D:/Desktop_current/NPSoftware/GitHub/Unit testing/output dataframes/"
 
 flattenCorrMatrix <- function(cormat, pmat) {
   lt <- lower.tri(cormat)
   data.frame(
     Variable1 = rownames(cormat)[col(cormat)[lt]],
     Variable2 = rownames(cormat)[row(cormat)[lt]],
-    Correlation.Coefficient = (cormat)[lt],
+    Correlation_Coefficient = (cormat)[lt],
     pvalues = pmat[lt]
   )
 }
 
-res2<-rcorr(as.matrix(data))
-print(res2$r)
-corr_matrix <- flattenCorrMatrix(res2$r, res2$P)
+data <- read_excel("D:/Desktop_current/NPSoftware/GitHub/df5.xlsx")
 
+res <- rcorr(as.matrix(data), type="pearson")
+corr_matrix <- flattenCorrMatrix(res$r, res$P)
 corr_matrix$adjusted_pvalues = p.adjust(corr_matrix$p, method = "BH")
-corr_matrix[,3:5] = round(corr_matrix[,3:5], 2)
-corr_matrix
 
-install.packages("writexl")
-library("writexl")
-write_xlsx(corr_matrix, "D:/Desktop_current/NPSoftware/GitHub/df5_r_output.xlsx")
-?p.adjust
+corr_matrix$Variable1 = levels(corr_matrix$Variable1)[corr_matrix$Variable1]
+corr_matrix$Variable2 = levels(corr_matrix$Variable2)[corr_matrix$Variable2]
+for (row in 1:length(rownames(corr_matrix))) {
+  curr_r = corr_matrix[row, "Correlation_Coefficient"]
+  curr_n = min(length(rownames(data[corr_matrix[row, "Variable1"]])),
+               length(rownames(data[corr_matrix[row, "Variable2"]])))
+  corr_matrix[row, "CI_low"] = CIr(r = curr_r, n = curr_n)[1]
+  corr_matrix[row, "CI_high"] = CIr(r = curr_r, n = curr_n)[2]
+}
+corr_matrix <- corr_matrix[, c("Variable1", "Variable2", "Correlation_Coefficient",
+                               "CI_low", "CI_high", "pvalues", "adjusted_pvalues")]
 
-
+write_xlsx(corr_matrix, paste(base_dir, "raw_corr_pearson_fdrBH_raiseErrors_R.xlsx", sep=""))

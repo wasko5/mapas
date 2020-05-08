@@ -61,6 +61,7 @@ global_vars.correction_type = "bonferroni" #see global_vars.master_dict for othe
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
+'''
 def get_raw_data_df():
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
@@ -88,7 +89,7 @@ def generate_output_df(mod_raw_data_df):
 
 def save_output(mod_raw_data_df, output_df):
 	spss_indttest_apa_table(mod_raw_data_df, output_df)
-
+'''
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
 def spss_indttest_generate_mod_raw_data_df(raw_data_df):
@@ -134,7 +135,7 @@ def spss_indttest_generate_output_df(mod_raw_data_df):
 		elif global_vars.effect_size_choice == "Hedge's g":
 			#calculated using cohens_d * (1 - (3/4(n1+n2-9))) where cohens d is t*sqrt(1/n1 + 1/n2)
 			effect_size = (t*np.sqrt(1/global_vars.spss_indttest_nOne + 1/global_vars.spss_indttest_nTwo))*np.sqrt(1/global_vars.spss_indttest_nOne + 1/global_vars.spss_indttest_nTwo)
-		elif global_vars.effect_size_choice == "none":
+		elif global_vars.effect_size_choice == "None":
 			effect_size = np.nan
 
 		output_dict["Variable"].append(mod_raw_data_df["Independent Samples Test"][row])
@@ -220,17 +221,19 @@ def spss_indttest_apa_table(mod_raw_data_df, output_df):
 	for cell in ws[2] + ws[len(output_df)+2]:
 		cell.border = Border(bottom=global_vars.border_APA)
 
-	if global_vars.effect_size_choice == "none":
+	if global_vars.effect_size_choice == "None":
 		ws.delete_cols(10)
 
 	table_notes = ["Means and Standard Deviations cannot be read from the SPSS table. Please add them yourself or remove those columns if they are not needed."]
 	helper_funcs.add_table_notes(ws, table_notes)
 
-	helper_funcs.save_file("spss_data_indttest", wb)
-
+	#helper_funcs.save_file("spss_data_indttest", wb)
+	wb.save(filename=global_vars.output_filename + ".xlsx")
+'''
 def main():
 	raw_data_df = get_raw_data_df()
 	mod_raw_data_df = modify_raw_data_df(raw_data_df)
 	output_df = generate_output_df(mod_raw_data_df)
 	output_df = helper_funcs.multitest_correction(output_df)
 	save_output(mod_raw_data_df, output_df)
+'''

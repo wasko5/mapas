@@ -62,6 +62,7 @@ global_vars.correction_type = "none" #see global_vars.master_dict for other valu
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
+'''
 def get_raw_data_df():
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
@@ -95,7 +96,7 @@ def generate_output_df(mod_raw_data_df):
 
 def save_output(mod_raw_data_df, output_df):
 	summ_indttest_apa_table(mod_raw_data_df, output_df)
-
+'''
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
 def summ_inddtest_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols=[]):
@@ -158,7 +159,7 @@ def summ_indttest_generate_output_df(mod_raw_data_df):
 		elif global_vars.effect_size_choice == "Glass's delta":
 			#glass delta = (Mean2 - Mean1) / SD1 where SD1 is always that of control
 			effect_size = (current_series[summ_indttest_meanTwo] - current_series[summ_indttest_meanOne]) / current_series[summ_indttest_sdOne]
-		elif global_vars.effect_size_choice == "none":
+		elif global_vars.effect_size_choice == "None":
 			effect_size = np.nan
 		output_dict[global_vars.effect_size_choice].append(effect_size)
 
@@ -180,7 +181,9 @@ def summ_indttest_apa_table(mod_raw_data_df, output_df):
 	output_df.drop(columns = ["adjusted_pvalues", sign_bool_label], inplace=True)
 	'''
 	
-	output_df.drop(columns = ["pvalues", list(output_df.columns)[-1]], inplace=True)
+	#output_df.drop(columns = ["pvalues", list(output_df.columns)[-1]], inplace=True)
+	output_df.drop(columns = ["pvalues"], inplace=True)
+	print(output_df)
 
 	pd.options.mode.chained_assignment = None
 	output_df[list(output_df.columns)[1:-1]] = output_df[list(output_df.columns)[1:-1]].applymap(lambda x: "{:.2f}".format(x))
@@ -235,17 +238,19 @@ def summ_indttest_apa_table(mod_raw_data_df, output_df):
 	for cell in ws[2] + ws[len(output_df)+2]:
 		cell.border = Border(bottom=global_vars.border_APA)
 
-	if global_vars.effect_size_choice == "none":
+	if global_vars.effect_size_choice == "None":
 		ws.delete_cols(8)
 
 	helper_funcs.add_table_notes(ws, [])
 
-	helper_funcs.save_file("summ_indttest", wb)
+	#helper_funcs.save_file("summ_indttest", wb)
+	wb.save(filename=global_vars.output_filename + ".xlsx")
 
-
+'''
 def main():
 	raw_data_df = get_raw_data_df()
 	mod_raw_data_df = modify_raw_data_df(raw_data_df)
 	output_df = generate_output_df(mod_raw_data_df)
 	output_df = helper_funcs.multitest_correction(output_df)
 	save_output(mod_raw_data_df, output_df)
+'''

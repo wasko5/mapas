@@ -7,20 +7,7 @@
 - selecting None to correction on ind ttest brings up an error
 '''
 
-import raw_indttest
-import raw_correlations
-import raw_mr
-import raw_indttest
-import raw_pairttest
-import summ_correlations
-import summ_indttest
-import spss_correlations
-import spss_mr
-import spss_indttest
-import spss_pairttest
-import pvalues
-
-
+import decision_funcs
 import global_vars
 import calculations_helper_functions_only as helper_funcs
 import tkinter as tk
@@ -899,8 +886,8 @@ def set_global_variables():
 	except ValueError:
 		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_pairttest_nTwo_tk.get()))
 
-	global_vars.effect_size_choice = "none" if effect_size_choice_tk.get() == global_vars.tk_vars_defaults["effect_size_choice_tk"] else effect_size_choice_tk.get()
-	global_vars.correction_type = "none" if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"] else global_vars.master_dict[correction_type_tk.get()]
+	global_vars.effect_size_choice = "no selection" if effect_size_choice_tk.get() == global_vars.tk_vars_defaults["effect_size_choice_tk"] else global_vars.master_dict[effect_size_choice_tk.get()]
+	global_vars.correction_type = "no selection" if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"] else global_vars.master_dict[correction_type_tk.get()]
 
 	global_vars.non_numeric_input_raise_errors = "" if non_numeric_input_raise_errors_tk.get() == global_vars.tk_vars_defaults["non_numeric_input_raise_errors_tk"] else global_vars.master_dict[non_numeric_input_raise_errors_tk.get()]
 	global_vars.raw_ttest_output_descriptives = True if raw_ttest_output_descriptives_tk.get() == "Yes" else False
@@ -965,7 +952,7 @@ def input_validation():
 		if global_vars.raw_test == "corr":
 			if global_vars.raw_corr_type == "":
 				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correlation (pearson, spearman, kendall) you want to perform.")
-			if global_vars.correction_type == "none":
+			if global_vars.correction_type == "no selection":
 				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 			if global_vars.non_numeric_input_raise_errors == "":
 				raise Exception("What happens if you have missing or invalid data? Well, we don't know either so you will need to tell us your preference.\n\nPlease select how to handle non-numeric data.")
@@ -977,9 +964,9 @@ def input_validation():
 			if global_vars.raw_mr_predictors == ():
 				raise Exception("Although we are currently working on it, we still can't predict your predictors (ha, get it? predict the predictors... please send help).\n\nSpeaking of help, you might as well help us by telling us what your predictors are.")
 		elif global_vars.raw_test == "indttest":
-			if global_vars.correction_type == "none":
+			if global_vars.correction_type == "no selection":
 				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
-			if global_vars.effect_size_choice == "none":
+			if global_vars.effect_size_choice == "no selection":
 				raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
 			if global_vars.non_numeric_input_raise_errors == "":
 				raise Exception("What happens if you have missing or invalid data? Well, we don't know either so you will need to tell us your preference.\n\nPlease select how to handle non-numeric data.")
@@ -988,16 +975,16 @@ def input_validation():
 			if global_vars.raw_indttest_dv == []:
 				raise Exception("Right, so we are comparing those two groups - but we are not sure what to comapre them on.\n\nPlease select your dependent variables.")
 		elif global_vars.raw_test == "pairttest":
-			if global_vars.correction_type == "none":
+			if global_vars.correction_type == "no selection":
 				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
-			if global_vars.effect_size_choice == "none":
+			if global_vars.effect_size_choice == "no selection":
 				raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
 			if global_vars.non_numeric_input_raise_errors == "":
 				raise Exception("What happens if you have missing or invalid data? Well, we don't know either so you will need to tell us your preference.\n\nPlease select how to handle non-numeric data.")
 			if global_vars.raw_pairttest_var_pairs == ():
 				raise Exception("In order to run that paired sample t-test, we first need to know what your pair of varialbes are.\n\nPlease add your pairs to the box using the dropdown menus and the buttons.")
 	elif global_vars.input_type == "summ_corr":
-		if global_vars.correction_type == "none":
+		if global_vars.correction_type == "no selection":
 			raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 		if global_vars.summ_corr_varOne == "":
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your variable one labels.")
@@ -1008,9 +995,9 @@ def input_validation():
 		if global_vars.summ_corr_pvalues == "":
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your pvalues.")
 	elif global_vars.input_type == "summ_indttest":
-		if global_vars.correction_type == "none":
+		if global_vars.correction_type == "no selection":
 			raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
-		if global_vars.effect_size_choice == "none":
+		if global_vars.effect_size_choice == "no selection":
 			raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
 		if global_vars.summ_indttest_var == "":
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your variable labels.")
@@ -1030,26 +1017,26 @@ def input_validation():
 		if global_vars.spss_test == "":
 			raise Exception("Where's the rush? First you will need to tell us what kind of SPSS table you have there first.")
 		elif global_vars.spss_test == "corr":
-			if global_vars.correction_type == "none":
+			if global_vars.correction_type == "no selection":
 				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 		elif global_vars.spss_test == "mr":
 			pass
 		elif global_vars.spss_test == "indttest":
-			if global_vars.correction_type == "none":
+			if global_vars.correction_type == "no selection":
 				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
-			if global_vars.effect_size_choice == "none":
+			if global_vars.effect_size_choice == "no selection":
 				raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
 			if global_vars.spss_indttest_nOne == -1 or global_vars.spss_indttest_nTwo == -1:
 				raise Exception("To run some of the statistics for the t-test you will need to tell us what your sample size is.")
 		elif global_vars.spss_test == "pairttest":
-			if global_vars.correction_type == "none":
+			if global_vars.correction_type == "no selection":
 				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
-			if global_vars.effect_size_choice == "none":
+			if global_vars.effect_size_choice == "no selection":
 				raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
 			if global_vars.spss_pairttest_nOne == -1 or global_vars.spss_pairttest_nTwo == -1:
 				raise Exception("To run some of the statistics for the t-test you will need to tell us what your sample size is.")
 	elif global_vars.input_type == "pvalues":
-		if global_vars.correction_type == "none":
+		if global_vars.correction_type == "no selection":
 			raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 
 
@@ -1115,37 +1102,18 @@ about.add_command(label="Info", command=submit_window)
 menubar.add_cascade(label="About", menu=about)
 
 #------------------------
-def run_individual_funcs():
-	if global_vars.input_type == "raw":
-		if global_vars.raw_test == "corr":
-			raw_correlations.main()
-		elif global_vars.raw_test == "mr":
-			raw_mr.main()
-		elif global_vars.raw_test == "indttest":
-			raw_indttest.main()
-		elif global_vars.raw_test == "pairttest":
-			raw_pairttest.main()
-	elif global_vars.input_type == "summ_corr":
-		summ_correlations.main()
-	elif global_vars.input_type == "summ_indttest":
-		summ_indttest.main()
-	elif global_vars.input_type == "spss":
-		if global_vars.spss_test == "corr":
-			spss_correlations.main()
-		elif global_vars.spss_test == "mr":
-			spss_mr.main()
-		elif global_vars.spss_test == "indttest":
-			spss_indttest.main()
-		elif global_vars.spss_test == "pairttest":
-			spss_pairttest.main()
-	elif global_vars.input_type == "pvalues":
-		pvalues.main()
+def run_main():
+	raw_data_df = decision_funcs.get_raw_data_df()
+	mod_raw_data_df = decision_funcs.modify_raw_data_df(raw_data_df)
+	output_df = decision_funcs.generate_output_df(mod_raw_data_df)
+	output_df = helper_funcs.multitest_correction(output_df)
+	decision_funcs.save_output(mod_raw_data_df, output_df)
 
 #------------------------------------------------------------------------------------
 def submit():
 	set_global_variables()
 	input_validation()
-	run_individual_funcs()
+	run_main()
 	print("Success")
 	#another_window_test() #the progess bar stuff for later
 	submit_window(show_buttons=1)
