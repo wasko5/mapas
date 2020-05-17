@@ -1,10 +1,6 @@
 '''
-- One current 'feature' is that when you move between tests (correlations-mr in raw test) the things you put in the listbox (e.g. for MR) stay there despite clicking away.
-			Might leave it like that for listboxes but reset for everything else. Might add a parameter to the reset_defaults function such that it can also
-			reset to default these listboxes upon successful run of the program (i.e. when someone clicks "more analysis" in the popup)
 - Fix the ability to end up with "Please elect input file first..." in the comboboxes.
 - Consider adding more menu options
-- selecting None to correction on ind ttest brings up an error
 '''
 
 import decision_funcs
@@ -18,6 +14,7 @@ from tkinter.filedialog import askopenfilename, asksaveasfilename
 from PIL import Image, ImageTk
 from webbrowser import open_new
 import time #temporary for testing
+
 
 #-------------------------------------------------------------2. GUI----------------------------------------------------------------
 #master = thk.ThemedTk()
@@ -444,7 +441,7 @@ instr_label.grid(row=0, column=0, columnspan=3)
 
 #Input file button & label
 def select_file():
-	path_and_filename = askopenfilename(initialdir = "D:\\Desktop_current\\NPSoftware\\GitHub\\Input files\\raw data", title="Select input file. Must be Excel file.", filetypes=(("Excel files","*.xlsx"),("All files","*.*")))
+	path_and_filename = askopenfilename(initialdir = "\\", title="Select input file. Must be Excel file.", filetypes=(("Excel files","*.xlsx"),("All files","*.*")))
 	
 	if path_and_filename.endswith(".xlsx"): # or filename[ext_sep_idx:] == ".csv" - for later use when csv is integrated
 		update_filename_label(filename = path_and_filename[path_and_filename.rfind("/")+1:], label = filename_label, char_limit=50)
@@ -768,7 +765,7 @@ def spss_table_info_popup(event):
 	spss_table_info_scroll.grid(row=0, column=1, sticky="NS")
 	'''	
 
-spss_table_info_label = ttk.Label(spss_get_table_info_Frame, text="How to import SPSS table?", foreground="blue", cursor="hand2")
+spss_table_info_label = ttk.Label(spss_get_table_info_Frame, text="How to export an SPSS table?", foreground="blue", cursor="hand2")
 spss_table_info_label.grid(row=0, column=0, sticky="NE", padx=0, pady=5)
 spss_table_info_label.bind("<Button-1>", spss_table_info_popup)
 
@@ -875,8 +872,8 @@ def set_global_variables():
 		global_vars.spss_indttest_nTwo = -1 if spss_indttest_nTwo_tk.get() == "Enter an integer" else int(spss_indttest_nTwo_tk.get())
 	except ValueError:
 		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_indttest_nTwo_tk.get()))
-	global_vars.spss_indttest_groupOneLabel = spss_indttest_groupOneLabel_tk.get()
-	global_vars.spss_indttest_groupTwoLabel = spss_indttest_groupTwoLabel_tk.get()
+	global_vars.spss_indttest_groupOneLabel = "Group1" if spss_indttest_groupOneLabel_tk.get() == "" else spss_indttest_groupOneLabel_tk.get()
+	global_vars.spss_indttest_groupTwoLabel = "Group2" if spss_indttest_groupTwoLabel_tk.get() == "" else spss_indttest_groupTwoLabel_tk.get()
 	try:
 		global_vars.spss_pairttest_nOne = -1 if spss_pairttest_nOne_tk.get() == "Enter an integer" else int(spss_pairttest_nOne_tk.get())
 	except ValueError:
@@ -886,7 +883,7 @@ def set_global_variables():
 	except ValueError:
 		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_pairttest_nTwo_tk.get()))
 
-	global_vars.effect_size_choice = "no selection" if effect_size_choice_tk.get() == global_vars.tk_vars_defaults["effect_size_choice_tk"] else global_vars.master_dict[effect_size_choice_tk.get()]
+	global_vars.effect_size_choice = "no selection" if effect_size_choice_tk.get() == global_vars.tk_vars_defaults["effect_size_choice_tk"] else effect_size_choice_tk.get()
 	global_vars.correction_type = "no selection" if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"] else global_vars.master_dict[correction_type_tk.get()]
 
 	global_vars.non_numeric_input_raise_errors = "" if non_numeric_input_raise_errors_tk.get() == global_vars.tk_vars_defaults["non_numeric_input_raise_errors_tk"] else global_vars.master_dict[non_numeric_input_raise_errors_tk.get()]
@@ -1041,7 +1038,7 @@ def input_validation():
 
 
 	if global_vars.effect_size_choice == "Glass's delta" and (global_vars.input_type == "summindttest" or global_vars.spss_test == "indttest" or global_vars.spss_test == "pairttest"):
-		raise Exception("Sorry! Glass's delta is not available for this time of test. Glass's delta can only be requested if raw data is provided. For more information, see the documentation.")
+		raise Exception("Sorry! Glass's delta is not available for this type of test. Glass's delta can only be requested if raw data are provided. For more information, see the documentation.")
 	
 	if global_vars.output_filename == "":
 		raise Exception("We're almost there... Your output file is ready and waiting for you. You will just need to tell it where to pop up.\n\nPlease select an output file.")
@@ -1106,7 +1103,7 @@ def run_main():
 	raw_data_df = decision_funcs.get_raw_data_df()
 	mod_raw_data_df = decision_funcs.modify_raw_data_df(raw_data_df)
 	output_df = decision_funcs.generate_output_df(mod_raw_data_df)
-	output_df = helper_funcs.multitest_correction(output_df)
+	output_df = decision_funcs.multitest_correction(output_df)
 	decision_funcs.save_output(mod_raw_data_df, output_df)
 
 #------------------------------------------------------------------------------------

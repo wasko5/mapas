@@ -53,8 +53,10 @@ def modify_raw_data_df(raw_data_df):
 			numeric_cols = list(np.array(global_vars.raw_pairttest_var_pairs).flatten())
 			non_numeric_cols = []
 
+		
 		if global_vars.non_numeric_input_raise_errors == True:
-				helper_funcs.error_on_input(df=raw_data_df, cols=numeric_cols, input_type="numeric")
+			helper_funcs.error_on_input(df=raw_data_df, cols=numeric_cols, input_type="numeric")
+		
 		mod_raw_data_df = helper_funcs.raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols)
 	
 	elif global_vars.input_type == "summ_correlations":

@@ -11,6 +11,19 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from datetime import datetime
 import global_vars
 
+def calc_ttest_effect_size(effect_size_choice, t=None, n1=None, n2=None, m1=None, m2=None, sd1=None):
+	if effect_size_choice == "Cohen's d":
+		effect_size = t * np.sqrt(1 / n1 + 1 / n2)
+	elif effect_size_choice == "Hedge's g":
+		#calculated using cohens_d * (1 - (3/4(n1+n2-9))) where cohens d is t*sqrt(1/n1 + 1/n2)
+		effect_size = (t * np.sqrt(1 / n1 + 1 / n2)) * (1 - (3 / (4 * (n1 + n2 - 9))))
+	elif effect_size_choice == "Glass's delta":
+		#glass delta = (Mean2 - Mean1) / SD1 where SD1 is always that of control
+		effect_size = (m2 - m1) / sd1
+	elif effect_size_choice == "None":
+		effect_size = np.nan
+
+	return effect_size
 
 #Helper functions for GUI
 def get_df_columns(path_and_filename):
@@ -64,6 +77,7 @@ def error_on_input(df, cols, input_type):
 	cols - the cols to check
 	input_type - the input type to check for - can be either 'numeric' or 'nan'
 	'''
+	#creating a dictionary - key is col name value is a list of all nan values
 	bad_vals_dict = {}
 	for var in cols:
 		if input_type == "numeric":
@@ -71,8 +85,19 @@ def error_on_input(df, cols, input_type):
 		elif input_type == "nan":
 			current_series = df[var]
 		ind_list = list(current_series.isnull().to_numpy().nonzero()[0])
-		if ind_list != []:
-			bad_vals_dict[var] = ind_list
+		bad_vals_dict[var] = ind_list
+	
+	#in pairttest, it is possible to have 1 pair of vars of length X and another of X+200. To handle that, the final non-nan case is found for each pair
+	#and a dictionary is created where the key is the col name and the value is the index of the final case
+	if global_vars.raw_test == "pairttest":
+		pairttest_final_cases_ind_dict = {}
+		for ind in range(0, len(cols), 2):
+			pair_final_case = max(df[df.columns[ind]].dropna().index[-1], df[df.columns[ind+1]].dropna().index[-1]) #max here of the two vars as final case can have missing data
+			pairttest_final_cases_ind_dict[df.columns[ind]] = pair_final_case
+			pairttest_final_cases_ind_dict[df.columns[ind+1]] = pair_final_case
+		bad_vals_dict = {k: [e for e in v if e <= pairttest_final_cases_ind_dict[k]] for k, v in bad_vals_dict.items()}
+	
+	bad_vals_dict = {k: v for k, v in bad_vals_dict.items() if len(v) > 0} #dictionary reset to contain only lists of missing data as values, if none function ends
 	if bad_vals_dict != {}:
 		error_msg = "Non-numerical or blank entries found in the data!\n"
 		for col, ind_arr in bad_vals_dict.items():
@@ -95,7 +120,7 @@ def raw_input_corr_coeff(x, y):
 		x = np.array(x)
 		y = np.array(y)
 		nas = ~np.logical_or(np.isnan(x), np.isnan(y))
-		x = np.compress(nas, x)
+		x = np.compress(nas, x) #can't just ignore NAN; compress better here as it allows both arrays to have same length which is a must for stats.pearsonr()
 		y = np.compress(nas, y)
 
 		r, p = stats.pearsonr(x, y)

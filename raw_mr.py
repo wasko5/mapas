@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 import statsmodels.api as sm
-from statsmodels.stats import multitest
+#from statsmodels.stats import multitest
 import researchpy as rp
 from openpyxl import Workbook
 from openpyxl.styles import Border, Side, Alignment, Font
@@ -119,7 +119,7 @@ def raw_mr_generate_output_df(mod_raw_data_df):
 	result = sm.OLS.from_formula(formula=formula, data=mod_raw_data_df).fit() #everything before the .fit() is model specification
 	
 	#standardization of the raw data dataframe so it can also produce beta values for the output
-	mod_raw_data_df_z = mod_raw_data_df.apply(stats.zscore)
+	mod_raw_data_df_z = mod_raw_data_df.apply(lambda x: stats.zscore(x, nan_policy="omit"))
 	result_z = sm.OLS.from_formula(formula=formula, data=mod_raw_data_df_z).fit()
 	beta_list = list(result_z.params)
 
@@ -141,8 +141,8 @@ def raw_mr_generate_output_df(mod_raw_data_df):
 	output_dict["95% CI beta"] = ["[" + ",".join("{:.2f}".format(e) for e in pair) + "]" for pair in CI_beta_list] #might not need
 	output_dict["t"] = list(result.tvalues)
 	output_dict["pvalues"] = list(result.pvalues)
-	output_dict["R2"] = [result.rsquared] + [""] * (len(output_dict["Variable"])-1)
-	output_dict["R2adj"] = [result.rsquared_adj] + [""] * (len(output_dict["Variable"])-1)
+	output_dict["R2"] = [result.rsquared] + [np.nan] * (len(output_dict["Variable"])-1)
+	output_dict["R2adj"] = [result.rsquared_adj] + [np.nan] * (len(output_dict["Variable"])-1)
 
 	output_df = pd.DataFrame(output_dict)
 	

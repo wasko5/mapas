@@ -130,6 +130,9 @@ def spss_indttest_generate_output_df(mod_raw_data_df):
 		t = mod_raw_data_df["t"][row_to_read]
 		#ci_low_list.append(mod_raw_data_df[mod_raw_data_df.columns[9]][row_to_read])
 		#ci_high_list.append(mod_raw_data_df[mod_raw_data_df.columns[10]][row_to_read])
+		effect_size = helper_funcs.calc_ttest_effect_size(effect_size_choice = global_vars.effect_size_choice, t=t, n1=global_vars.spss_indttest_nOne, n2=global_vars.spss_indttest_nTwo)
+
+		'''
 		if global_vars.effect_size_choice == "Cohen's d":
 			effect_size = t*np.sqrt(1/global_vars.spss_indttest_nOne + 1/global_vars.spss_indttest_nTwo)
 		elif global_vars.effect_size_choice == "Hedge's g":
@@ -137,7 +140,7 @@ def spss_indttest_generate_output_df(mod_raw_data_df):
 			effect_size = (t*np.sqrt(1/global_vars.spss_indttest_nOne + 1/global_vars.spss_indttest_nTwo))*np.sqrt(1/global_vars.spss_indttest_nOne + 1/global_vars.spss_indttest_nTwo)
 		elif global_vars.effect_size_choice == "None":
 			effect_size = np.nan
-
+		'''
 		output_dict["Variable"].append(mod_raw_data_df["Independent Samples Test"][row])
 		output_dict["Degrees of Freedom"].append(mod_raw_data_df["df"][row_to_read])
 		output_dict["t"].append(t)

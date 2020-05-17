@@ -150,17 +150,10 @@ def summ_indttest_generate_output_df(mod_raw_data_df):
 										nobs2 = n2, equal_var=current_series[equal_var_col])
 		output_dict["t"].append(t)
 		output_dict["pvalues"].append(p)
-		
-		if global_vars.effect_size_choice == "Cohen's d":
-			effect_size = t*np.sqrt(1/n1 + 1/n2)
-		elif global_vars.effect_size_choice == "Hedge's g":
-			#calculated using cohens_d * (1 - (3/4(n1+n2-9))) where cohens d is t*sqrt(1/n1 + 1/n2)
-			effect_size = (t*np.sqrt(1/n1 + 1/n2))*np.sqrt(1/n1 + 1/n2)
-		elif global_vars.effect_size_choice == "Glass's delta":
-			#glass delta = (Mean2 - Mean1) / SD1 where SD1 is always that of control
-			effect_size = (current_series[summ_indttest_meanTwo] - current_series[summ_indttest_meanOne]) / current_series[summ_indttest_sdOne]
-		elif global_vars.effect_size_choice == "None":
-			effect_size = np.nan
+
+		effect_size = helper_funcs.calc_ttest_effect_size(effect_size_choice = global_vars.effect_size_choice, t=t, n1=n1, n2=n2,
+											m1=current_series[global_vars.summ_indttest_meanOne], m2=current_series[global_vars.summ_indttest_meanTwo],
+											sd1=current_series[global_vars.summ_indttest_sdOne])
 		output_dict[global_vars.effect_size_choice].append(effect_size)
 
 	output_df = pd.DataFrame(output_dict)
@@ -183,7 +176,6 @@ def summ_indttest_apa_table(mod_raw_data_df, output_df):
 	
 	#output_df.drop(columns = ["pvalues", list(output_df.columns)[-1]], inplace=True)
 	output_df.drop(columns = ["pvalues"], inplace=True)
-	print(output_df)
 
 	pd.options.mode.chained_assignment = None
 	output_df[list(output_df.columns)[1:-1]] = output_df[list(output_df.columns)[1:-1]].applymap(lambda x: "{:.2f}".format(x))

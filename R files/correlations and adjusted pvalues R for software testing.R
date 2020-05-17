@@ -4,7 +4,8 @@ library("writexl")
 library("psychometric")
 library("dplyr")
 
-base_dir = "D:/Desktop_current/NPSoftware/GitHub/Unit testing/output dataframes/"
+INPUT_BASE_DIR = "D:/Desktop_current/NPSoftware/GitHub/Unit testing/input dataframes/"
+OUTPUT_BASE_DIR = "D:/Desktop_current/NPSoftware/GitHub/Unit testing/output dataframes/"
 
 flattenCorrMatrix <- function(cormat, pmat) {
   lt <- lower.tri(cormat)
@@ -16,11 +17,11 @@ flattenCorrMatrix <- function(cormat, pmat) {
   )
 }
 
-data <- read_excel("D:/Desktop_current/NPSoftware/GitHub/df5.xlsx")
+data <- read_excel(paste(INPUT_BASE_DIR, "raw_corr_full data.xlsx", sep=""))
 
 res <- rcorr(as.matrix(data), type="pearson")
 corr_matrix <- flattenCorrMatrix(res$r, res$P)
-corr_matrix$adjusted_pvalues = p.adjust(corr_matrix$p, method = "BH")
+corr_matrix$adjusted_pvalues = p.adjust(corr_matrix$p, method = "holm")
 
 corr_matrix$Variable1 = levels(corr_matrix$Variable1)[corr_matrix$Variable1]
 corr_matrix$Variable2 = levels(corr_matrix$Variable2)[corr_matrix$Variable2]
@@ -34,4 +35,4 @@ for (row in 1:length(rownames(corr_matrix))) {
 corr_matrix <- corr_matrix[, c("Variable1", "Variable2", "Correlation_Coefficient",
                                "CI_low", "CI_high", "pvalues", "adjusted_pvalues")]
 
-write_xlsx(corr_matrix, paste(base_dir, "raw_corr_pearson_fdrBH_raiseErrors_R.xlsx", sep=""))
+write_xlsx(corr_matrix, paste(OUTPUT_BASE_DIR, "raw_corr_pearson_holm_raiseErrors_R.xlsx", sep=""))

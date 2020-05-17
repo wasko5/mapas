@@ -97,7 +97,7 @@ def save_output(mod_raw_data_df, output_df):
 	raw_indttest_apa_table(mod_raw_data_df, output_df)
 	if global_vars.raw_ttest_output_descriptives == True:
 		raw_indttest_descriptives_table(mod_raw_data_df, output_df)
-'''
+
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
 def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols=[]):
@@ -110,7 +110,7 @@ def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_co
 	#mod_raw_data_df = mod_raw_data_df.dropna().reset_index(drop=True) NEVER DOROP NA HERE - JUST COERCE TO KNOW WHERE NA VALUES ARE BUT DO NOT ALTER!!!!
 	
 	return mod_raw_data_df
-
+'''
 #-----------------------------------------------------------3. Output dataframe----------------------------------------------------
 #3.2.  Main function for generating the output data dataframe
 def raw_indttest_generate_output_df(mod_raw_data_df):
@@ -121,7 +121,7 @@ def raw_indttest_generate_output_df(mod_raw_data_df):
 	dictionaries_list=[]
 	for var in global_vars.raw_indttest_dv:
 		result = rp.ttest(group1_df[var], group2_df[var], group1_name=global_vars.raw_indttest_grouplevel1, group2_name=global_vars.raw_indttest_grouplevel2, 
-			 equal_variances=stats.levene(group1_df[var], group2_df[var])[1]>0.05, paired=False)
+			 equal_variances=stats.levene(group1_df[var].dropna().reset_index(drop=True), group2_df[var].dropna().reset_index(drop=True))[1]>0.05, paired=False)
 		ttest_stats_df1 = result[0]
 		ttest_stats_df2 = result[1]
 		
@@ -130,23 +130,25 @@ def raw_indttest_generate_output_df(mod_raw_data_df):
 		current_dict["All_N"] = int(ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["N"])
 		current_dict["All_Mean"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["Mean"]
 		current_dict["All_SD"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["SD"]
-		current_dict["All_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["SE"]
+		current_dict["All_Std_Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["SE"]
 		current_dict["All_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["95% Conf."]
 		current_dict["All_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == "combined"].iloc[0]["Interval"]
 		current_dict[global_vars.raw_indttest_grouplevel1+"_N"] = int(ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["N"])
 		current_dict[global_vars.raw_indttest_grouplevel1+"_Mean"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["Mean"]
 		current_dict[global_vars.raw_indttest_grouplevel1+"_SD"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["SD"]
-		current_dict[global_vars.raw_indttest_grouplevel1+"_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["SE"]
+		current_dict[global_vars.raw_indttest_grouplevel1+"_Std_Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["SE"]
 		current_dict[global_vars.raw_indttest_grouplevel1+"_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["95% Conf."]
 		current_dict[global_vars.raw_indttest_grouplevel1+"_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel1].iloc[0]["Interval"]
 		current_dict[global_vars.raw_indttest_grouplevel2+"_N"] = int(ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["N"])
 		current_dict[global_vars.raw_indttest_grouplevel2+"_Mean"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["Mean"]
 		current_dict[global_vars.raw_indttest_grouplevel2+"_SD"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["SD"]
-		current_dict[global_vars.raw_indttest_grouplevel2+"_Std Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["SE"]
+		current_dict[global_vars.raw_indttest_grouplevel2+"_Std_Err"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["SE"]
 		current_dict[global_vars.raw_indttest_grouplevel2+"_95% CI_Low"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["95% Conf."]
 		current_dict[global_vars.raw_indttest_grouplevel2+"_95% CI_High"] = ttest_stats_df1[ttest_stats_df1["Variable"] == global_vars.raw_indttest_grouplevel2].iloc[0]["Interval"]
-		current_dict["Equal Variances Assumed"] = "Yes" if stats.levene(group1_df[var], group2_df[var])[1]>0.05 else "No"
-		current_dict["Degrees of Freedom"] = ttest_stats_df2.iloc[1, 1]
+		#print('levene', stats.levene(group1_df[var], group2_df[var])[1])
+		current_dict["Equal_Variances_Assumed"] = "Yes" if stats.levene(group1_df[var].dropna().reset_index(drop=True), 
+																		group2_df[var].dropna().reset_index(drop=True))[1] > 0.05 else "No"
+		current_dict["Degrees_of_Freedom"] = ttest_stats_df2.iloc[1, 1]
 		current_dict["t"] = ttest_stats_df2.iloc[2, 1]
 		current_dict[global_vars.effect_size_choice] = np.nan if global_vars.effect_size_choice == "None" else ttest_stats_df2.iloc[effect_size_df_row_lookup[global_vars.effect_size_choice], 1]
 		current_dict["pvalues"] = ttest_stats_df2.iloc[3,1]
@@ -163,7 +165,7 @@ def raw_indttest_apa_table(mod_raw_data_df, output_df):
 	#sign_bool_label = list(output_df.columns)[-1]
 	
 	apa_output_df = output_df[["Variable","All_Mean","All_SD", global_vars.raw_indttest_grouplevel1+"_Mean", global_vars.raw_indttest_grouplevel1+"_SD", global_vars.raw_indttest_grouplevel2+"_Mean", 
-							global_vars.raw_indttest_grouplevel2+"_SD", "Degrees of Freedom", "t", global_vars.effect_size_choice, "adjusted_pvalues"]]
+							global_vars.raw_indttest_grouplevel2+"_SD", "Degrees_of_Freedom", "t", global_vars.effect_size_choice, "adjusted_pvalues"]]
 
 	#the two operations below are correct so the SettingWithCopyWarning pandas error is supressed temporarily
 	pd.options.mode.chained_assignment = None

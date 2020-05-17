@@ -126,8 +126,9 @@ def raw_corr_generate_output_df(mod_raw_data_df):
 	for var1 in mod_raw_data_df.columns: #can use .columns as all columns are now only of relevant vars (done in raw_input_generate_mod_raw_data_df func)
 		for var2 in mod_raw_data_df.columns[i:]:
 			if not var1 == var2:
-				r, p = helper_funcs.raw_input_corr_coeff(mod_raw_data_df[var1],mod_raw_data_df[var2])
+				r, p = helper_funcs.raw_input_corr_coeff(mod_raw_data_df[var1], mod_raw_data_df[var2])
 				ci_low, ci_high = helper_funcs.corr_coeff_ci(r, n=min(mod_raw_data_df[var1].count(), mod_raw_data_df[var2].count())) #takes the smallest number as this would be the number of correlations done
+				
 				data_list.append((var1, var2, r, ci_low, ci_high, p))
 		i += 1
 	output_df = pd.DataFrame(data_list, columns=["Variable1", "Variable2", "Correlation_Coefficient", "CI_low", "CI_high", "pvalues"])

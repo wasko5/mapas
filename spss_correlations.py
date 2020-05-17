@@ -94,7 +94,14 @@ def save_output(mod_raw_data_df, output_df):
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
 def spss_corr_generate_mod_raw_data_df(raw_data_df):
-	#-------------------------------------------------MORE RIGOROUS CHECKS HERE--------------------------------------------!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	if not(raw_data_df.columns[0] == "Correlations" or
+		raw_data_df.iloc[1, 0] == "Spearman's rho" or raw_data_df.iloc[1, 0] == "Kendall's tau_b" or raw_data_df.iloc[1, 1] == "Pearson Correlation" or
+		"Correlation is significant at the" in raw_data_df.iloc[raw_data_df.index[-1], 0] or
+		raw_data_df.iloc[raw_data_df.index[-1], :][1:].isna().all() or
+		raw_data_df.columns[1:].str.contains("Unnamed:").all()):
+		
+		raise Exception("The provided SPSS correlation table does not seem to be in the accepted format. Please use the \"How to export SPSS table?\" button for guidance or refer to the documentation.")
+
 	mod_raw_data_df = raw_data_df.copy()
 
 	if mod_raw_data_df.iloc[1, 1] == "Pearson Correlation":
@@ -133,7 +140,7 @@ def spss_corr_generate_output_df(mod_raw_data_df):
 				if diagonal_flag == True:
 					output_dict["var1"].append(current_df.iloc[0, 0])
 					output_dict["var2"].append(var)
-					output_dict[correlation_label].append(corr)
+					output_dict[correlation_label].append(corr) #Note: corrs are not formatted here as multi test correction first is applied and is then re-formatted based on the updated pvalues
 					output_dict["pvalues"].append(current_df.loc[ele+1, var])
 
 	output_df = pd.DataFrame(output_dict)
