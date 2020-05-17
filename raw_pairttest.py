@@ -62,6 +62,7 @@ global_vars.raw_ttest_output_descriptives = True
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
+'''
 def get_raw_data_df():
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
@@ -97,7 +98,7 @@ def save_output(mod_raw_data_df, output_df):
 	raw_pairttest_apa_table(mod_raw_data_df, output_df)
 	if global_vars.raw_ttest_output_descriptives == True:
 		raw_pairttest_descriptives_table(mod_raw_data_df, output_df)
-
+'''
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
 def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols):
@@ -144,7 +145,7 @@ def raw_pairttest_generate_output_df(mod_raw_data_df):
 		current_dict["Equal Variances Assumed"] = "Yes" if stats.levene(series_time1,series_time2)[1]>0.05 else "No"
 		current_dict["Degrees of Freedom"] = ttest_stats_df2.iloc[1, 1]
 		current_dict["t"] = ttest_stats_df2.iloc[2, 1]
-		current_dict[global_vars.effect_size_choice] = np.nan if global_vars.effect_size_choice == "none" else ttest_stats_df2.iloc[effect_size_df_row_lookup[global_vars.effect_size_choice], 1]
+		current_dict[global_vars.effect_size_choice] = np.nan if global_vars.effect_size_choice == "None" else ttest_stats_df2.iloc[effect_size_df_row_lookup[global_vars.effect_size_choice], 1]
 		current_dict["pvalues"] = ttest_stats_df2.iloc[3, 1]
 		dictionaries_list.append(current_dict)
 
@@ -212,7 +213,7 @@ def raw_pairttest_apa_table(mod_raw_data_df, output_df):
 	for cell in ws[1]:
 		cell.border = Border(top=global_vars.border_APA)
 
-	if global_vars.effect_size_choice == "none":
+	if global_vars.effect_size_choice == "None":
 		ws.delete_cols(8)
 
 	helper_funcs.add_table_notes(ws, [])
@@ -221,13 +222,14 @@ def raw_pairttest_apa_table(mod_raw_data_df, output_df):
 
 def raw_pairttest_descriptives_table(mod_raw_data_df, output_df):
 	if global_vars.correction_type == "none":
-		output_df.drop(columns = ["adjusted_pvalues", list(output_df.columns)[-1]], inplace=True)
+		#output_df.drop(columns = ["adjusted_pvalues", list(output_df.columns)[-1]], inplace=True)
+		output_df.drop(columns = ["adjusted_pvalues"], inplace=True)
 
 	descriptive_stats_df = output_df[list(output_df.columns)[0:13]]
 	test_stats_df = output_df[list(output_df.columns)[0:1] + list(output_df.columns)[13:]]
 
 	pd.options.mode.chained_assignment = None
-	if global_vars.effect_size_choice == "none":
+	if global_vars.effect_size_choice == "None":
 		test_stats_df.drop(columns = [global_vars.effect_size_choice], inplace=True)
 	pd.options.mode.chained_assignment = "warn"
 
@@ -256,11 +258,13 @@ def raw_pairttest_descriptives_table(mod_raw_data_df, output_df):
 		for cell in ws[row]:
 			cell.alignment = global_vars.alignment_center
 
-	helper_funcs.save_file("raw_data_pairttest_descriptives", wb)
-
+	#helper_funcs.save_file("raw_data_pairttest_descriptives", wb)
+	wb.save(filename=global_vars.output_filename + "_descriptives" + ".xlsx")
+'''
 def main():
 	raw_data_df = get_raw_data_df()
 	mod_raw_data_df = modify_raw_data_df(raw_data_df)
 	output_df = generate_output_df(mod_raw_data_df)
 	output_df = helper_funcs.multitest_correction(output_df)
 	save_output(mod_raw_data_df, output_df)
+'''

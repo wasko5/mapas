@@ -61,6 +61,8 @@ global_vars.non_numeric_input_raise_errors = True #or False
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
+'''
+#execution now guided by the decision_funcs
 def get_raw_data_df():
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
@@ -92,9 +94,11 @@ def generate_output_df(mod_raw_data_df):
 
 def save_output(mod_raw_data_df, output_df):
 	raw_corr_apa_table(mod_raw_data_df, output_df)
-
+'''
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
+'''
+#this is now done in the helper_funcs
 def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols=[]):
 	mod_raw_data_df = raw_data_df[numeric_cols + non_numeric_cols] #does NOT raise errors when array is blank (default arg)
 	mod_raw_data_df[numeric_cols] = mod_raw_data_df[numeric_cols].apply(pd.to_numeric, errors="coerce") #non-numeric values will be np.nan
@@ -105,7 +109,7 @@ def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_co
 	#mod_raw_data_df = mod_raw_data_df.dropna().reset_index(drop=True) NEVER DOROP NA HERE - JUST COERCE TO KNOW WHERE NA VALUES ARE BUT DO NOT ALTER!!!!
 	
 	return mod_raw_data_df
-
+'''
 #-----------------------------------------------------------3. Output dataframe----------------------------------------------------
 #3.2.  Main function for generating the output  data dataframe
 def raw_corr_generate_output_df(mod_raw_data_df):
@@ -122,11 +126,12 @@ def raw_corr_generate_output_df(mod_raw_data_df):
 	for var1 in mod_raw_data_df.columns: #can use .columns as all columns are now only of relevant vars (done in raw_input_generate_mod_raw_data_df func)
 		for var2 in mod_raw_data_df.columns[i:]:
 			if not var1 == var2:
-				r, p = helper_funcs.raw_input_corr_coeff(mod_raw_data_df[var1],mod_raw_data_df[var2])
+				r, p = helper_funcs.raw_input_corr_coeff(mod_raw_data_df[var1], mod_raw_data_df[var2])
 				ci_low, ci_high = helper_funcs.corr_coeff_ci(r, n=min(mod_raw_data_df[var1].count(), mod_raw_data_df[var2].count())) #takes the smallest number as this would be the number of correlations done
+				
 				data_list.append((var1, var2, r, ci_low, ci_high, p))
 		i += 1
-	output_df = pd.DataFrame(data_list, columns=["Variable1", "Variable2", "Correlation Coefficient", "CI_low", "CI_high", "pvalues"])
+	output_df = pd.DataFrame(data_list, columns=["Variable1", "Variable2", "Correlation_Coefficient", "CI_low", "CI_high", "pvalues"])
 
 	return output_df
 
@@ -149,7 +154,7 @@ def raw_corr_apa_table(mod_raw_data_df, output_df):
 		for row in range(start_row, len(variables_list)*2, 2):
 			row_var = ws.cell(row=row, column=1).value
 			#Using the query method is slower than using conditionals - in my tests query was between 65 and 80 % slower for 1,000 and 10,000 runs
-			r = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))].iloc[0]["Correlation Coefficient"]
+			r = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))].iloc[0]["Correlation_Coefficient"]
 			p = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))].iloc[0]["adjusted_pvalues"]
 			ci_low = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))].iloc[0]["CI_low"]
 			ci_high = output_df[((output_df["Variable1"]==row_var) & (output_df["Variable2"]==col_var)) | ((output_df["Variable1"]==col_var) & (output_df["Variable2"]==row_var))].iloc[0]["CI_high"]
@@ -197,12 +202,14 @@ def raw_corr_apa_table(mod_raw_data_df, output_df):
 	table_notes.append("*p < {}".format(global_vars.alpha_threshold))
 	helper_funcs.add_table_notes(ws, table_notes) 
 	
-	helper_funcs.save_file("raw_data_correlations", wb)
+	#helper_funcs.save_file("raw_data_correlations", wb)
+	wb.save(filename=global_vars.output_filename + ".xlsx")
 
-
+'''
 def main():
 	raw_data_df = get_raw_data_df()
 	mod_raw_data_df = modify_raw_data_df(raw_data_df)
 	output_df = generate_output_df(mod_raw_data_df)
 	output_df = helper_funcs.multitest_correction(output_df)
 	save_output(mod_raw_data_df, output_df)
+'''

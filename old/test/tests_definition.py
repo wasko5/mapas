@@ -11,7 +11,7 @@ def testStringValue(a, b):
 def testNumericValue(a, b, delta):
     return abs(a - b) <= delta
 
-def testDF(df, df_two, delta):
+def testDF(df, df_two, delta=0.1):
     for i in range(0, len(df.index)):
         for j in range(0, len(df.columns)):
             currentValue = df.values[i,j]

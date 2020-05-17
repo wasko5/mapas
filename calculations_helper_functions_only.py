@@ -11,6 +11,19 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from datetime import datetime
 import global_vars
 
+def calc_ttest_effect_size(effect_size_choice, t=None, n1=None, n2=None, m1=None, m2=None, sd1=None):
+	if effect_size_choice == "Cohen's d":
+		effect_size = t * np.sqrt(1 / n1 + 1 / n2)
+	elif effect_size_choice == "Hedge's g":
+		#calculated using cohens_d * (1 - (3/4(n1+n2-9))) where cohens d is t*sqrt(1/n1 + 1/n2)
+		effect_size = (t * np.sqrt(1 / n1 + 1 / n2)) * (1 - (3 / (4 * (n1 + n2 - 9))))
+	elif effect_size_choice == "Glass's delta":
+		#glass delta = (Mean2 - Mean1) / SD1 where SD1 is always that of control
+		effect_size = (m2 - m1) / sd1
+	elif effect_size_choice == "None":
+		effect_size = np.nan
+
+	return effect_size
 
 #Helper functions for GUI
 def get_df_columns(path_and_filename):
@@ -39,6 +52,17 @@ def get_raw_indttest_grouplevels(path_and_filename, group_var):
 	return unique_groups
 
 #1.1.1. Helper functions fo generating modified raw data dataframes
+def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols=[]):
+	mod_raw_data_df = raw_data_df[numeric_cols + non_numeric_cols] #does NOT raise errors when array is blank (default arg)
+	mod_raw_data_df[numeric_cols] = mod_raw_data_df[numeric_cols].apply(pd.to_numeric, errors="coerce") #non-numeric values will be np.nan
+	try:
+		mod_raw_data_df[non_numeric_cols] = mod_raw_data_df[non_numeric_cols].astype(str) #does NOT raise errors when array is blank (default arg)
+	except:
+		raise Exception("The data could not be processed. Please ensure that the non-numeric columns contain only strings.")
+	#mod_raw_data_df = mod_raw_data_df.dropna().reset_index(drop=True) NEVER DOROP NA HERE - JUST COERCE TO KNOW WHERE NA VALUES ARE BUT DO NOT ALTER!!!!
+	
+	return mod_raw_data_df
+
 def get_numeric_cols(raw_data_df):
 	numeric_cols = list(raw_data_df.columns)
 	if global_vars.input_type == "summ_indttest":
@@ -47,25 +71,13 @@ def get_numeric_cols(raw_data_df):
 		
 	return numeric_cols
 
-'''
-def error_on_non_numeric_input(raw_data_df, numeric_cols):
-	bad_vals_dict = {}
-	for var in numeric_cols:
-		ind_list = list(pd.to_numeric(raw_data_df[var], errors='coerce').isnull().to_numpy().nonzero()[0])
-		if ind_list != []:
-			bad_vals_dict[var] = ind_list
-	if bad_vals_dict != {}:
-		error_msg = "Non-numerical or blank entries found in the data!\n"
-		for col, ind_arr in bad_vals_dict.items():
-			error_msg += "In column {c}, there are non-numerical/blank entries on the following rows: {i}\n".format(c=col, i=(", ").join([str(x+2) for x in ind_arr]))
-		raise Exception(error_msg)
-'''
 def error_on_input(df, cols, input_type):
 	'''
 	df - the dataframe to check
 	cols - the cols to check
 	input_type - the input type to check for - can be either 'numeric' or 'nan'
 	'''
+	#creating a dictionary - key is col name value is a list of all nan values
 	bad_vals_dict = {}
 	for var in cols:
 		if input_type == "numeric":
@@ -73,30 +85,25 @@ def error_on_input(df, cols, input_type):
 		elif input_type == "nan":
 			current_series = df[var]
 		ind_list = list(current_series.isnull().to_numpy().nonzero()[0])
-		if ind_list != []:
-			bad_vals_dict[var] = ind_list
+		bad_vals_dict[var] = ind_list
+	
+	#in pairttest, it is possible to have 1 pair of vars of length X and another of X+200. To handle that, the final non-nan case is found for each pair
+	#and a dictionary is created where the key is the col name and the value is the index of the final case
+	if global_vars.raw_test == "pairttest":
+		pairttest_final_cases_ind_dict = {}
+		for ind in range(0, len(cols), 2):
+			pair_final_case = max(df[df.columns[ind]].dropna().index[-1], df[df.columns[ind+1]].dropna().index[-1]) #max here of the two vars as final case can have missing data
+			pairttest_final_cases_ind_dict[df.columns[ind]] = pair_final_case
+			pairttest_final_cases_ind_dict[df.columns[ind+1]] = pair_final_case
+		bad_vals_dict = {k: [e for e in v if e <= pairttest_final_cases_ind_dict[k]] for k, v in bad_vals_dict.items()}
+	
+	bad_vals_dict = {k: v for k, v in bad_vals_dict.items() if len(v) > 0} #dictionary reset to contain only lists of missing data as values, if none function ends
 	if bad_vals_dict != {}:
 		error_msg = "Non-numerical or blank entries found in the data!\n"
 		for col, ind_arr in bad_vals_dict.items():
 			error_msg += "In column {c}, there are non-numerical/blank entries on the following rows: {i}\n".format(c=col, i=(", ").join([str(x+2) for x in ind_arr]))
 		raise Exception(error_msg)
 
-'''
-#--------------------------------------------------------probably delete
-def raw_input_pairttest_colNames_check(raw_data_df):
-	inputVars_unique = []
-	for var_time1, var_time2 in raw_pairttest_inputVars_list:
-		if var_time1 not in raw_data_df.columns:
-			raise Exception("The entered column \'{}\' is not found in the provided file.".format(var_time1))
-		elif var_time2 not in raw_data_df.columns:
-			raise Exception("The entered column \'{}\' is not found in the provided file.".format(var_time2))
-		else:
-			inputVars_unique.append(var_time1)
-			inputVars_unique.append(var_time2)
-	inputVars_unique = list(set(inputVars_unique))
-	if len(inputVars_unique) > len(list(raw_data_df.columns)):
-		raise Exception("The provided number of unique variable columns is {i}, while the number of columns in the provided file is {f}".format(i=len(inputVars_unique), f=len(list(raw_data_df.columns))))
-'''
 def summ_input_colNames_check(raw_data_df, provided_cols):
 	for var in provided_cols:
 		if var not in list(raw_data_df.columns):
@@ -113,7 +120,7 @@ def raw_input_corr_coeff(x, y):
 		x = np.array(x)
 		y = np.array(y)
 		nas = ~np.logical_or(np.isnan(x), np.isnan(y))
-		x = np.compress(nas, x)
+		x = np.compress(nas, x) #can't just ignore NAN; compress better here as it allows both arrays to have same length which is a must for stats.pearsonr()
 		y = np.compress(nas, y)
 
 		r, p = stats.pearsonr(x, y)
@@ -185,27 +192,6 @@ def save_file(output_name, wb):
 	filename = global_vars.output_filename + "_" + time_now + ".xlsx"
 	wb.save(filename=filename)
 
-def multitest_correction(output_df):
-	if global_vars.spss_test != "mr":
-		pvalues_list = output_df["pvalues"]
-		sign_col_label = "Adjusted p value significant at alpha = {alpha}".format(alpha=global_vars.alpha_threshold)
 
-		if global_vars.correction_type != "none":    
-			#if global_vars.correction_type == "sidak":
-			#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[2],5))
-			#elif global_vars.correction_type == "bonferroni":
-			#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[3],5))
-
-			correction_results = multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)
-			adjusted_pvalues = correction_results[1]
-			sign_bools = correction_results[0]
-		else:
-			adjusted_pvalues = pvalues_list
-			sign_bools = [bool(x < global_vars.alpha_threshold) for x in pvalues_list]
-			
-		output_df["adjusted_pvalues"] = adjusted_pvalues
-		output_df[sign_col_label] = ["Significant" if significant else "Non-significant" for significant in sign_bools]
-
-	return output_df
 
 

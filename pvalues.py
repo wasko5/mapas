@@ -61,6 +61,7 @@ global_vars.correction_type = "fdr_bh" #see global_vars.master_dict for other va
 
 #-----------------------------------------------------------1. Main flow----------------------------------------------------
 #Note that the execution of the main flow is at the bottom
+'''
 def get_raw_data_df():
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
@@ -74,9 +75,6 @@ def get_raw_data_df():
 
 def modify_raw_data_df(raw_data_df):
 	#-------------------------------------------------------------------TO LET USER CHOOSE PVALUE COLUMN
-	if "pvalues" not in raw_data_df.columns:
-		raise Exception("Column \'pvalues\' is not found in the provided file. Please make sure it is typed correctly.")
-	helper_funcs.error_on_input(df=raw_data_df, cols=["pvalues"], input_type="numeric")
 	mod_raw_data_df = pvalues_generate_mod_raw_data_df(raw_data_df)
 
 	#mod_raw_data_df.to_excel("Progress dataframes\\pvalues\\mod_raw_data_df.xlsx")
@@ -92,10 +90,14 @@ def generate_output_df(mod_raw_data_df):
 
 def save_output(mod_raw_data_df, output_df):
 	pvalues_table(mod_raw_data_df, output_df)
-
+'''
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
 def pvalues_generate_mod_raw_data_df(raw_data_df):
+	if "pvalues" not in raw_data_df.columns:
+		raise Exception("Column \'pvalues\' is not found in the provided file. Please make sure it is typed correctly.")
+	helper_funcs.error_on_input(df=raw_data_df, cols=["pvalues"], input_type="numeric")
+
 	mod_raw_data_df = raw_data_df.copy()
 
 	return mod_raw_data_df
@@ -129,11 +131,13 @@ def pvalues_table(mod_raw_data_df, output_df):
 		
 	helper_funcs.add_table_notes(ws, [])
 
-	helper_funcs.save_file("pvalues", wb)
-
+	#helper_funcs.save_file("pvalues", wb)
+	wb.save(filename=global_vars.output_filename + ".xlsx")
+'''
 def main():
 	raw_data_df = get_raw_data_df()
 	mod_raw_data_df = modify_raw_data_df(raw_data_df)
 	output_df = generate_output_df(mod_raw_data_df)
 	output_df = helper_funcs.multitest_correction(output_df)
 	save_output(mod_raw_data_df, output_df)
+'''
