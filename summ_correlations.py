@@ -136,8 +136,9 @@ def summ_corr_apa_table(mod_raw_data_df, output_df):
 		for col in range(start_col, len(variables_list)+1):
 			col_var = ws.cell(row=1, column=col).value
 			#here query method is not only slower as it is much smaller dataset but also cannot refer to two different vaiables (colname and val)
-			r = output_df[((output_df[global_vars.summ_corr_varOne]==row_var) & (output_df[global_vars.summ_corr_varTwo]==col_var)) | ((output_df[global_vars.summ_corr_varOne]==col_var) & (output_df[global_vars.summ_corr_varTwo]==row_var))].iloc[0][global_vars.summ_corr_coeff]
-			p = output_df[((output_df[global_vars.summ_corr_varOne]==row_var) & (output_df[global_vars.summ_corr_varTwo]==col_var)) | ((output_df[global_vars.summ_corr_varOne]==col_var) & (output_df[global_vars.summ_corr_varTwo]==row_var))].iloc[0]["adjusted_pvalues"]
+			query = output_df[((output_df[global_vars.summ_corr_varOne]==row_var) & (output_df[global_vars.summ_corr_varTwo]==col_var)) | ((output_df[global_vars.summ_corr_varOne]==col_var) & (output_df[global_vars.summ_corr_varTwo]==row_var))].iloc[0]
+			r = query[global_vars.summ_corr_coeff]
+			p = query["adjusted_pvalues"]
 			r = helper_funcs.correlations_format_val(r, p)
 			ws.cell(row=row, column=col).value = r
 		start_col += 1

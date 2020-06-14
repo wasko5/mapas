@@ -1,8 +1,6 @@
 '''
-- Fix the ability to end up with "Please elect input file first..." in the comboboxes.
 - Consider adding more menu options
 '''
-
 import decision_funcs
 import global_vars
 import calculations_helper_functions_only as helper_funcs
@@ -79,6 +77,8 @@ spss_indttest_groupTwoLabel_tk = tk.StringVar()
 spss_pairttest_nOne_tk = tk.StringVar()
 spss_pairttest_nTwo_tk = tk.StringVar()
 
+pvalues_col_tk = tk.StringVar()
+
 effect_size_choice_tk = tk.StringVar()
 correction_type_tk = tk.StringVar()
 
@@ -119,6 +119,8 @@ def set_variables_default():
 	spss_indttest_groupTwoLabel_tk.set(global_vars.tk_vars_defaults["spss_indttest_groupTwoLabel_tk"])
 	spss_pairttest_nOne_tk.set(global_vars.tk_vars_defaults["spss_pairttest_nOne_tk"])
 	spss_pairttest_nTwo_tk.set(global_vars.tk_vars_defaults["spss_pairttest_nTwo_tk"])
+
+	pvalues_col_tk.set(global_vars.tk_vars_defaults["pvalues_col_tk"])
 
 	effect_size_choice_tk.set(global_vars.tk_vars_defaults["effect_size_choice_tk"])
 	correction_type_tk.set(global_vars.tk_vars_defaults["correction_type_tk"])
@@ -199,6 +201,9 @@ spss_test_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Statist
 spss_indttest_sampleSize_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Sample size")
 spss_indttest_groupLabels_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Group labels (optional)")
 spss_pairttest_sampleSize_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Sample size")
+
+pvalues_col_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="P-values column")
+#pvalues_col_Frame.grid(row=0, column=0, padx=10, pady=5)
 
 col_names_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Your variables")
 
@@ -297,10 +302,11 @@ def reset_all_lb():
 	raw_indttest_dv_lb.delete(0, tk.END)
 	raw_pairttest_pairs_lb.delete(0, tk.END)
 
+
 def pairttest_remove_added_vars_from_master():
 	col_names_lb_vars = col_names_lb.get(0, tk.END)
 	pairttest_added_vars = [var for pair in list(raw_pairttest_pairs_lb.get(0, tk.END)) for var in pair.split(" <---> ")]
-	
+
 	for var in pairttest_added_vars:
 		if var in col_names_lb_vars:
 			delete_lbitems(col_names_lb, values=[var])
@@ -313,10 +319,10 @@ def move_comboboboxvar_to_master(event):
 	else:
 		combobox_prev_val = ""
 
-	if combobox_prev_val != "" and combobox_prev_val != "Select input file first...":
+	if combobox_prev_val != "" and combobox_prev_val != global_vars.dropdown_unselected_file_msg:
 		move_back_to_master([combobox_prev_val])
 
-	if combobox_id == ".!frame.!labelframe8.!frame.!combobox" or combobox_id == ".!frame.!labelframe8.!frame.!combobox2": #ids for the 2 pairttest dropdowns
+	if combobox_id == ".!frame.!labelframe9.!frame.!combobox" or combobox_id == ".!frame.!labelframe9.!frame.!combobox2": #ids for the 2 pairttest dropdowns
 		pairttest_remove_added_vars_from_master()
 
 	previous_combobox_vals_dict[combobox_id] = combobox_current_val
@@ -333,7 +339,7 @@ def input_type_frames_layout():
 	frames_list = [raw_test_Frame, raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame,
 					raw_indttest_grouplevels_Frame, raw_indttest_dv_Frame, raw_pairttest_master_Frame, summ_corr_master_Frame, summ_indttest_master_Frame,
 					spss_get_table_info_Frame, spss_test_Frame, spss_indttest_sampleSize_Frame, spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame,
-					col_names_Frame, effect_size_Frame, correction_type_Frame, raw_ttest_output_descriptives_Frame, non_numeric_input_raise_errors_Frame]
+					pvalues_col_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame, raw_ttest_output_descriptives_Frame, non_numeric_input_raise_errors_Frame]
 
 	
 	set_variables_default()
@@ -356,6 +362,7 @@ def input_type_frames_layout():
 		spss_get_table_info_Frame.grid(row=3, column=2, sticky="NE", padx=15, pady=0)
 	elif input_type_tk.get() == "pvalues":
 		correction_type_Frame.grid(row=0, column=0, rowspan=1, sticky="NW", padx=0, pady=0)
+		pvalues_col_Frame.grid(row=0, column=1, rowspan=1, sticky="NW", padx=15, pady=0)
 
 def raw_test_clear_vars():
 	raw_corr_type_tk.set(global_vars.tk_vars_defaults["raw_corr_type_tk"])
@@ -441,7 +448,7 @@ instr_label.grid(row=0, column=0, columnspan=3)
 
 #Input file button & label
 def select_file():
-	path_and_filename = askopenfilename(initialdir = "\\", title="Select input file. Must be Excel file.", filetypes=(("Excel files","*.xlsx"),("All files","*.*")))
+	path_and_filename = askopenfilename(initialdir = "D://Desktop_current//NPSoftware//GitHub//old//Input files//raw data//", title="Select input file. Must be Excel file.", filetypes=(("Excel files","*.xlsx"),("All files","*.*")))
 	
 	if path_and_filename.endswith(".xlsx"): # or filename[ext_sep_idx:] == ".csv" - for later use when csv is integrated
 		update_filename_label(filename = path_and_filename[path_and_filename.rfind("/")+1:], label = filename_label, char_limit=50)
@@ -479,7 +486,7 @@ col_names_lb.configure(yscrollcommand=col_names_scroll_y.set, xscrollcommand=col
 col_names_lb.grid(row=0, column=0, sticky="W")
 col_names_scroll_x.grid(row=1, column=0, sticky="EW")
 col_names_scroll_y.grid(row=0, column=1, sticky="NS")
-col_names_lb.insert(0, "Select input file first...")
+col_names_lb.insert(0, global_vars.dropdown_unselected_file_msg)
 col_names_lb.configure(state="disabled")
 
 #Input Type
@@ -541,7 +548,7 @@ raw_indttest_groupvar_drop.grid(row=0, column=0)
 
 #Raw data // test // Independent samples t-test // Grouping variable
 def get_values_for_raw_indttest_dropdowns(dropdown):
-	if input_path_and_filename_tk != "" and raw_indttest_groupvar_tk.get() != global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"] and raw_indttest_groupvar_tk.get() != "Select input file first...":
+	if input_path_and_filename_tk != "" and raw_indttest_groupvar_tk.get() != global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"] and raw_indttest_groupvar_tk.get() != global_vars.dropdown_unselected_file_msg:
 		dropdown.configure(values=helper_funcs.get_raw_indttest_grouplevels(input_path_and_filename_tk.get(), raw_indttest_groupvar_tk.get()))
 
 def raw_indttest_dropdowns_validation(event):
@@ -587,7 +594,8 @@ raw_pairttest_var2_drop.grid(row=1, column=1, sticky="NW")
 
 #Raw data // test // Paired samples t-test // Pairs - buttons and listbox
 def raw_pairttest_add_pair():
-	if raw_pairttest_var1_tk.get() == global_vars.tk_vars_defaults["raw_pairttest_var1_tk"] or raw_pairttest_var2_tk.get() == global_vars.tk_vars_defaults["raw_pairttest_var2_tk"]:
+	if (raw_pairttest_var1_tk.get() == global_vars.tk_vars_defaults["raw_pairttest_var1_tk"] or raw_pairttest_var2_tk.get() == global_vars.tk_vars_defaults["raw_pairttest_var2_tk"] 
+		or raw_pairttest_var1_tk.get() == global_vars.dropdown_unselected_file_msg or raw_pairttest_var2_tk.get() == global_vars.dropdown_unselected_file_msg):
 		messagebox.showerror("Error!", "Please select both variable columns of your pair.")
 	else:
 		raw_pairttest_pairs_lb.insert(tk.END, "{p1} <---> {p2}".format(p1=raw_pairttest_var1_tk.get(), p2=raw_pairttest_var2_tk.get()))
@@ -793,6 +801,12 @@ ttk.Entry(spss_pairttest_sampleSize_Frame, textvariable=spss_pairttest_nOne_tk, 
 ttk.Label(spss_pairttest_sampleSize_Frame, text="N, Group 2:").grid(row=1, column=0, sticky="NWES", padx=(0,5))
 ttk.Entry(spss_pairttest_sampleSize_Frame, textvariable=spss_pairttest_nTwo_tk, width=15).grid(row=1, column=1, sticky="NWES")
 
+#Pvalues choice column
+pvalues_col_drop = ttk.Combobox(pvalues_col_Frame, state="readonly", width=30, textvariable=pvalues_col_tk)
+pvalues_col_drop.configure(postcommand=lambda dropdown=pvalues_col_drop: get_values_for_dropdown(dropdown))
+pvalues_col_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
+pvalues_col_drop.grid(row=0, column=0)
+
 #Effect size choice
 effect_size_options = ("Cohen's d", "Hedge's g", "Glass's delta", "None")
 effect_size_drop = ttk.Combobox(effect_size_Frame, values=effect_size_options, state="readonly", width=30, textvariable=effect_size_choice_tk)
@@ -800,7 +814,7 @@ effect_size_drop.grid(row=0, column=0)
 
 #Correction type choice
 correction_type_options = ("Bonferroni",  "Sidak", "Holm-Sidak", "Holm-Bonferroni", "Simes-Hochberg", "Hommel", 
-						"Benjamini-Hochberg", "Benjamini-Yekutieli", "Benjamini-Hochberg (2-stage) ", 
+						"Benjamini-Hochberg", "Benjamini-Yekutieli", "Benjamini-Hochberg (2-stage)", 
 						"Benjamini-Yekutieli (2-stage)", "None")
 correction_type_drop = ttk.Combobox(correction_type_Frame, values=correction_type_options, state="readonly", width=30, textvariable=correction_type_tk)
 correction_type_drop.grid(row=0, column=0)
@@ -883,6 +897,8 @@ def set_global_variables():
 	except ValueError:
 		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_pairttest_nTwo_tk.get()))
 
+	global_vars.pvalues_col = "" if pvalues_col_tk.get() == global_vars.tk_vars_defaults["pvalues_col_tk"] else pvalues_col_tk.get()
+
 	global_vars.effect_size_choice = "no selection" if effect_size_choice_tk.get() == global_vars.tk_vars_defaults["effect_size_choice_tk"] else effect_size_choice_tk.get()
 	global_vars.correction_type = "no selection" if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"] else global_vars.master_dict[correction_type_tk.get()]
 
@@ -930,6 +946,8 @@ def set_global_variables():
 	print("spss_pairttest_nOne - ", global_vars.spss_pairttest_nOne)
 	print("spss_pairttest_nTwo - ", global_vars.spss_pairttest_nTwo)
 
+	print("pvalues_col - ", global_vars.pvalues_col)
+
 	print("effect_size_choice - ", global_vars.effect_size_choice)
 	print("correction_type - ", global_vars.correction_type)
 
@@ -956,7 +974,7 @@ def input_validation():
 		elif global_vars.raw_test == "mr":
 			if global_vars.non_numeric_input_raise_errors == "":
 				raise Exception("What happens if you have missing or invalid data? Well, we don't know either so you will need to tell us your preference.\n\nPlease select how to handle non-numeric data.")
-			if global_vars.raw_mr_outcomevar == "":
+			if global_vars.raw_mr_outcomevar == "" or global_vars.raw_mr_outcomevar == global_vars.dropdown_unselected_file_msg:
 				raise Exception("We can certainly perform a multiple regression but what are we predicting?\n\nPlease select your outcome (dependent) variable.")
 			if global_vars.raw_mr_predictors == ():
 				raise Exception("Although we are currently working on it, we still can't predict your predictors (ha, get it? predict the predictors... please send help).\n\nSpeaking of help, you might as well help us by telling us what your predictors are.")
@@ -983,32 +1001,32 @@ def input_validation():
 	elif global_vars.input_type == "summ_corr":
 		if global_vars.correction_type == "no selection":
 			raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
-		if global_vars.summ_corr_varOne == "":
+		if global_vars.summ_corr_varOne == "" or global_vars.summ_corr_varOne == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your variable one labels.")
-		if global_vars.summ_corr_varTwo == "":
+		if global_vars.summ_corr_varTwo == "" or global_vars.summ_corr_varTwo == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your variable two labels.")
-		if global_vars.summ_corr_coeff == "":
+		if global_vars.summ_corr_coeff == "" or global_vars.summ_corr_coeff == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your correlation coefficients.")
-		if global_vars.summ_corr_pvalues == "":
+		if global_vars.summ_corr_pvalues == "" or global_vars.summ_corr_pvalues == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your pvalues.")
 	elif global_vars.input_type == "summ_indttest":
 		if global_vars.correction_type == "no selection":
 			raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 		if global_vars.effect_size_choice == "no selection":
 			raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
-		if global_vars.summ_indttest_var == "":
+		if global_vars.summ_indttest_var == "" or global_vars.summ_indttest_var == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your variable labels.")
-		if global_vars.summ_indttest_meanOne == "":
+		if global_vars.summ_indttest_meanOne == "" or global_vars.summ_indttest_meanOne == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your mean values for group 1.")
-		if global_vars.summ_indttest_sdOne == "":
+		if global_vars.summ_indttest_sdOne == "" or global_vars.summ_indttest_sdOne == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your standard deviation values for group 1.")
-		if global_vars.summ_indttest_nOne == "":
+		if global_vars.summ_indttest_nOne == "" or global_vars.summ_indttest_nOne == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your sample size for group 1.")
-		if global_vars.summ_indttest_meanTwo == "":
+		if global_vars.summ_indttest_meanTwo == "" or global_vars.summ_indttest_meanTwo == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your mean values for group 2.")
-		if global_vars.summ_indttest_sdTwo == "":
+		if global_vars.summ_indttest_sdTwo == "" or global_vars.summ_indttest_sdTwo == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your standard deviation values for group 2.")
-		if global_vars.summ_indttest_nTwo == "":
+		if global_vars.summ_indttest_nTwo == "" or global_vars.summ_indttest_nTwo == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Oops - you missed one!\n\nPlease select the column with your sample size for group 2.")
 	elif global_vars.input_type == "spss":
 		if global_vars.spss_test == "":
@@ -1035,7 +1053,8 @@ def input_validation():
 	elif global_vars.input_type == "pvalues":
 		if global_vars.correction_type == "no selection":
 			raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
-
+		if global_vars.pvalues_col == "" or global_vars.pvalues_col == global_vars.dropdown_unselected_file_msg:
+			raise Exception("Oops - you missed one!\n\nPlease select the column with your pvalues.")
 
 	if global_vars.effect_size_choice == "Glass's delta" and (global_vars.input_type == "summindttest" or global_vars.spss_test == "indttest" or global_vars.spss_test == "pairttest"):
 		raise Exception("Sorry! Glass's delta is not available for this type of test. Glass's delta can only be requested if raw data are provided. For more information, see the documentation.")
@@ -1043,6 +1062,10 @@ def input_validation():
 	if global_vars.output_filename == "":
 		raise Exception("We're almost there... Your output file is ready and waiting for you. You will just need to tell it where to pop up.\n\nPlease select an output file.")
 
+def clear_output_filename():
+	output_filename_tk.set(global_vars.tk_vars_defaults["output_filename_tk"])
+	output_file_label.config(text="Nothing selected yet.")
+	
 def center(win):
 		"""
 		centers a tkinter window
@@ -1113,6 +1136,7 @@ def submit():
 	run_main()
 	print("Success")
 	#another_window_test() #the progess bar stuff for later
+	clear_output_filename()
 	submit_window(show_buttons=1)
 	#master.destroy()
 	#except Exception as error_msg:
