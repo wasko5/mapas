@@ -94,9 +94,7 @@ def save_output(mod_raw_data_df, output_df):
 #-----------------------------------------------------------2. Modified raw data dataframe----------------------------------------------------
 #2.1.  Main function for generating the modified raw data dataframe
 def pvalues_generate_mod_raw_data_df(raw_data_df):
-	if "pvalues" not in raw_data_df.columns:
-		raise Exception("Column \'pvalues\' is not found in the provided file. Please make sure it is typed correctly.")
-	helper_funcs.error_on_input(df=raw_data_df, cols=["pvalues"], input_type="numeric")
+	helper_funcs.error_on_input(df=raw_data_df, cols=[global_vars.pvalues_col], input_type="numeric")
 
 	mod_raw_data_df = raw_data_df.copy()
 

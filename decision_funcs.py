@@ -59,7 +59,7 @@ def modify_raw_data_df(raw_data_df):
 		
 		mod_raw_data_df = helper_funcs.raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols)
 	
-	elif global_vars.input_type == "summ_correlations":
+	elif global_vars.input_type == "summ_corr":
 		numeric_cols = [global_vars.summ_corr_coeff, global_vars.summ_corr_pvalues]
 		non_numeric_cols = [global_vars.summ_corr_varOne, global_vars.summ_corr_varTwo]
 		helper_funcs.error_on_input(df=raw_data_df, cols=numeric_cols, input_type="numeric")
@@ -99,7 +99,7 @@ def generate_output_df(mod_raw_data_df):
 			output_df = raw_indttest.raw_indttest_generate_output_df(mod_raw_data_df)
 		elif global_vars.raw_test == "pairttest":
 			output_df = raw_pairttest.raw_pairttest_generate_output_df(mod_raw_data_df)
-	elif global_vars.input_type == "summ_correlations":
+	elif global_vars.input_type == "summ_corr":
 		output_df = summ_correlations.summ_corr_generate_output_df(mod_raw_data_df)
 	elif global_vars.input_type == "summ_indttest":
 		output_df = summ_indttest.summ_indttest_generate_output_df(mod_raw_data_df)
@@ -118,26 +118,25 @@ def generate_output_df(mod_raw_data_df):
 	return output_df
 
 def multitest_correction(output_df):
+	if global_vars.input_type == "summ_corr":
+		pvalues_col_label = global_vars.summ_corr_pvalues
+	elif global_vars.input_type == "pvalues":
+		pvalues_col_label = global_vars.pvalues_col
+	else:
+		pvalues_col_label = "pvalues"
+	
+	if output_df[pvalues_col_label].isnull().values.any():
+		#the correction function cannot handle missing values very well; workaround exist but they do not make sense in the context of the software
+		#see https://github.com/statsmodels/statsmodels/issues/2899
+		raise Exception("The pvalues column contains blank cells. Please make sure that all data in the pvalues column is filled.")
+	
 	if global_vars.spss_test != "mr":
-		pvalues_list = output_df["pvalues"]
-		#sign_col_label = "Adjusted p value significant at alpha = {alpha}".format(alpha=global_vars.alpha_threshold)
-
 		if global_vars.correction_type != "none":    
-			#if global_vars.correction_type == "sidak":
-			#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[2],5))
-			#elif global_vars.correction_type == "bonferroni":
-			#	sign_col_label = "Original p value significant at corrected alpha = {alpha}".format(alpha=round(multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[3],5))
-
-			#correction_results = multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)
-			#adjusted_pvalues = correction_results[1]
-			#sign_bools = correction_results[0]
-			adjusted_pvalues = multitest.multipletests(pvalues_list, alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[1]
+			adjusted_pvalues = multitest.multipletests(output_df[pvalues_col_label], alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[1]
 		else:
-			adjusted_pvalues = pvalues_list
-			#sign_bools = [bool(x < global_vars.alpha_threshold) for x in pvalues_list]
-			
+			adjusted_pvalues = output_df[pvalues_col_label]
+		
 		output_df["adjusted_pvalues"] = adjusted_pvalues
-		#output_df[sign_col_label] = ["Significant" if significant else "Non-significant" for significant in sign_bools]
 
 	return output_df
 
@@ -155,7 +154,7 @@ def save_output(mod_raw_data_df, output_df):
 			raw_pairttest.raw_pairttest_apa_table(mod_raw_data_df, output_df)
 			if global_vars.raw_ttest_output_descriptives == True:
 				raw_pairttest.raw_pairttest_descriptives_table(mod_raw_data_df, output_df)
-	elif global_vars.input_type == "summ_correlations":
+	elif global_vars.input_type == "summ_corr":
 		summ_correlations.summ_corr_apa_table(mod_raw_data_df, output_df)
 	elif global_vars.input_type == "summ_indttest":
 		summ_indttest.summ_indttest_apa_table(mod_raw_data_df, output_df)

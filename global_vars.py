@@ -27,12 +27,12 @@ master_dict = {
 	"Sidak" : "sidak",
 	"Holm-Sidak" : "holm-sidak",
 	"Holm-Bonferroni" : "holm",
-	"Simes-\nHochberg" : "simes-hochberg",
+	"Simes-Hochberg" : "simes-hochberg",
 	"Hommel" : "hommel",
 	"Benjamini-Hochberg" : "fdr_bh",
 	"Benjamini-Yekutieli" : "fdr_by",
-	"Benjamini-Hochberg (2-stage\nnon-negative correction) " : "fdr_tsbh",
-	"Benjamini-Yekutieli (2-stage\nnon-negative correction)" : "fdr_tsbky",
+	"Benjamini-Hochberg (2-stage)" : "fdr_tsbh",
+	"Benjamini-Yekutieli (2-stage)" : "fdr_tsbky",
 	"None" : "none"
 }
 
@@ -75,12 +75,16 @@ tk_vars_defaults = {
 	"spss_pairttest_nOne_tk" : "Enter an integer",
 	"spss_pairttest_nTwo_tk" : "Enter an integer",
 
+	"pvalues_col_tk" : "Select p-values column",
+
 	"effect_size_choice_tk" : "Select effect size...",
 	"correction_type_tk" : "Select correction...",
 
 	"raw_ttest_output_descriptives_tk" : "No",
 	"non_numeric_input_raise_errors_tk" : "Select error handling..."
 }
+
+dropdown_unselected_file_msg = "Please select input file first..."
 
 input_path_and_filename = "" #to be used instead of filename and fileext; replace if checks on the ext w/ 'endswith'
 alpha_threshold = ""
@@ -122,6 +126,8 @@ spss_indttest_groupTwoLabel = ""
 spss_pairttest_nOne = ""
 spss_pairttest_nTwo = ""
 
+pvalues_col = ""
+
 effect_size_choice = ""
 correction_type = ""
 
@@ -136,4 +142,4 @@ font_bold = Font(bold=True)
 border_APA = Side(border_style="medium", color="000000")
 
 
-output_pvalues_type = "" #temporary until hlper functions are fixed
+#output_pvalues_type = "" #temporary until hlper functions are fixed

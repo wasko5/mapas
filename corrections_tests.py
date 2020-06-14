@@ -119,11 +119,12 @@ def correction_tests_none():
 	#assert
 	pd.testing.assert_frame_equal(actual_df, expected_df_r, check_less_precise=3)
 
-correction_tests_fdrbh()
-correction_tests_fdrby()
-correction_tests_holm()
-correction_tests_bonferroni()
-correction_tests_hochberg()
-correction_tests_hommel()
-correction_tests_none()
-print("All tests passed!")
+def main():
+	correction_tests_fdrbh()
+	correction_tests_fdrby()
+	correction_tests_holm()
+	correction_tests_bonferroni()
+	correction_tests_hochberg()
+	correction_tests_hommel()
+	correction_tests_none()
+	print("Corrections tests passed!")
