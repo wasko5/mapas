@@ -1,5 +1,7 @@
 from openpyxl.styles import Border, Side, Alignment, Font
 
+version = "BETA"
+
 master_dict = {
 	"Correlations" : "corr",
 	"(Multiple) Regression - Standard" : "mr",
@@ -11,7 +13,7 @@ master_dict = {
 	"Kendall's tau" : "kendall",
 
 	"Raise errors" : True,
-	"Ignore case-wise" : False,
+	"Ignore pair-wise" : False,
 
 	"Bonferroni" : "bonferroni",
 	"Sidak" : "sidak",

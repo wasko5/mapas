@@ -9,6 +9,7 @@ from PIL import Image, ImageTk
 from webbrowser import open_new
 import sys
 import os
+import traceback
 
 def resource_path(relative_path):
      if hasattr(sys, '_MEIPASS'): 
@@ -216,10 +217,10 @@ def add_variables_to_listbox(listbox):
 	current_sel_ind = list(col_names_lb.curselection())
 	current_sel_items = [col_names_lb.get(ele) for ele in current_sel_ind]
 	
-	listbox.insert(tk.END, *[col_names_lb.get(ele) for ele in current_sel_ind])
+	listbox.insert(tk.END, *current_sel_items)
 	delete_lbitems(col_names_lb, ind=current_sel_ind)
 
-def move_lbvars_to_master(listbox): #TO CHANGE NAME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+def move_lbvars_to_master(listbox): 
 	current_sel_ind = list(listbox.curselection())
 	current_sel_items = []
 	if global_vars.master_dict[raw_test_tk.get()] == "pairttest":
@@ -985,27 +986,154 @@ def center(win):
 		win.geometry("{}x{}+{}+{}".format(width, height, x, y))
 		win.deiconify()
 
-def submit_window(show_buttons=0):
-	#show_buttons is either 0 or 1 - if 0, then only shows the message
+def submit_window():
 
 	top = tk.Toplevel()
 	top.grab_set()
-	top.title("Popup name")
+	top.title("Thanks for using MAPAS!")
 
 	some_message = '''Your file is ready and waiting for you.
 	
 	If you've found this software useful in your work, please cite us as:
-	Petrov, N., Atanasov, V., & Thompson, T. (2020). Open-source Software for Apply Multiple-tests Corrections and Printing APA Tables (MAPAS)...'''
+	Petrov, N., Atanasov, V., & Thompson, T. (2020). ...'''
 	tk.Label(top, text=some_message).grid(row=0, column=0, columnspan=3, sticky="NWES", padx=15, pady=(5, 0))
 
-	if show_buttons == 1:
-		def openfilelocation():
-			directory = global_vars.output_filename[:global_vars.output_filename.rfind("/")]
-			open_new(directory)
+	def openfilelocation():
+		directory = global_vars.output_filename[:global_vars.output_filename.rfind("/")]
+		open_new(directory)
 
-		ttk.Button(top, text="Open file location", command=openfilelocation).grid(row=1, column=0, padx=(15, 0), pady=5)
-		ttk.Button(top, text="I want to do more analysis", command=top.destroy).grid(row=1, column=1, padx=15, pady=5)
-		ttk.Button(top, text="Close the app", command=master.destroy).grid(row=1,column=2, padx=(0, 15), pady=5)
+	ttk.Button(top, text="Open file location", command=openfilelocation).grid(row=1, column=0, padx=(15, 0), pady=5)
+	ttk.Button(top, text="I want to do more analysis", command=top.destroy).grid(row=1, column=1, padx=15, pady=5)
+	ttk.Button(top, text="Close the app", command=master.destroy).grid(row=1,column=2, padx=(0, 15), pady=5)
+
+	center(top)
+
+def info_window():
+
+	top = tk.Toplevel()
+	top.grab_set()
+	top.title("About")
+
+	some_message = '''This is MAPAS version: {}.
+
+	To learn more about the software, please see the open-source article below or visit *WEBSITE OR GITHUB*
+	
+	Petrov, N., Atanasov, V., & Thompson, T. (2020). Open-source Software for Apply Multiple-tests Corrections and Printing APA Tables (MAPAS)...'''.format(global_vars.version)
+	tk.Label(top, text=some_message).grid(row=0, column=0, sticky="NWES", padx=15, pady=5)
+
+	center(top)
+
+def log_error(traceback=None):
+	log_filepath = asksaveasfilename(initialdir = resource_path(""), title = "Save log file as...", filetypes = (("Text files","*.txt"),("All files","*.*")))
+
+	log_file = open(log_filepath + ".txt","w") 
+	L = [
+		"------------------------------Traceback details-----------------------",
+		"{}".format(traceback),
+		"--------------------------------Meta info-----------------------------",
+		"OS: {}".format(sys.platform),
+		"Software version: {}".format(global_vars.version),
+		"--------------------------------Runtime specs-------------------------",
+		"input_path_and_filename = \"{}\"".format(global_vars.input_path_and_filename),
+		"alpha_threshold = {}".format(global_vars.alpha_threshold),
+		"output_filename = \"{}\"".format(global_vars.output_filename),
+
+		"input_type = \"{}\"".format(global_vars.input_type),
+
+		"raw_test = \"{}\"".format(global_vars.raw_test),
+
+		"raw_corr_type = \"{}\"".format(global_vars.raw_corr_type),
+		"raw_corr_vars = {}".format(global_vars.raw_corr_vars),
+		"raw_mr_outcomevar = \"{}\"".format(global_vars.raw_mr_outcomevar),
+		"raw_mr_predictors = {}".format(global_vars.raw_mr_predictors),
+		"raw_indttest_groupvar = \"{}\"".format(global_vars.raw_indttest_groupvar),
+		"raw_indttest_grouplevel1 = \"{}\"".format(global_vars.raw_indttest_grouplevel1),
+		"raw_indttest_grouplevel2 = \"{}\"".format(global_vars.raw_indttest_grouplevel2),
+		"raw_indttest_dv = {}".format(global_vars.raw_indttest_dv),
+		"raw_pairttest_var_pairs = {}".format(global_vars.raw_pairttest_var_pairs),
+
+		"summ_corr_varOne = \"{}\"".format(global_vars.summ_corr_varOne),
+		"summ_corr_varTwo = \"{}\"".format(global_vars.summ_corr_varTwo),
+		"summ_corr_coeff = \"{}\"".format(global_vars.summ_corr_coeff),
+		"summ_corr_pvalues = \"{}\"".format(global_vars.summ_corr_pvalues),
+
+		"summ_indttest_var = \"{}\"".format(global_vars.summ_indttest_var),
+		"summ_indttest_meanOne = \"{}\"".format(global_vars.summ_indttest_meanOne),
+		"summ_indttest_sdOne = \"{}\"".format(global_vars.summ_indttest_sdOne),
+		"summ_indttest_nOne = \"{}\"".format(global_vars.summ_indttest_nOne),
+		"summ_indttest_meanTwo = \"{}\"".format(global_vars.summ_indttest_meanTwo),
+		"summ_indttest_sdTwo = \"{}\"".format(global_vars.summ_indttest_sdTwo),
+		"summ_indttest_nTwo = \"{}\"".format(global_vars.summ_indttest_nTwo),
+		"summ_indttest_equal_var = \"{}\"".format(global_vars.summ_indttest_equal_var),
+
+		"spss_test = \"{}\"".format(global_vars.spss_test),
+		"spss_indttest_nOne = {}".format(global_vars.spss_indttest_nOne),
+		"spss_indttest_nTwo = {}".format(global_vars.spss_indttest_nTwo),
+		"spss_indttest_groupOneLabel = \"{}\"".format(global_vars.spss_indttest_groupOneLabel),
+		"spss_indttest_groupTwoLabel = \"{}\"".format(global_vars.spss_indttest_groupTwoLabel),
+		"spss_pairttest_nOne = {}".format(global_vars.spss_pairttest_nOne),
+		"spss_pairttest_nTwo = {}".format(global_vars.spss_pairttest_nTwo),
+
+		"pvalues_col = \"{}\"".format(global_vars.pvalues_col),
+
+		"effect_size_choice = \"{}\"".format(global_vars.effect_size_choice),
+		"correction_type = \"{}\"".format(global_vars.correction_type),
+
+		"non_numeric_input_raise_errors = {}".format(global_vars.non_numeric_input_raise_errors),
+		"------------------------------Input File Dataframe-----------------------"]  
+	 
+	log_file.writelines("\n".join(L) + "\n") 
+	log_file.close()
+
+	try:
+		raw_data_df = decision_funcs.get_raw_data_df(debug=True)
+	except:
+		messagebox.showerror(title="Oopsie! Something has gone astray!", message="Unfortunately, the input file provided could not be read correctly which makes logging error details impossible.")
+	raw_data_df.to_csv(log_filepath + ".txt", sep="\t", line_terminator="\n", mode="a+")
+
+def log_window(traceback):
+	top = tk.Toplevel()
+	top.grab_set()
+	top.title("Saving error details...")
+
+	def save_log_file(traceback):
+		top.destroy()
+		log_error(traceback)
+		log_file_saved_msg = "The details of your error message have been saved!\n\nPlease send us this file at... and we will try to get to you as soon as possible.\n\nYour help is greatly appreciated!"
+		messagebox.showinfo(title = "File saved!", message=log_file_saved_msg)
+
+	message = '''
+	You will now be able to download a text file that contains some debugging information. We would be grateful if you could send us this information so we can improve the software.
+
+	IMPORTANT NOTE: The text file will NOT contain any identifiable information. The only data from your input file that will be saved will be the columns you wanted
+	to perform operations on. If your file contains any other columns, they will NOT be saved.
+
+	Please feel free to open the text file after you've saved it and check the \"Input File Dataframe\" section for what data are saved.
+	'''
+	tk.Label(top, text=message).grid(row=0, column=0, columnspan=2, sticky="NWES", padx=15, pady=(5, 0))
+	ttk.Button(top, text="Close", command=top.destroy).grid(row=1, column=0, padx=15, pady=5)
+	ttk.Button(top, text="Save log file...", command=lambda traceback=traceback: save_log_file(traceback)).grid(row=1,column=1, padx=(0, 15), pady=5)
+
+	center(top)
+
+def error_window(error_msg, traceback=None):
+
+	def open_log_window(traceback):
+		top.destroy()
+		log_window(traceback)
+
+	top = tk.Toplevel()
+	top.grab_set()
+	top.title("Oopsie! Something has gone astray!")
+
+	message = '''Oh no! Something appears to have gone wrong!
+
+	Error Message: {}
+	
+	If you believe that we have made a mistake, please click on the \"Error Details\" button below.'''.format(error_msg)
+	tk.Label(top, text=message).grid(row=0, column=0, columnspan=2, sticky="NWES", padx=15, pady=(5, 0))
+	ttk.Button(top, text="Close", command=top.destroy).grid(row=1, column=0, padx=15, pady=5)
+	ttk.Button(top, text="Error Details", command=lambda traceback=traceback: open_log_window(traceback)).grid(row=1,column=1, padx=(0, 15), pady=5)
 
 	center(top)
 
@@ -1013,14 +1141,12 @@ def submit_window(show_buttons=0):
 menubar = tk.Menu(master)
 master.config(menu=menubar)
 
-
 file = tk.Menu(menubar, tearoff=0)
 file.add_command(label="Exit", command=master.destroy)
 menubar.add_cascade(label="File", menu=file)
 
 about = tk.Menu(menubar, tearoff=0)
-#about.add_command(label="Info", command=lambda show_buttons=0: submit_window(show_buttons))
-about.add_command(label="Info", command=submit_window)
+about.add_command(label="Info", command=info_window)
 menubar.add_cascade(label="About", menu=about)
 
 #------------------------
@@ -1039,9 +1165,9 @@ def submit():
 		run_main()
 		print("Success")
 		clear_output_filename()
-		submit_window(show_buttons=1)
+		submit_window()
 	except Exception as error_msg:
-		messagebox.showerror("Oopsie!", error_msg)
+		error_window(error_msg, traceback.format_exc())
 
 ttk.Button(master, text="Submit", command=submit).grid(row=4, column=2, sticky="E", padx=(0,15), pady=5)
 

@@ -17,10 +17,32 @@ import global_vars
 import helper_funcs
 
 
-def get_raw_data_df():
+def get_raw_data_df(debug=False):
+	#debug=True saves only required cols based on test for the log file
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
-			raw_data_df = pd.read_excel(global_vars.input_path_and_filename)
+			if debug:
+				if global_vars.raw_test == "corr":
+					cols = global_vars.raw_corr_vars
+				elif global_vars.raw_test == "mr":
+					cols = [global_vars.raw_mr_outcomevar] + [global_vars.raw_mr_predictors]
+				elif global_vars.raw_test == "indttest":
+					cols = [global_vars.raw_indttest_groupvar] + [global_vars.raw_indttest_dv]
+				elif global_vars.raw_test == "pairttest":
+					cols = [var for pair in global_vars.raw_pairttest_var_pairs for var in pair]
+				elif global_vars.input_type == "summ_corr":
+					cols = [global_vars.summ_corr_varOne, global_vars.summ_corr_varTwo, global_vars.summ_corr_coeff, global_vars.summ_corr_pvalues]
+				elif global_vars.input_type == "summ_indttest":
+					cols = [global_vars.summ_indttest_var, global_vars.summ_indttest_meanOne, global_vars.summ_indttest_sdOne, global_vars.summ_indttest_nOne,
+							global_vars.summ_indttest_meanTwo, global_vars.summ_indttest_sdTwo, global_vars.summ_indttest_nTwo, global_vars.summ_indttest_equal_var]
+				elif global_vars.input_type == "pvalues":
+					cols = [global_vars.pvalues_col]
+				else:
+					cols = None #default to read all cols for read_excel
+
+				raw_data_df = pd.read_excel(global_vars.input_path_and_filename, usecols=cols)
+			else:
+				raw_data_df = pd.read_excel(global_vars.input_path_and_filename)
 		except:
 			raise Exception("Oh-oh. For some reason we cannot read the provided file. Please try another file - make sure it's an excel spreadsheet.")
 
