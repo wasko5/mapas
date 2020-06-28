@@ -1,14 +1,6 @@
-import pandas as pd
-import numpy as np
-from scipy import stats
-import statsmodels.api as sm
-from statsmodels.stats import multitest
-import researchpy as rp
-from openpyxl import Workbook
 from openpyxl.styles import Border, Side, Alignment, Font
-from openpyxl.utils import get_column_letter
-from openpyxl.utils.dataframe import dataframe_to_rows
-from datetime import datetime
+
+version = "BETA"
 
 master_dict = {
 	"Correlations" : "corr",
@@ -21,7 +13,7 @@ master_dict = {
 	"Kendall's tau" : "kendall",
 
 	"Raise errors" : True,
-	"Ignore case-wise" : False,
+	"Ignore pair-wise" : False,
 
 	"Bonferroni" : "bonferroni",
 	"Sidak" : "sidak",
@@ -33,12 +25,12 @@ master_dict = {
 	"Benjamini-Yekutieli" : "fdr_by",
 	"Benjamini-Hochberg (2-stage)" : "fdr_tsbh",
 	"Benjamini-Yekutieli (2-stage)" : "fdr_tsbky",
-	"None" : "none"
+	"None" : "None"
 }
 
 tk_vars_defaults = {
 	"input_type_tk" : "0",
-	"input_path_and_filename_tk" : "", #not going to work as I cannot map multiple values to the same key
+	"input_path_and_filename_tk" : "",
 	"output_filename_tk" : "",
 	"alpha_threshold_tk" : "0.05",
 
@@ -57,7 +49,7 @@ tk_vars_defaults = {
 	"summ_corr_coeff_tk" : "Select correlation coeff column",
 	"summ_corr_pvalues_tk" : "Select p-values column",
 
-	"summ_indttest_var_tk" : "", #not going to work as I cannot map multiple values to the same key
+	"summ_indttest_var_tk" : "",
 	"summ_indttest_meanOne_tk" : "",
 	"summ_indttest_sdOne_tk" : "",
 	"summ_indttest_nOne_tk" : "",
@@ -68,12 +60,11 @@ tk_vars_defaults = {
 
 	"spss_test_tk" : "Select a test...",
 
-	"spss_indttest_nOne_tk" : "Enter an integer", #not going to work as I cannot map multiple values to the same key
+	"spss_indttest_nOne_tk" : "Enter an integer",
 	"spss_indttest_nTwo_tk" : "Enter an integer",
 	"spss_indttest_groupOneLabel_tk" : "",
 	"spss_indttest_groupTwoLabel_tk" : "",
-	"spss_pairttest_nOne_tk" : "Enter an integer",
-	"spss_pairttest_nTwo_tk" : "Enter an integer",
+	"spss_pairttest_n_tk" : "Enter an integer",
 
 	"pvalues_col_tk" : "Select p-values column",
 
@@ -86,7 +77,7 @@ tk_vars_defaults = {
 
 dropdown_unselected_file_msg = "Please select input file first..."
 
-input_path_and_filename = "" #to be used instead of filename and fileext; replace if checks on the ext w/ 'endswith'
+input_path_and_filename = ""
 alpha_threshold = ""
 output_filename = ""
 
@@ -123,8 +114,7 @@ spss_indttest_nOne = ""
 spss_indttest_nTwo = ""
 spss_indttest_groupOneLabel = ""
 spss_indttest_groupTwoLabel = ""
-spss_pairttest_nOne = ""
-spss_pairttest_nTwo = ""
+spss_pairttest_n = ""
 
 pvalues_col = ""
 
@@ -132,7 +122,6 @@ effect_size_choice = ""
 correction_type = ""
 
 non_numeric_input_raise_errors = ""
-raw_ttest_output_descriptives = ""
 
 alignment_top = Alignment(horizontal="center", vertical="top")
 alignment_center = Alignment(horizontal="center", vertical="center")
@@ -140,6 +129,3 @@ font_title = Font(size=20, bold=True)
 font_header = Font(italic=True)
 font_bold = Font(bold=True)
 border_APA = Side(border_style="medium", color="000000")
-
-
-#output_pvalues_type = "" #temporary until hlper functions are fixed

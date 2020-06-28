@@ -12,23 +12,37 @@ import pvalues
 
 import pandas as pd
 import numpy as np
-from scipy import stats
-import statsmodels.api as sm
 from statsmodels.stats import multitest
-import researchpy as rp
-from openpyxl import Workbook
-from openpyxl.styles import Border, Side, Alignment, Font
-from openpyxl.utils import get_column_letter
-from openpyxl.utils.dataframe import dataframe_to_rows
-from datetime import datetime
 import global_vars
-import calculations_helper_functions_only as helper_funcs
+import helper_funcs
 
 
-def get_raw_data_df():
+def get_raw_data_df(debug=False):
+	#debug=True saves only required cols based on test for the log file
 	if global_vars.input_path_and_filename.endswith(".xlsx"):
 		try:
-			raw_data_df = pd.read_excel(global_vars.input_path_and_filename)
+			if debug:
+				if global_vars.raw_test == "corr":
+					cols = global_vars.raw_corr_vars
+				elif global_vars.raw_test == "mr":
+					cols = [global_vars.raw_mr_outcomevar] + global_vars.raw_mr_predictors
+				elif global_vars.raw_test == "indttest":
+					cols = [global_vars.raw_indttest_groupvar] + global_vars.raw_indttest_dv
+				elif global_vars.raw_test == "pairttest":
+					cols = [var for pair in global_vars.raw_pairttest_var_pairs for var in pair]
+				elif global_vars.input_type == "summ_corr":
+					cols = [global_vars.summ_corr_varOne, global_vars.summ_corr_varTwo, global_vars.summ_corr_coeff, global_vars.summ_corr_pvalues]
+				elif global_vars.input_type == "summ_indttest":
+					cols = [global_vars.summ_indttest_var, global_vars.summ_indttest_meanOne, global_vars.summ_indttest_sdOne, global_vars.summ_indttest_nOne,
+							global_vars.summ_indttest_meanTwo, global_vars.summ_indttest_sdTwo, global_vars.summ_indttest_nTwo, global_vars.summ_indttest_equal_var]
+				elif global_vars.input_type == "pvalues":
+					cols = [global_vars.pvalues_col]
+				else:
+					cols = None #default to read all cols for read_excel
+
+				raw_data_df = pd.read_excel(global_vars.input_path_and_filename, usecols=cols)
+			else:
+				raw_data_df = pd.read_excel(global_vars.input_path_and_filename)
 		except:
 			raise Exception("Oh-oh. For some reason we cannot read the provided file. Please try another file - make sure it's an excel spreadsheet.")
 
@@ -47,7 +61,7 @@ def modify_raw_data_df(raw_data_df):
 
 		elif global_vars.raw_test == "indttest":
 			numeric_cols = global_vars.raw_indttest_dv
-			non_numeric_cols = [global_vars.raw_indttest_groupvar] ###list(set(list(raw_data_df.columns)) - set(numeric_cols)) #this is fine because numeric_cols is a subset of df.columns; could be a problem only if numeric_cols could contain unique values - https://stackoverflow.com/questions/3462143/get-difference-between-two-lists
+			non_numeric_cols = [global_vars.raw_indttest_groupvar]
 
 		elif global_vars.raw_test == "pairttest":
 			numeric_cols = list(np.array(global_vars.raw_pairttest_var_pairs).flatten())
@@ -64,7 +78,7 @@ def modify_raw_data_df(raw_data_df):
 		non_numeric_cols = [global_vars.summ_corr_varOne, global_vars.summ_corr_varTwo]
 		helper_funcs.error_on_input(df=raw_data_df, cols=numeric_cols, input_type="numeric")
 		helper_funcs.error_on_input(df=raw_data_df, cols=non_numeric_cols, input_type="nan")
-		mod_raw_data_df = helper_funcs.raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols) #this function works but need to change name
+		mod_raw_data_df = helper_funcs.raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols)
 
 	elif global_vars.input_type == "summ_indttest":
 		numeric_cols = [global_vars.summ_indttest_meanOne, global_vars.summ_indttest_sdOne, global_vars.summ_indttest_nOne, global_vars.summ_indttest_meanTwo, global_vars.summ_indttest_sdTwo, global_vars.summ_indttest_nTwo]
@@ -79,13 +93,13 @@ def modify_raw_data_df(raw_data_df):
 		if global_vars.spss_test == "corr":
 			mod_raw_data_df = spss_correlations.spss_corr_generate_mod_raw_data_df(raw_data_df)
 		elif global_vars.spss_test == "mr":
-			mod_raw_data_df = spss_mr.spss_mr_generate_mod_raw_data_df(raw_data_df) #might remove the function depending on whether I add logical checks
+			mod_raw_data_df = spss_mr.spss_mr_generate_mod_raw_data_df(raw_data_df)
 		elif global_vars.spss_test == "indttest":
-			mod_raw_data_df = spss_indttest.spss_indttest_generate_mod_raw_data_df(raw_data_df) #might remove the function depending on whether I add logical checks
+			mod_raw_data_df = spss_indttest.spss_indttest_generate_mod_raw_data_df(raw_data_df)
 		elif global_vars.spss_test == "pairttest":
-			mod_raw_data_df = spss_pairttest.spss_pairttest_generate_mod_raw_data_df(raw_data_df) #might remove the function depending on whether I add logical checks
+			mod_raw_data_df = spss_pairttest.spss_pairttest_generate_mod_raw_data_df(raw_data_df)
 	elif global_vars.input_type == "pvalues":
-		mod_raw_data_df = pvalues.pvalues_generate_mod_raw_data_df(raw_data_df) #-------------------------------------------------------------------TO LET USER CHOOSE PVALUE COLUMN
+		mod_raw_data_df = pvalues.pvalues_generate_mod_raw_data_df(raw_data_df)
 
 	return mod_raw_data_df
 
@@ -126,12 +140,12 @@ def multitest_correction(output_df):
 		pvalues_col_label = "pvalues"
 	
 	if output_df[pvalues_col_label].isnull().values.any():
-		#the correction function cannot handle missing values very well; workaround exist but they do not make sense in the context of the software
+		#the correction function cannot handle missing values very well; workarouns exist but they do not make sense in the context of the software
 		#see https://github.com/statsmodels/statsmodels/issues/2899
 		raise Exception("The pvalues column contains blank cells. Please make sure that all data in the pvalues column is filled.")
 	
-	if global_vars.spss_test != "mr":
-		if global_vars.correction_type != "none":    
+	if global_vars.spss_test != "mr" and global_vars.raw_test != "mr":
+		if global_vars.correction_type != "None":
 			adjusted_pvalues = multitest.multipletests(output_df[pvalues_col_label], alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[1]
 		else:
 			adjusted_pvalues = output_df[pvalues_col_label]
@@ -148,12 +162,8 @@ def save_output(mod_raw_data_df, output_df):
 			raw_mr.raw_mr_apa_table(mod_raw_data_df, output_df)
 		elif global_vars.raw_test == "indttest":
 			raw_indttest.raw_indttest_apa_table(mod_raw_data_df, output_df)
-			if global_vars.raw_ttest_output_descriptives == True:
-				raw_indttest.raw_indttest_descriptives_table(mod_raw_data_df, output_df)
 		elif global_vars.raw_test == "pairttest":
 			raw_pairttest.raw_pairttest_apa_table(mod_raw_data_df, output_df)
-			if global_vars.raw_ttest_output_descriptives == True:
-				raw_pairttest.raw_pairttest_descriptives_table(mod_raw_data_df, output_df)
 	elif global_vars.input_type == "summ_corr":
 		summ_correlations.summ_corr_apa_table(mod_raw_data_df, output_df)
 	elif global_vars.input_type == "summ_indttest":
@@ -169,4 +179,3 @@ def save_output(mod_raw_data_df, output_df):
 			spss_pairttest.spss_pairttest_apa_table(mod_raw_data_df, output_df)
 	elif global_vars.input_type == "pvalues":
 		pvalues.pvalues_table(mod_raw_data_df, output_df)
-

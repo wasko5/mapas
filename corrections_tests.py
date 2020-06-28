@@ -1,11 +1,10 @@
 import pandas as pd
 import global_vars
-#import calculations_helper_functions_only as helper_funcs
 import decision_funcs
 import os
 
-INPUT_DATAFRAMES_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Unit testing\\input dataframes\\")
-OUTPUT_DATAFRAMES_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Unit testing\\output dataframes\\")
+INPUT_DATAFRAMES_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unit_testing\\input dataframes\\")
+OUTPUT_DATAFRAMES_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unit_testing\\output dataframes\\")
 
 def correction_tests_fdrbh():
 	#global vars
@@ -105,7 +104,7 @@ def correction_tests_hommel():
 
 def correction_tests_none():
 	#global vars
-	global_vars.correction_type = "none"
+	global_vars.correction_type = "None"
 	global_vars.alpha_threshold = 0.05
 
 	#setup - actual
