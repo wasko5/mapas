@@ -25,9 +25,9 @@ def get_raw_data_df(debug=False):
 				if global_vars.raw_test == "corr":
 					cols = global_vars.raw_corr_vars
 				elif global_vars.raw_test == "mr":
-					cols = [global_vars.raw_mr_outcomevar] + [global_vars.raw_mr_predictors]
+					cols = [global_vars.raw_mr_outcomevar] + global_vars.raw_mr_predictors
 				elif global_vars.raw_test == "indttest":
-					cols = [global_vars.raw_indttest_groupvar] + [global_vars.raw_indttest_dv]
+					cols = [global_vars.raw_indttest_groupvar] + global_vars.raw_indttest_dv
 				elif global_vars.raw_test == "pairttest":
 					cols = [var for pair in global_vars.raw_pairttest_var_pairs for var in pair]
 				elif global_vars.input_type == "summ_corr":
@@ -144,8 +144,8 @@ def multitest_correction(output_df):
 		#see https://github.com/statsmodels/statsmodels/issues/2899
 		raise Exception("The pvalues column contains blank cells. Please make sure that all data in the pvalues column is filled.")
 	
-	if global_vars.spss_test != "mr":
-		if global_vars.correction_type != "none":    
+	if global_vars.spss_test != "mr" and global_vars.raw_test != "mr":
+		if global_vars.correction_type != "None":
 			adjusted_pvalues = multitest.multipletests(output_df[pvalues_col_label], alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[1]
 		else:
 			adjusted_pvalues = output_df[pvalues_col_label]

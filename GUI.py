@@ -10,6 +10,7 @@ from webbrowser import open_new
 import sys
 import os
 import traceback
+from datetime import datetime #FOR TESTING ONLY
 
 def resource_path(relative_path):
      if hasattr(sys, '_MEIPASS'): 
@@ -64,8 +65,7 @@ spss_indttest_nOne_tk = tk.StringVar() #sample sizes are tk.StringVar for optima
 spss_indttest_nTwo_tk = tk.StringVar()
 spss_indttest_groupOneLabel_tk = tk.StringVar()
 spss_indttest_groupTwoLabel_tk = tk.StringVar()
-spss_pairttest_nOne_tk = tk.StringVar()
-spss_pairttest_nTwo_tk = tk.StringVar()
+spss_pairttest_n_tk = tk.StringVar()
 
 pvalues_col_tk = tk.StringVar()
 
@@ -106,8 +106,7 @@ def set_variables_default():
 	spss_indttest_nTwo_tk.set(global_vars.tk_vars_defaults["spss_indttest_nTwo_tk"])
 	spss_indttest_groupOneLabel_tk.set(global_vars.tk_vars_defaults["spss_indttest_groupOneLabel_tk"])
 	spss_indttest_groupTwoLabel_tk.set(global_vars.tk_vars_defaults["spss_indttest_groupTwoLabel_tk"])
-	spss_pairttest_nOne_tk.set(global_vars.tk_vars_defaults["spss_pairttest_nOne_tk"])
-	spss_pairttest_nTwo_tk.set(global_vars.tk_vars_defaults["spss_pairttest_nTwo_tk"])
+	spss_pairttest_n_tk.set(global_vars.tk_vars_defaults["spss_pairttest_n_tk"])
 
 	pvalues_col_tk.set(global_vars.tk_vars_defaults["pvalues_col_tk"])
 
@@ -399,8 +398,7 @@ def spss_test_clear_vars():
 	spss_indttest_nTwo_tk.set(global_vars.tk_vars_defaults["spss_indttest_nTwo_tk"])
 	spss_indttest_groupOneLabel_tk.set(global_vars.tk_vars_defaults["spss_indttest_groupOneLabel_tk"])
 	spss_indttest_groupTwoLabel_tk.set(global_vars.tk_vars_defaults["spss_indttest_groupTwoLabel_tk"])
-	spss_pairttest_nOne_tk.set(global_vars.tk_vars_defaults["spss_pairttest_nOne_tk"])
-	spss_pairttest_nTwo_tk.set(global_vars.tk_vars_defaults["spss_pairttest_nTwo_tk"])
+	spss_pairttest_n_tk.set(global_vars.tk_vars_defaults["spss_pairttest_n_tk"])
 
 	correction_type_tk.set(global_vars.tk_vars_defaults["correction_type_tk"])
 	effect_size_choice_tk.set(global_vars.tk_vars_defaults["effect_size_choice_tk"])
@@ -705,10 +703,9 @@ ttk.Label(spss_indttest_groupLabels_Frame, text="Label, Group 2:").grid(row=1, c
 ttk.Entry(spss_indttest_groupLabels_Frame, textvariable=spss_indttest_groupTwoLabel_tk, width=25).grid(row=1, column=1, sticky="NWES")
 
 #SPSS // test // Paired samples t-test // Sample Size
-ttk.Label(spss_pairttest_sampleSize_Frame, text="N, Group 1:").grid(row=0, column=0, sticky="NWES", padx=(0,5), pady=(0,5))
-ttk.Entry(spss_pairttest_sampleSize_Frame, textvariable=spss_pairttest_nOne_tk, width=15).grid(row=0, column=1, sticky="NWES", pady=(0,5))
-ttk.Label(spss_pairttest_sampleSize_Frame, text="N, Group 2:").grid(row=1, column=0, sticky="NWES", padx=(0,5))
-ttk.Entry(spss_pairttest_sampleSize_Frame, textvariable=spss_pairttest_nTwo_tk, width=15).grid(row=1, column=1, sticky="NWES")
+ttk.Label(spss_pairttest_sampleSize_Frame, text="Used for calculating effect size (if selected)").grid(row=0, column=0, columnspan=2, sticky="NWES", padx=5, pady=(0,5))
+ttk.Label(spss_pairttest_sampleSize_Frame, text="Number of valid pairs:").grid(row=1, column=0, sticky="NWES", padx=(0,5), pady=(0,5))
+ttk.Entry(spss_pairttest_sampleSize_Frame, textvariable=spss_pairttest_n_tk, width=15).grid(row=1, column=1, sticky="NWES", pady=(0,5))
 
 #Pvalues choice column
 pvalues_col_drop = ttk.Combobox(pvalues_col_Frame, state="readonly", width=30, textvariable=pvalues_col_tk)
@@ -794,13 +791,9 @@ def set_global_variables():
 	global_vars.spss_indttest_groupOneLabel = "Group1" if spss_indttest_groupOneLabel_tk.get() == "" else spss_indttest_groupOneLabel_tk.get()
 	global_vars.spss_indttest_groupTwoLabel = "Group2" if spss_indttest_groupTwoLabel_tk.get() == "" else spss_indttest_groupTwoLabel_tk.get()
 	try:
-		global_vars.spss_pairttest_nOne = -1 if spss_pairttest_nOne_tk.get() == "Enter an integer" else int(spss_pairttest_nOne_tk.get())
+		global_vars.spss_pairttest_n = -1 if spss_pairttest_n_tk.get() == "Enter an integer" else int(spss_pairttest_n_tk.get())
 	except ValueError:
-		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_pairttest_nOne_tk.get()))
-	try:
-		global_vars.spss_pairttest_nTwo = -1 if spss_pairttest_nTwo_tk.get() == "Enter an integer" else int(spss_pairttest_nTwo_tk.get())
-	except ValueError:
-		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_pairttest_nTwo_tk.get()))
+		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_pairttest_n_tk.get()))
 
 	global_vars.pvalues_col = "" if pvalues_col_tk.get() == global_vars.tk_vars_defaults["pvalues_col_tk"] else pvalues_col_tk.get()
 
@@ -809,57 +802,7 @@ def set_global_variables():
 
 	global_vars.non_numeric_input_raise_errors = "" if non_numeric_input_raise_errors_tk.get() == global_vars.tk_vars_defaults["non_numeric_input_raise_errors_tk"] else global_vars.master_dict[non_numeric_input_raise_errors_tk.get()]
 
-	print("-------------------------------START PRINTING OUTPUT---------------------------")
-	print("input_path_and_filename - ", global_vars.input_path_and_filename)
-	print("alpha_threshold - ", global_vars.alpha_threshold)
-	print("output_filename - ", global_vars.output_filename)
-
-	print("input_type - ", global_vars.input_type)
-
-	print("raw_test - ", global_vars.raw_test)
-
-	print("raw_corr_type - ", global_vars.raw_corr_type)
-	print("raw_corr_vars - ", global_vars.raw_corr_vars)
-	print("raw_mr_outcomevar - ", global_vars.raw_mr_outcomevar)
-	print("raw_mr_predictors - ", global_vars.raw_mr_predictors)
-	print("raw_indttest_groupvar - ", global_vars.raw_indttest_groupvar)
-	print("raw_indttest_grouplevel1 - ", global_vars.raw_indttest_grouplevel1)
-	print("raw_indttest_grouplevel2 - ", global_vars.raw_indttest_grouplevel2)
-	print("raw_indttest_dv - ", global_vars.raw_indttest_dv)
-	print("raw_pairttest_var_pairs - ", global_vars.raw_pairttest_var_pairs)
-
-	print("summ_corr_varOne - ", global_vars.summ_corr_varOne)
-	print("summ_corr_varTwo - ", global_vars.summ_corr_varTwo)
-	print("summ_corr_coeff - ", global_vars.summ_corr_coeff)
-	print("summ_corr_pvalues - ", global_vars.summ_corr_pvalues)
-
-	print("summ_indttest_var - ", global_vars.summ_indttest_var)
-	print("summ_indttest_meanOne - ", global_vars.summ_indttest_meanOne)
-	print("summ_indttest_sdOne - ", global_vars.summ_indttest_sdOne)
-	print("summ_indttest_nOne - ", global_vars.summ_indttest_nOne)
-	print("summ_indttest_meanTwo - ", global_vars.summ_indttest_meanTwo)
-	print("summ_indttest_sdTwo - ", global_vars.summ_indttest_sdTwo)
-	print("summ_indttest_nTwo - ", global_vars.summ_indttest_nTwo)
-	print("summ_indttest_equal_var - ", global_vars.summ_indttest_equal_var)
-
-	print("spss_test - ", global_vars.spss_test)
-	print("spss_indttest_nOne - ", global_vars.spss_indttest_nOne)
-	print("spss_indttest_nTwo - ", global_vars.spss_indttest_nTwo)
-	print("spss_indttest_groupOneLabel - ", global_vars.spss_indttest_groupOneLabel)
-	print("spss_indttest_groupTwoLabel - ", global_vars.spss_indttest_groupTwoLabel)
-	print("spss_pairttest_nOne - ", global_vars.spss_pairttest_nOne)
-	print("spss_pairttest_nTwo - ", global_vars.spss_pairttest_nTwo)
-
-	print("pvalues_col - ", global_vars.pvalues_col)
-
-	print("effect_size_choice - ", global_vars.effect_size_choice)
-	print("correction_type - ", global_vars.correction_type)
-
-	print("non_numeric_input_raise_errors - ", global_vars.non_numeric_input_raise_errors)
-	print("-------------------------------END PRINTING OUTPUT---------------------------")
-
 def input_validation():
-	#find a way to abstract out the common errors - corrections, effect sizes etc
 	if global_vars.input_path_and_filename == "":
 		raise Exception("In a bit of a rush, are we? Well, we've all been there! But in order for this to work, you need to give us some data to do stuff on.\n\nPlease select your input file.")
 	if global_vars.input_type == "":
@@ -874,6 +817,8 @@ def input_validation():
 				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 			if global_vars.non_numeric_input_raise_errors == "":
 				raise Exception("What happens if you have missing or invalid data? Well, we don't know either so you will need to tell us your preference.\n\nPlease select how to handle non-numeric data.")
+			if len(global_vars.raw_corr_vars) < 2:
+				raise Exception("Please select 2 or more variables to correlation. You can do so by selected your variables from  the \"Your variables\" pane\nand move them across using the arrow button.")
 		elif global_vars.raw_test == "mr":
 			if global_vars.non_numeric_input_raise_errors == "":
 				raise Exception("What happens if you have missing or invalid data? Well, we don't know either so you will need to tell us your preference.\n\nPlease select how to handle non-numeric data.")
@@ -951,7 +896,7 @@ def input_validation():
 				raise Exception("Oops - you missed one!\n\nPlease tell us what kind of correction, if any, you want us to apply to the data.")
 			if global_vars.effect_size_choice == "no selection":
 				raise Exception("Your t-test will be much better with an effect size estimate in there.\n\nPlease select what effect size, if any, you want.")
-			if global_vars.spss_pairttest_nOne == -1 or global_vars.spss_pairttest_nTwo == -1:
+			if global_vars.spss_pairttest_n == -1:
 				raise Exception("To run some of the statistics for the t-test you will need to tell us what your sample size is.")
 	elif global_vars.input_type == "pvalues":
 		if global_vars.correction_type == "no selection":
@@ -1000,7 +945,7 @@ def submit_window():
 
 	def openfilelocation():
 		directory = global_vars.output_filename[:global_vars.output_filename.rfind("/")]
-		open_new(directory)
+		open_new("file://" + directory)
 
 	ttk.Button(top, text="Open file location", command=openfilelocation).grid(row=1, column=0, padx=(15, 0), pady=5)
 	ttk.Button(top, text="I want to do more analysis", command=top.destroy).grid(row=1, column=1, padx=15, pady=5)
@@ -1023,8 +968,11 @@ def info_window():
 
 	center(top)
 
-def log_error(traceback=None):
-	log_filepath = asksaveasfilename(initialdir = resource_path(""), title = "Save log file as...", filetypes = (("Text files","*.txt"),("All files","*.*")))
+def log_error(traceback=None, testing=False):
+	if testing: #FOR TESTING ONLY
+		log_filepath = "D:\\Desktop_current\\NPSoftware\\GitHub\\logs\\" + datetime.now().strftime("%Y%m%d_%H%M%S")
+	else:
+		log_filepath = asksaveasfilename(initialdir = resource_path(""), title = "Save log file as...", filetypes = (("Text files","*.txt"),("All files","*.*")))
 
 	log_file = open(log_filepath + ".txt","w") 
 	L = [
@@ -1071,8 +1019,7 @@ def log_error(traceback=None):
 		"spss_indttest_nTwo = {}".format(global_vars.spss_indttest_nTwo),
 		"spss_indttest_groupOneLabel = \"{}\"".format(global_vars.spss_indttest_groupOneLabel),
 		"spss_indttest_groupTwoLabel = \"{}\"".format(global_vars.spss_indttest_groupTwoLabel),
-		"spss_pairttest_nOne = {}".format(global_vars.spss_pairttest_nOne),
-		"spss_pairttest_nTwo = {}".format(global_vars.spss_pairttest_nTwo),
+		"spss_pairttest_n = {}".format(global_vars.spss_pairttest_n),
 
 		"pvalues_col = \"{}\"".format(global_vars.pvalues_col),
 
@@ -1162,6 +1109,7 @@ def submit():
 	try:
 		set_global_variables()
 		input_validation()
+		log_error(traceback=None, testing=True) #FOR TESTING ONLY
 		run_main()
 		print("Success")
 		clear_output_filename()

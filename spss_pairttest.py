@@ -32,7 +32,7 @@ def spss_pairttest_generate_output_df(mod_raw_data_df):
 	effectsize_list = []
 
 	for t in t_stat_list:
-		effect_size = helper_funcs.calc_ttest_effect_size(global_vars.effect_size_choice, t=t, n1=global_vars.spss_pairttest_nOne, n2=spss_pairttest_nTwo)
+		effect_size = helper_funcs.calc_ttest_effect_size(global_vars.effect_size_choice, t=t, n1=global_vars.spss_pairttest_n, n2=global_vars.spss_pairttest_n)
 		effectsize_list.append(effect_size)
 			
 	output_dict["Variables"] = list(mod_raw_data_df["Variables"])
@@ -51,7 +51,7 @@ def spss_pairttest_generate_output_df(mod_raw_data_df):
 
 #-----------------------------------------------------------Saving data----------------------------------------------------
 def spss_pairttest_apa_table(mod_raw_data_df, output_df):
-	output_df.drop(columns=["pvalues", list(output_df.columns)[-1]], inplace=True)
+	output_df.drop(columns=["pvalues"], inplace=True)
 
 	pd.options.mode.chained_assignment = None
 	output_df[list(output_df.columns)[5:-1]] = output_df[list(output_df.columns)[5:-1]].applymap(lambda x: "{:.2f}".format(x))
@@ -103,6 +103,9 @@ def spss_pairttest_apa_table(mod_raw_data_df, output_df):
 	
 	for cell in ws[2] + ws[len(output_df)+2]:
 		cell.border = Border(bottom=global_vars.border_APA)
+
+	if global_vars.effect_size_choice == "None":
+		ws.delete_cols(8)
 
 	table_notes = ["Means and Standard Deviations cannot be read from the SPSS table. Please add them yourself or remove those columns if they are not needed."]
 	helper_funcs.add_table_notes(ws, table_notes)

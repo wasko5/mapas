@@ -25,7 +25,7 @@ master_dict = {
 	"Benjamini-Yekutieli" : "fdr_by",
 	"Benjamini-Hochberg (2-stage)" : "fdr_tsbh",
 	"Benjamini-Yekutieli (2-stage)" : "fdr_tsbky",
-	"None" : "none"
+	"None" : "None"
 }
 
 tk_vars_defaults = {
@@ -64,8 +64,7 @@ tk_vars_defaults = {
 	"spss_indttest_nTwo_tk" : "Enter an integer",
 	"spss_indttest_groupOneLabel_tk" : "",
 	"spss_indttest_groupTwoLabel_tk" : "",
-	"spss_pairttest_nOne_tk" : "Enter an integer",
-	"spss_pairttest_nTwo_tk" : "Enter an integer",
+	"spss_pairttest_n_tk" : "Enter an integer",
 
 	"pvalues_col_tk" : "Select p-values column",
 
@@ -115,8 +114,7 @@ spss_indttest_nOne = ""
 spss_indttest_nTwo = ""
 spss_indttest_groupOneLabel = ""
 spss_indttest_groupTwoLabel = ""
-spss_pairttest_nOne = ""
-spss_pairttest_nTwo = ""
+spss_pairttest_n = ""
 
 pvalues_col = ""
 

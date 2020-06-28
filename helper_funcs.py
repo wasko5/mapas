@@ -84,15 +84,6 @@ def error_on_input(df, cols, input_type):
 			error_msg += "In column {c}, there are non-numerical/blank entries on the following rows: {i}\n".format(c=col, i=(", ").join([str(x+2) for x in ind_arr]))
 		raise Exception(error_msg)
 
-'''
-def summ_input_colNames_check(raw_data_df, provided_cols):
-	for var in provided_cols:
-		if var not in list(raw_data_df.columns):
-			raise Exception("Column {} is not found in the provided file.\nPlease ensure that the column names are typed correctly.".format(var))
-	if len(list(raw_data_df.columns)) > len(provided_cols):
-		raise Exception("The provided file contains too many columns. Please provide only {}.".format(len(provided_cols)))
-'''
-
 #------------------------------------------------Helper functions for generating output dataframes
 def raw_input_corr_coeff(x, y):
 	if global_vars.raw_corr_type == "pearson":

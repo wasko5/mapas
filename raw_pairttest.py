@@ -9,6 +9,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import global_vars
 import helper_funcs
 
+'''
 def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols):
 	#Treaing paired ttest input separately (as separate dataframes based on pairs) as it's possible for 1 pair 
 	#to have 200 entires and another one with 400 entries
@@ -20,25 +21,20 @@ def raw_input_generate_mod_raw_data_df(raw_data_df, numeric_cols):
 	mod_raw_data_df = pd.concat(df_list, axis=1)
 	
 	return mod_raw_data_df
-
+'''
 def raw_pairttest_generate_output_df(mod_raw_data_df):
 	effect_size_df_row_lookup = {"Cohen's d": 6, "Hedge's g": 7, "Glass's delta": 8}
 	dictionaries_list=[]
 
 	for pair in global_vars.raw_pairttest_var_pairs:
-		series_time1 = mod_raw_data_df[pair[0]].dropna().reset_index(drop=True) #dropna needed here as the merging of 2 dataframes with 200 and 400 cols would have generated 200 np.nan rows
-		series_time2 = mod_raw_data_df[pair[1]].dropna().reset_index(drop=True)
+		series_time1 = mod_raw_data_df[pair[0]][(mod_raw_data_df[pair[0]].notnull()) & (mod_raw_data_df[pair[1]].notnull())] #this also seems to be done withi nthe researchpy ttest func but it's fine
+		series_time2 = mod_raw_data_df[pair[1]][(mod_raw_data_df[pair[0]].notnull()) & (mod_raw_data_df[pair[1]].notnull())]
 
-		equal_variances = stats.levene(series_time1, series_time2)[1]>0.05
 		result = rp.ttest(series_time1, series_time2, group1_name=pair[0], group2_name=pair[1],
-							equal_variances=equal_variances, 
+							equal_variances=True, 
 							paired=True)
-
-		if equal_variances:
-			ttest_stats_df = result[1]
-		else:
-			#for paired t-test if variances are unequal, the function outputs only a single df
-			ttest_stats_df = result
+		
+		ttest_stats_df = result[1]
 
 		current_dict={}
 		current_dict["Variable"] = "{var1} - {var2}".format(var1=pair[0], var2=pair[1])
@@ -48,21 +44,11 @@ def raw_pairttest_generate_output_df(mod_raw_data_df):
 		current_dict["Time2_N"] = series_time2.count()
 		current_dict["Time2_Mean"] = np.mean(series_time2)
 		current_dict["Time2_SD"] = np.std(series_time2)
-		if equal_variances:
-			current_dict["Degrees of Freedom"] = ttest_stats_df.iloc[1, 1]
-			current_dict["t"] = ttest_stats_df.iloc[2, 1]
-			current_dict[global_vars.effect_size_choice] = np.nan if global_vars.effect_size_choice == "None" else ttest_stats_df.iloc[effect_size_df_row_lookup[global_vars.effect_size_choice], 1]
-			current_dict["pvalues"] = ttest_stats_df.iloc[3, 1]
-		else:
-			#ditto as above if - paired t-test unequal variances is funny
-			current_dict["Degrees of Freedom"] = series_time1.count() - 1
-			current_dict["t"] = ttest_stats_df.iloc[2, 1]
-			current_dict[global_vars.effect_size_choice] = helper_funcs.calc_ttest_effect_size(global_vars.effect_size_choice, t=ttest_stats_df.iloc[2, 1],
-																					n1=series_time1.count(), n2=series_time2.count(), m1=np.mean(series_time1), m2=np.mean(series_time2), 
-																					sd1=np.std(series_time1))
-			current_dict["pvalues"] = ttest_stats_df.iloc[4, 1]
-
-
+		current_dict["Degrees of Freedom"] = ttest_stats_df.iloc[1, 1]
+		current_dict["t"] = ttest_stats_df.iloc[2, 1]
+		current_dict[global_vars.effect_size_choice] = np.nan if global_vars.effect_size_choice == "None" else ttest_stats_df.iloc[effect_size_df_row_lookup[global_vars.effect_size_choice], 1]
+		current_dict["pvalues"] = ttest_stats_df.iloc[3, 1]
+		
 		dictionaries_list.append(current_dict)
 
 	output_df = pd.DataFrame(dictionaries_list)

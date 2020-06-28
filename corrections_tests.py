@@ -104,7 +104,7 @@ def correction_tests_hommel():
 
 def correction_tests_none():
 	#global vars
-	global_vars.correction_type = "none"
+	global_vars.correction_type = "None"
 	global_vars.alpha_threshold = 0.05
 
 	#setup - actual
