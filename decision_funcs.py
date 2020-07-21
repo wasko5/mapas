@@ -1,14 +1,14 @@
-import raw_correlations
-import raw_mr
-import raw_indttest
-import raw_pairttest
-import summ_correlations
-import summ_indttest
-import spss_correlations
-import spss_mr
-import spss_indttest
-import spss_pairttest
-import pvalues
+import main_funcs_raw_correlations
+import main_funcs_raw_mr
+import main_funcs_raw_indttest
+import main_funcs_raw_pairttest
+import main_funcs_summ_correlations
+import main_funcs_summ_indttest
+import main_funcs_spss_correlations
+import main_funcs_spss_mr
+import main_funcs_spss_indttest
+import main_funcs_spss_pairttest
+import main_funcs_pvalues
 
 import pandas as pd
 import numpy as np
@@ -34,7 +34,9 @@ def get_raw_data_df(debug=False):
 					cols = [global_vars.summ_corr_varOne, global_vars.summ_corr_varTwo, global_vars.summ_corr_coeff, global_vars.summ_corr_pvalues]
 				elif global_vars.input_type == "summ_indttest":
 					cols = [global_vars.summ_indttest_var, global_vars.summ_indttest_meanOne, global_vars.summ_indttest_sdOne, global_vars.summ_indttest_nOne,
-							global_vars.summ_indttest_meanTwo, global_vars.summ_indttest_sdTwo, global_vars.summ_indttest_nTwo, global_vars.summ_indttest_equal_var]
+							global_vars.summ_indttest_meanTwo, global_vars.summ_indttest_sdTwo, global_vars.summ_indttest_nTwo]
+					if global_vars.summ_indttest_equal_var != "":
+						cols.append(global_vars.summ_indttest_equal_var)
 				elif global_vars.input_type == "pvalues":
 					cols = [global_vars.pvalues_col]
 				else:
@@ -87,47 +89,47 @@ def modify_raw_data_df(raw_data_df):
 			non_numeric_cols.append(global_vars.summ_indttest_equal_var)
 		helper_funcs.error_on_input(df=raw_data_df, cols=numeric_cols, input_type="numeric")
 		helper_funcs.error_on_input(df=raw_data_df, cols=non_numeric_cols, input_type="nan")
-		mod_raw_data_df = summ_indttest.summ_inddtest_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols)
+		mod_raw_data_df = main_funcs_summ_indttest.summ_inddtest_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols)
 
 	elif global_vars.input_type == "spss":
 		if global_vars.spss_test == "corr":
-			mod_raw_data_df = spss_correlations.spss_corr_generate_mod_raw_data_df(raw_data_df)
+			mod_raw_data_df = main_funcs_spss_correlations.spss_corr_generate_mod_raw_data_df(raw_data_df)
 		elif global_vars.spss_test == "mr":
-			mod_raw_data_df = spss_mr.spss_mr_generate_mod_raw_data_df(raw_data_df)
+			mod_raw_data_df = main_funcs_spss_mr.spss_mr_generate_mod_raw_data_df(raw_data_df)
 		elif global_vars.spss_test == "indttest":
-			mod_raw_data_df = spss_indttest.spss_indttest_generate_mod_raw_data_df(raw_data_df)
+			mod_raw_data_df = main_funcs_spss_indttest.spss_indttest_generate_mod_raw_data_df(raw_data_df)
 		elif global_vars.spss_test == "pairttest":
-			mod_raw_data_df = spss_pairttest.spss_pairttest_generate_mod_raw_data_df(raw_data_df)
+			mod_raw_data_df = main_funcs_spss_pairttest.spss_pairttest_generate_mod_raw_data_df(raw_data_df)
 	elif global_vars.input_type == "pvalues":
-		mod_raw_data_df = pvalues.pvalues_generate_mod_raw_data_df(raw_data_df)
+		mod_raw_data_df = main_funcs_pvalues.pvalues_generate_mod_raw_data_df(raw_data_df)
 
 	return mod_raw_data_df
 
 def generate_output_df(mod_raw_data_df):
 	if global_vars.input_type == "raw":
 		if global_vars.raw_test =="corr":
-			output_df = raw_correlations.raw_corr_generate_output_df(mod_raw_data_df)
+			output_df = main_funcs_raw_correlations.raw_corr_generate_output_df(mod_raw_data_df)
 		elif global_vars.raw_test == "mr":
-			output_df = raw_mr.raw_mr_generate_output_df(mod_raw_data_df)
+			output_df = main_funcs_raw_mr.raw_mr_generate_output_df(mod_raw_data_df)
 		elif global_vars.raw_test == "indttest":
-			output_df = raw_indttest.raw_indttest_generate_output_df(mod_raw_data_df)
+			output_df = main_funcs_raw_indttest.raw_indttest_generate_output_df(mod_raw_data_df)
 		elif global_vars.raw_test == "pairttest":
-			output_df = raw_pairttest.raw_pairttest_generate_output_df(mod_raw_data_df)
+			output_df = main_funcs_raw_pairttest.raw_pairttest_generate_output_df(mod_raw_data_df)
 	elif global_vars.input_type == "summ_corr":
-		output_df = summ_correlations.summ_corr_generate_output_df(mod_raw_data_df)
+		output_df = main_funcs_summ_correlations.summ_corr_generate_output_df(mod_raw_data_df)
 	elif global_vars.input_type == "summ_indttest":
-		output_df = summ_indttest.summ_indttest_generate_output_df(mod_raw_data_df)
+		output_df = main_funcs_summ_indttest.summ_indttest_generate_output_df(mod_raw_data_df)
 	elif global_vars.input_type == "spss":
 		if global_vars.spss_test == "corr":
-			output_df = spss_correlations.spss_corr_generate_output_df(mod_raw_data_df)
+			output_df = main_funcs_spss_correlations.spss_corr_generate_output_df(mod_raw_data_df)
 		elif global_vars.spss_test == "mr":
-			output_df = spss_mr.spss_mr_generate_output_df(mod_raw_data_df)
+			output_df = main_funcs_spss_mr.spss_mr_generate_output_df(mod_raw_data_df)
 		elif global_vars.spss_test == "indttest":
-			output_df = spss_indttest.spss_indttest_generate_output_df(mod_raw_data_df)
+			output_df = main_funcs_spss_indttest.spss_indttest_generate_output_df(mod_raw_data_df)
 		elif global_vars.spss_test == "pairttest":
-			output_df = spss_pairttest.spss_pairttest_generate_output_df(mod_raw_data_df)
+			output_df = main_funcs_spss_pairttest.spss_pairttest_generate_output_df(mod_raw_data_df)
 	elif global_vars.input_type == "pvalues":
-		output_df = pvalues.pvalues_generate_output_df(mod_raw_data_df)
+		output_df = main_funcs_pvalues.pvalues_generate_output_df(mod_raw_data_df)
 
 	return output_df
 
@@ -157,25 +159,25 @@ def multitest_correction(output_df):
 def save_output(mod_raw_data_df, output_df):
 	if global_vars.input_type == "raw":
 		if global_vars.raw_test =="corr":
-			raw_correlations.raw_corr_apa_table(mod_raw_data_df, output_df)
+			main_funcs_raw_correlations.raw_corr_apa_table(mod_raw_data_df, output_df)
 		elif global_vars.raw_test == "mr":
-			raw_mr.raw_mr_apa_table(mod_raw_data_df, output_df)
+			main_funcs_raw_mr.raw_mr_apa_table(mod_raw_data_df, output_df)
 		elif global_vars.raw_test == "indttest":
-			raw_indttest.raw_indttest_apa_table(mod_raw_data_df, output_df)
+			main_funcs_raw_indttest.raw_indttest_apa_table(mod_raw_data_df, output_df)
 		elif global_vars.raw_test == "pairttest":
-			raw_pairttest.raw_pairttest_apa_table(mod_raw_data_df, output_df)
+			main_funcs_raw_pairttest.raw_pairttest_apa_table(mod_raw_data_df, output_df)
 	elif global_vars.input_type == "summ_corr":
-		summ_correlations.summ_corr_apa_table(mod_raw_data_df, output_df)
+		main_funcs_summ_correlations.summ_corr_apa_table(mod_raw_data_df, output_df)
 	elif global_vars.input_type == "summ_indttest":
-		summ_indttest.summ_indttest_apa_table(mod_raw_data_df, output_df)
+		main_funcs_summ_indttest.summ_indttest_apa_table(mod_raw_data_df, output_df)
 	elif global_vars.input_type == "spss":
 		if global_vars.spss_test == "corr":
-			spss_correlations.spss_corr_apa_table(mod_raw_data_df, output_df)
+			main_funcs_spss_correlations.spss_corr_apa_table(mod_raw_data_df, output_df)
 		elif global_vars.spss_test == "mr":
-			spss_mr.spss_mr_apa_table(mod_raw_data_df, output_df)
+			main_funcs_spss_mr.spss_mr_apa_table(mod_raw_data_df, output_df)
 		elif global_vars.spss_test == "indttest":
-			spss_indttest.spss_indttest_apa_table(mod_raw_data_df, output_df)
+			main_funcs_spss_indttest.spss_indttest_apa_table(mod_raw_data_df, output_df)
 		elif global_vars.spss_test == "pairttest":
-			spss_pairttest.spss_pairttest_apa_table(mod_raw_data_df, output_df)
+			main_funcs_spss_pairttest.spss_pairttest_apa_table(mod_raw_data_df, output_df)
 	elif global_vars.input_type == "pvalues":
-		pvalues.pvalues_table(mod_raw_data_df, output_df)
+		main_funcs_pvalues.pvalues_table(mod_raw_data_df, output_df)

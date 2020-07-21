@@ -1,6 +1,11 @@
 from openpyxl.styles import Border, Side, Alignment, Font
 
-version = "BETA"
+version = "1.0"
+apa_reference = "Petrov, N., Atanasov, V., & Thompson, T. (2020). ..."
+article_link = "www.nikolaybpetrov.com/mapas"
+github_repository = "*GITHUB LINK*"
+software_page = "www.nikolaybpetrov.com/mapas"
+contact = "nikbpetrov@gmail.com"
 
 master_dict = {
 	"Correlations" : "corr",
