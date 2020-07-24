@@ -21,7 +21,7 @@ def summ_inddtest_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeri
 		mod_raw_data_df["Equal Variances"] = [True] * len(mod_raw_data_df)
 	else:
 		if not raw_data_df[global_vars.summ_indttest_equal_var].isin([True, False]).all():
-			raise Exception("A value different from True or False is found in column \'{}\'.\nPlease ensure that only True and False values are provided.".format(global_vars.summ_indttest_equal_var))
+			raise Exception("A value different from TRUE or FALSE is found in column \'{c}\'.\nPlease ensure that only TRUE and FALSE values are provided.\nFor more information, see the software documentation at {d}, \"Input types\" section".format(c=global_vars.summ_indttest_equal_var, d=global_vars.software_page))
 		
 	return mod_raw_data_df
 

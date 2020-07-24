@@ -471,7 +471,7 @@ col_names_lb.configure(state="disabled")
 #Input Type
 input_type_Dict = {"Raw data" : "raw", "Correlations from summary statistics" : "summ_corr", 
 					"Independent t-test from summary statistics" : "summ_indttest", "SPSS table" : "spss",
-					"P values" : "pvalues"}
+					"p values" : "pvalues"}
 i_input = 0 #used for rows in the grid
 for (text, value) in input_type_Dict.items(): 
 		ttk.Radiobutton(input_type_Frame, text=text, variable=input_type_tk, value=value, command=input_type_frames_layout).grid(row=0, column=i_input, sticky="W")
@@ -688,16 +688,17 @@ spss_test_drop.bind("<<ComboboxSelected>>", spss_test_frames_layout)
 spss_test_drop.grid(row=0, column=0)
 
 #SPSS // test // Independent samples t-test // Sample Size
-ttk.Label(spss_indttest_sampleSize_Frame, text="N, Group 1:").grid(row=0, column=0, sticky="NWES", padx=(0,5), pady=(0,5))
-ttk.Entry(spss_indttest_sampleSize_Frame, textvariable=spss_indttest_nOne_tk, width=15).grid(row=0, column=1, sticky="NWES", pady=(0,5))
-ttk.Label(spss_indttest_sampleSize_Frame, text="N, Group 2:").grid(row=1, column=0, sticky="NWES", padx=(0,5))
-ttk.Entry(spss_indttest_sampleSize_Frame, textvariable=spss_indttest_nTwo_tk, width=15).grid(row=1, column=1, sticky="NWES")
+ttk.Label(spss_indttest_sampleSize_Frame, text="Used for calculating effect size (if selected)").grid(row=0, column=0, columnspan=2, sticky="NWES", padx=5, pady=(0,5))
+ttk.Label(spss_indttest_sampleSize_Frame, text="Sample size of Group 1:").grid(row=1, column=0, sticky="NWES", padx=(0,5), pady=(0,5))
+ttk.Entry(spss_indttest_sampleSize_Frame, textvariable=spss_indttest_nOne_tk, width=15).grid(row=1, column=1, sticky="NWES", pady=(0,5))
+ttk.Label(spss_indttest_sampleSize_Frame, text="Sample size of Group 2:").grid(row=2, column=0, sticky="NWES", padx=(0,5))
+ttk.Entry(spss_indttest_sampleSize_Frame, textvariable=spss_indttest_nTwo_tk, width=15).grid(row=2, column=1, sticky="NWES")
 
 #SPSS // test // Independent samples t-test // Group Labels
-ttk.Label(spss_indttest_groupLabels_Frame, text="Label, Group 1:").grid(row=0, column=0, sticky="NWES", padx=(0,5), pady=(0,5))
-ttk.Entry(spss_indttest_groupLabels_Frame, textvariable=spss_indttest_groupOneLabel_tk, width=25).grid(row=0, column=1, sticky="NWES", pady=(0,5))
-ttk.Label(spss_indttest_groupLabels_Frame, text="Label, Group 2:").grid(row=1, column=0, sticky="NWES", padx=(0,5))
-ttk.Entry(spss_indttest_groupLabels_Frame, textvariable=spss_indttest_groupTwoLabel_tk, width=25).grid(row=1, column=1, sticky="NWES")
+ttk.Label(spss_indttest_groupLabels_Frame, text="Group 1:").grid(row=0, column=0, sticky="NWES", padx=(0,5))
+ttk.Entry(spss_indttest_groupLabels_Frame, textvariable=spss_indttest_groupOneLabel_tk, width=20).grid(row=0, column=1, sticky="NWES", padx=(0,5))
+ttk.Label(spss_indttest_groupLabels_Frame, text="Group 2:").grid(row=0, column=2, sticky="NWES", padx=(0,5))
+ttk.Entry(spss_indttest_groupLabels_Frame, textvariable=spss_indttest_groupTwoLabel_tk, width=20).grid(row=0, column=3, sticky="NWES")
 
 #SPSS // test // Paired samples t-test // Sample Size
 ttk.Label(spss_pairttest_sampleSize_Frame, text="Used for calculating effect size (if selected)").grid(row=0, column=0, columnspan=2, sticky="NWES", padx=5, pady=(0,5))
@@ -778,17 +779,32 @@ def set_global_variables():
 
 	global_vars.spss_test = "" if spss_test_tk.get() == global_vars.tk_vars_defaults["spss_test_tk"] else global_vars.master_dict[spss_test_tk.get()]
 	try:
-		global_vars.spss_indttest_nOne = -1 if spss_indttest_nOne_tk.get() == "Enter an integer" else int(spss_indttest_nOne_tk.get())
+		if spss_indttest_nOne_tk.get() == "Enter an integer" or spss_indttest_nOne_tk.get() == "" or effect_size_choice_tk.get() == "None":
+			global_vars.spss_indttest_nOne = -1
+		else:
+			global_vars.spss_indttest_nOne = int(spss_indttest_nOne_tk.get())
+			if global_vars.spss_indttest_nOne <= 0:
+				raise ValueError
 	except ValueError:
 		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_indttest_nOne_tk.get()))
 	try:
-		global_vars.spss_indttest_nTwo = -1 if spss_indttest_nTwo_tk.get() == "Enter an integer" else int(spss_indttest_nTwo_tk.get())
+		if spss_indttest_nTwo_tk.get() == "Enter an integer" or spss_indttest_nTwo_tk.get() == "" or effect_size_choice_tk.get() == "None":
+			global_vars.spss_indttest_nTwo = -1
+		else:
+			global_vars.spss_indttest_nTwo = int(spss_indttest_nTwo_tk.get())
+			if global_vars.spss_indttest_nTwo <= 0:
+				raise ValueError
 	except ValueError:
 		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_indttest_nTwo_tk.get()))
 	global_vars.spss_indttest_groupOneLabel = "Group1" if spss_indttest_groupOneLabel_tk.get() == "" else spss_indttest_groupOneLabel_tk.get()
 	global_vars.spss_indttest_groupTwoLabel = "Group2" if spss_indttest_groupTwoLabel_tk.get() == "" else spss_indttest_groupTwoLabel_tk.get()
 	try:
-		global_vars.spss_pairttest_n = -1 if spss_pairttest_n_tk.get() == "Enter an integer" else int(spss_pairttest_n_tk.get())
+		if spss_pairttest_n_tk.get() == "Enter an integer" or spss_pairttest_n_tk.get() == "" or effect_size_choice_tk.get() == "None":
+			global_vars.spss_pairttest_n = -1
+		else:
+			global_vars.spss_pairttest_n = int(spss_pairttest_n_tk.get())
+			if global_vars.spss_pairttest_n <= 0:
+				raise ValueError
 	except ValueError:
 		raise Exception("Could not set a sample size of {}. The number must be a positive integer. Example: 123 or 1021.".format(spss_pairttest_n_tk.get()))
 
@@ -886,15 +902,15 @@ def input_validation():
 				raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
 			if global_vars.effect_size_choice == "no selection":
 				raise Exception("Please select what effect size, if any, you want.")
-			if global_vars.spss_indttest_nOne == -1 or global_vars.spss_indttest_nTwo == -1:
-				raise Exception("To run some of the statistics for the t-test you will need to tell us what your sample size is. Please enter your sample size.")
+			if (global_vars.spss_indttest_nOne == -1 or global_vars.spss_indttest_nTwo == -1) and global_vars.effect_size_choice != "None":
+				raise Exception("In order to add a {} effect size estimate, you will need provide your sample size.".format(global_vars.effect_size_choice))
 		elif global_vars.spss_test == "pairttest":
 			if global_vars.correction_type == "no selection":
 				raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
 			if global_vars.effect_size_choice == "no selection":
 				raise Exception("Please select what effect size, if any, you want.")
-			if global_vars.spss_pairttest_n == -1:
-				raise Exception("To run some of the statistics for the t-test you will need to tell us what your sample size is.")
+			if global_vars.spss_pairttest_n == -1 and global_vars.effect_size_choice != "None":
+				raise Exception("In order to add a {} effect size estimate, you will need provide your sample size.".format(global_vars.effect_size_choice))
 	elif global_vars.input_type == "pvalues":
 		if global_vars.correction_type == "no selection":
 			raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
@@ -933,6 +949,9 @@ def submit_window():
 	top = tk.Toplevel()
 	top.grab_set()
 	top.title("Thanks for using MAPAS!")
+	def exit(event):
+		top.destroy()
+	top.bind("<Escape>", exit)
 
 	some_message = '''Your file is ready and waiting for you.
 	
@@ -955,6 +974,9 @@ def about_mapas_window():
 	top = tk.Toplevel()
 	top.grab_set()
 	top.title("About MAPAS")
+	def exit(event):
+		top.destroy()
+	top.bind("<Escape>", exit)
 
 	some_message = '''This is MAPAS version: {v}.
 
@@ -1038,6 +1060,9 @@ def log_window(traceback):
 	top = tk.Toplevel()
 	top.grab_set()
 	top.title("Saving error details...")
+	def exit(event):
+		top.destroy()
+	top.bind("<Escape>", exit)
 
 	def save_log_file(traceback):
 		top.destroy()
@@ -1067,6 +1092,9 @@ def error_window(error_msg, traceback=None):
 	top = tk.Toplevel()
 	top.grab_set()
 	top.title("Oopsie! Something has gone astray!")
+	def exit(event):
+		top.destroy()
+	top.bind("<Escape>", exit)
 
 	message = '''Oh no! Something appears to have gone wrong!
 
