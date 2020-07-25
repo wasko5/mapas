@@ -158,8 +158,8 @@ def correlations_format_val(x, p=None):
 	return x
 
 def add_table_notes(ws, table_notes=[], adjusted_pvalues_threshold=None):
-	if global_vars.correction_type != "none":
-		#clunky expressions but it's a one-off
+	if global_vars.correction_type != "no selection":
+		#clunky expression but it's a one-off
 		table_notes.append("Multiple tests correction applied to p values: {c}".format(c=list(global_vars.master_dict.keys())[list(global_vars.master_dict.values()).index(global_vars.correction_type)]))
 	for note in table_notes:
 		ws.append([note])
