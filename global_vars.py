@@ -1,4 +1,5 @@
 from openpyxl.styles import Border, Side, Alignment, Font
+import os
 
 version = "1.0"
 apa_reference = "Petrov, N., Atanasov, V., & Thompson, T. (2020). ..."
@@ -134,3 +135,7 @@ font_title = Font(size=20, bold=True)
 font_header = Font(italic=True)
 font_bold = Font(bold=True)
 border_APA = Side(border_style="medium", color="000000")
+
+directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unit_testing")
+INPUT_DATAFRAMES_FOLDER = os.path.join(directory, "input dataframes")
+OUTPUT_DATAFRAMES_FOLDER = os.path.join(directory, "output dataframes")
