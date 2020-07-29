@@ -35,7 +35,6 @@ def get_raw_indttest_grouplevels(path_and_filename, group_var):
 	except:
 		raise Exception("There was a problem reading the columns from the file.")
 
-	
 	unique_groups = [x.strip() for x in df[group_var].astype(str).unique() if len(x.strip()) > 0]
 
 	return unique_groups

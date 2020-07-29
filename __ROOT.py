@@ -10,6 +10,9 @@ import sys
 import os
 import traceback
 
+
+
+
 def resource_path(relative_path):
      if hasattr(sys, '_MEIPASS'): 
          return os.path.join(sys._MEIPASS, relative_path) # pylint: disable=no-member
@@ -432,21 +435,25 @@ def select_file():
 	path_and_filename = askopenfilename(initialdir = resource_path(""), title="Select file (.xlsx or .csv)", filetypes=(("Excel files",".xlsx .csv"),("All files","*.*")))
 	
 	if path_and_filename.endswith(".xlsx") or path_and_filename.endswith(".csv"):
-		update_filename_label(filename = path_and_filename[path_and_filename.rfind("/")+1:], label = filename_label, char_limit=50)
-		if input_path_and_filename_tk.get() != global_vars.tk_vars_defaults["input_path_and_filename_tk"]:
-			columns_current_indices_dict.clear()
-			reset_all_lb()
-			set_variables_default()
-			input_type_frames_layout()
+		try:
+			df_cols = helper_funcs.get_df_columns(path_and_filename)
+			update_filename_label(filename = path_and_filename[path_and_filename.rfind("/")+1:], label = filename_label, char_limit=50)
+			if input_path_and_filename_tk.get() != global_vars.tk_vars_defaults["input_path_and_filename_tk"]:
+				columns_current_indices_dict.clear()
+				reset_all_lb()
+				set_variables_default()
+				input_type_frames_layout()
 
-		input_path_and_filename_tk.set(path_and_filename)
+			input_path_and_filename_tk.set(path_and_filename)
 
-		df_cols = helper_funcs.get_df_columns(path_and_filename)
-		col_names_lb.configure(state="normal")
-		col_names_lb.delete(0, tk.END)
-		col_names_lb.insert(tk.END, *df_cols)
-		for ind, col in enumerate(df_cols):
-			columns_current_indices_dict[col] = ind
+			df_cols = helper_funcs.get_df_columns(path_and_filename)
+			col_names_lb.configure(state="normal")
+			col_names_lb.delete(0, tk.END)
+			col_names_lb.insert(tk.END, *df_cols)
+			for ind, col in enumerate(df_cols):
+				columns_current_indices_dict[col] = ind
+		except Exception as error_msg:
+			messagebox.showerror("Oh-oh!", error_msg)
 
 	elif path_and_filename != "":
 		messagebox.showerror("Oh-oh!", "Please select a valid .xlsx or .csv file.")
@@ -530,11 +537,14 @@ raw_indttest_groupvar_drop.grid(row=0, column=0)
 #Raw data // test // Independent samples t-test // Grouping variable
 def get_values_for_raw_indttest_dropdowns(dropdown):
 	if input_path_and_filename_tk != "" and raw_indttest_groupvar_tk.get() != global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"] and raw_indttest_groupvar_tk.get() != global_vars.dropdown_unselected_file_msg:
-		dropdown.configure(values=helper_funcs.get_raw_indttest_grouplevels(input_path_and_filename_tk.get(), raw_indttest_groupvar_tk.get()))
+		try:
+			dropdown.configure(values=helper_funcs.get_raw_indttest_grouplevels(input_path_and_filename_tk.get(), raw_indttest_groupvar_tk.get()))
+		except Exception as error_msg:
+			messagebox.showerror("Oh-oh!", error_msg)
 
 def raw_indttest_dropdowns_validation(event):
 	if raw_indttest_grouplevel1_tk.get() == raw_indttest_grouplevel2_tk.get():
-		raise Exception("You can't select the same level for both groups.")
+		messagebox.showerror("Oh-oh!", "You can't select the same level for both groups. Please choose different levels of your grouping variable.")
 
 raw_indttest_grouplevels_drop1 = ttk.Combobox(raw_indttest_grouplevels_Frame, state="readonly", width=15, textvariable=raw_indttest_grouplevel1_tk)
 raw_indttest_grouplevels_drop1.configure(postcommand=lambda dropdown=raw_indttest_grouplevels_drop1: get_values_for_raw_indttest_dropdowns(dropdown))
@@ -861,6 +871,8 @@ def input_validation():
 				raise Exception("Please select how to handle non-numeric data.")
 			if global_vars.raw_indttest_groupvar == "" or global_vars.raw_indttest_grouplevel1 == "" or global_vars.raw_indttest_grouplevel2 == "":
 				raise Exception("Please select your grouping variables and the labels for the groups we are comparing.")
+			if global_vars.raw_indttest_grouplevel1 == global_vars.raw_indttest_grouplevel2:
+				raise Exception("You can't select the same level for both groups. Please choose different levels of your grouping variable.")
 			if global_vars.raw_indttest_dv == []:
 				raise Exception("Please select your dependent variables. You can do so by selected your variables from  the \"Your variables\" pane\nand move them across using the arrow button.")
 		elif global_vars.raw_test == "pairttest":
@@ -1154,9 +1166,13 @@ def submit():
 		clear_output_filename()
 		submit_window()
 	except Exception as error_msg:
-		
-		#error_window(error_msg, traceback.format_exc())
+		error_window(error_msg, traceback.format_exc())
 
 ttk.Button(master, text="Submit", command=submit).grid(row=3, column=2, rowspan=2, sticky="E", padx=(0,15), pady=5)
 
 master.mainloop()
+
+#potentially useful function to raise errors in GUI at runtime; currente way of handling runtime GUI errros is suboptimal but given that there is little need for better handling, it suffices
+#def report_callback_exception(self, exc, val, tb):
+	#messagebox.showerror("Error", message=str(val))
+#tk.Tk.report_callback_exception = report_callback_exception
