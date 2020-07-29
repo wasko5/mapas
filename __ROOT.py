@@ -30,6 +30,7 @@ previous_combobox_vals_dict = {}
 input_path_and_filename_tk = tk.StringVar()
 alpha_threshold_tk = tk.StringVar()
 output_filename_tk = tk.StringVar()
+output_filetype_tk = tk.StringVar()
 
 input_type_tk = tk.StringVar()
 
@@ -117,6 +118,7 @@ def set_variables_default():
 input_type_tk.set(global_vars.tk_vars_defaults["input_type_tk"])
 input_path_and_filename_tk.set(global_vars.tk_vars_defaults["input_path_and_filename_tk"])
 output_filename_tk.set(global_vars.tk_vars_defaults["output_filename_tk"])
+output_filetype_tk.set(global_vars.tk_vars_defaults["output_filetype_tk"])
 alpha_threshold_tk.set(global_vars.tk_vars_defaults["alpha_threshold_tk"])
 set_variables_default()
 
@@ -131,7 +133,7 @@ input_filename_Frame.grid(row=0, column=0, columnspan=2, sticky="NW", padx=15, p
 alpha_threshold_Frame = ttk.LabelFrame(master, text="Alpha criterion")
 alpha_threshold_Frame.grid(row=0, column=2, sticky="E", padx=(0,15), pady=5)
 
-output_filename_Frame = ttk.LabelFrame(master, text="Save output as...")
+output_filename_Frame = ttk.LabelFrame(master, text="Save output")
 output_filename_Frame.grid(row=3, column=0, columnspan=2, sticky="NW", padx=15, pady=5)
 
 input_type_Frame = ttk.LabelFrame(master, text="Select input type:")
@@ -427,9 +429,9 @@ def spss_test_frames_layout(event):
 #---------------------------------------------------------------GUI Content
 #Input file button & label
 def select_file():
-	path_and_filename = askopenfilename(initialdir = resource_path(""), title="Select input file. Must be Excel file.", filetypes=(("Excel files","*.xlsx"),("All files","*.*")))
+	path_and_filename = askopenfilename(initialdir = resource_path(""), title="Select file (.xlsx or .csv)", filetypes=(("Excel files",".xlsx .csv"),("All files","*.*")))
 	
-	if path_and_filename.endswith(".xlsx"): # or filename[ext_sep_idx:] == ".csv" - for later use when csv is integrated
+	if path_and_filename.endswith(".xlsx") or path_and_filename.endswith(".csv"):
 		update_filename_label(filename = path_and_filename[path_and_filename.rfind("/")+1:], label = filename_label, char_limit=50)
 		if input_path_and_filename_tk.get() != global_vars.tk_vars_defaults["input_path_and_filename_tk"]:
 			columns_current_indices_dict.clear()
@@ -447,9 +449,9 @@ def select_file():
 			columns_current_indices_dict[col] = ind
 
 	elif path_and_filename != "":
-		messagebox.showerror("Oh-oh!", "Please select a valid file - .xlsx files only.")
+		messagebox.showerror("Oh-oh!", "Please select a valid .xlsx or .csv file.")
 
-ttk.Button(input_filename_Frame, text="Select input file (.xlsx only)", command=select_file).grid(row=0, column=0, sticky="W", padx=(0, 10))
+ttk.Button(input_filename_Frame, text="Select file (.xlsx or .csv)", command=select_file).grid(row=0, column=0, sticky="W", padx=(0, 10))
 filename_label = ttk.Label(input_filename_Frame, text="No file selected.")
 filename_label.grid(row=0, column=1, columnspan=1, sticky="W")
 
@@ -730,15 +732,18 @@ non_numeric_errors_drop.grid(row=0, column=0)
 
 #Output file button & label
 def save_file():
-	filename = asksaveasfilename(initialdir = resource_path(""), title = "Save output file...", filetypes = (("Excel files","*.xlsx"),("All files","*.*")))
+	filename = asksaveasfilename(initialdir = resource_path(""), title = "Save output file...", filetypes = (("All files","*.*"), ("Excel files","*.xlsx"), ("Word files", "*.docx")))
 
 	if filename != "":
 		output_filename_tk.set(filename)
-		update_filename_label(filename=filename + ".xlsx", label=output_file_label, char_limit=70)
+		update_filename_label(filename=filename, label=output_file_label, char_limit=70)
 
-ttk.Button(output_filename_Frame, text="Save output file...", command=save_file).grid(row=0, column=0, sticky="NW", padx=(0, 10))
+ttk.Button(output_filename_Frame, text="Save output file...", command=save_file).grid(row=0, column=0, sticky="NW", padx=(0, 10), pady=(0, 5))
 output_file_label = ttk.Label(output_filename_Frame, text="Nothing selected yet.")
-output_file_label.grid(row=0, column=1, sticky="W")
+output_file_label.grid(row=0, column=1, sticky="W", pady=(0,5))
+ttk.Label(output_filename_Frame, text="Save APA table in:").grid(row=1, column=0, sticky="NW", padx=(0, 10))
+output_filetype_drop = ttk.Combobox(output_filename_Frame, values=("Excel",  "Word"), state="readonly", width=10, textvariable=output_filetype_tk)
+output_filetype_drop.grid(row=1, column=1, sticky="W")
 
 #----------------------------------------------------On Submit-related functions
 def set_global_variables():
@@ -748,6 +753,7 @@ def set_global_variables():
 	except:
 		raise Exception("Could not set an alpha of \'{}\'. Please enter a valid number. Example: 0.05 or 0.01".format(alpha_threshold_tk.get()))
 	global_vars.output_filename = output_filename_tk.get()
+	global_vars.output_filetype = output_filetype_tk.get()
 
 	global_vars.input_type = "" if input_type_tk.get() == global_vars.tk_vars_defaults["input_type_tk"] else input_type_tk.get()
 
@@ -811,6 +817,13 @@ def set_global_variables():
 	global_vars.pvalues_col = "" if pvalues_col_tk.get() == global_vars.tk_vars_defaults["pvalues_col_tk"] else pvalues_col_tk.get()
 
 	global_vars.effect_size_choice = "no selection" if effect_size_choice_tk.get() == global_vars.tk_vars_defaults["effect_size_choice_tk"] else effect_size_choice_tk.get()
+	if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"]:
+		global_vars.correction_type = "no selection"
+	elif global_vars.raw_test == "mr" or global_vars.spss_test == "mr":
+		global_vars.correction_type = "None"
+	else:
+		global_vars.correction_type = global_vars.master_dict[correction_type_tk.get()]
+
 	global_vars.correction_type = "no selection" if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"] else global_vars.master_dict[correction_type_tk.get()]
 
 	global_vars.non_numeric_input_raise_errors = "" if non_numeric_input_raise_errors_tk.get() == global_vars.tk_vars_defaults["non_numeric_input_raise_errors_tk"] else global_vars.master_dict[non_numeric_input_raise_errors_tk.get()]
@@ -890,6 +903,8 @@ def input_validation():
 		if global_vars.summ_indttest_nTwo == "" or global_vars.summ_indttest_nTwo == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Please select the column with your sample size for group 2.")
 	elif global_vars.input_type == "spss":
+		if not global_vars.input_path_and_filename.endswith(".xlsx"):
+			raise Exception("When SPSS table is provided, only .xlsx are allowed as input. Please click on the \"How to export an SPSS table?\" button or see the documentation at {}.".format(global_vars.software_page))
 		if global_vars.spss_test == "":
 			raise Exception("Please select what kind of SPSS table you are providing.")
 		elif global_vars.spss_test == "corr":
@@ -916,6 +931,8 @@ def input_validation():
 			raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
 		if global_vars.pvalues_col == "" or global_vars.pvalues_col == global_vars.dropdown_unselected_file_msg:
 			raise Exception("Please select the column with your pvalues.")
+		if global_vars.output_filetype == "Word":
+			raise Exception("You can only export to Word if the output is an APA table. For a list of p values, please export to Excel.")
 
 	if global_vars.effect_size_choice == "Glass's delta" and (global_vars.input_type == "summindttest" or global_vars.spss_test == "indttest" or global_vars.spss_test == "pairttest"):
 		raise Exception("Oops - sorry! Glass's delta is not available for this type of test. Glass's delta can only be requested if raw data are provided. For more information, see the documentation.")
@@ -1003,6 +1020,7 @@ def log_error(traceback=None):
 		"input_path_and_filename = \"{}\"".format(global_vars.input_path_and_filename),
 		"alpha_threshold = {}".format(global_vars.alpha_threshold),
 		"output_filename = \"{}\"".format(global_vars.output_filename),
+		"output_filetype = \"{}\"".format(global_vars.output_filetype),
 
 		"input_type = \"{}\"".format(global_vars.input_type),
 
@@ -1044,7 +1062,7 @@ def log_error(traceback=None):
 		"effect_size_choice = \"{}\"".format(global_vars.effect_size_choice),
 		"correction_type = \"{}\"".format(global_vars.correction_type),
 
-		"non_numeric_input_raise_errors = {}".format(global_vars.non_numeric_input_raise_errors),
+		"non_numeric_input_raise_errors = \"{}\"".format(global_vars.non_numeric_input_raise_errors),
 		"------------------------------Input File Dataframe-----------------------"]  
 	 
 	log_file.writelines("\n".join(L) + "\n") 
@@ -1067,7 +1085,7 @@ def log_window(traceback):
 	def save_log_file(traceback):
 		top.destroy()
 		log_error(traceback)
-		log_file_saved_msg = "The details of your error message have been saved!\n\nPlease send us this file at {c} and we will try to get to you as soon as possible.\n\nYour help is greatly appreciated!".format(e=global_vars.contact)
+		log_file_saved_msg = "The details of your error message have been saved!\n\nPlease send us this file at {c} and we will try to get to you as soon as possible.\n\nYour help is greatly appreciated!".format(c=global_vars.contact, e=global_vars.contact)
 		messagebox.showinfo(title = "File saved!", message=log_file_saved_msg)
 
 	message = '''You will now be able to download a text file that contains some debugging information. We would be grateful if you could send us this information so we can improve the software.
@@ -1136,8 +1154,9 @@ def submit():
 		clear_output_filename()
 		submit_window()
 	except Exception as error_msg:
-		error_window(error_msg, traceback.format_exc())
+		
+		#error_window(error_msg, traceback.format_exc())
 
-ttk.Button(master, text="Submit", command=submit).grid(row=3, column=2, sticky="E", padx=(0,15), pady=5)
+ttk.Button(master, text="Submit", command=submit).grid(row=3, column=2, rowspan=2, sticky="E", padx=(0,15), pady=5)
 
 master.mainloop()

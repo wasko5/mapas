@@ -1,16 +1,25 @@
+import global_vars
 import pandas as pd
 import numpy as np
 from scipy import stats
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
-import global_vars
+from docx import Document
+#from docx.oxml.table import CT_Row, CT_Tc
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.table import _Cell
+#from docx.shared import Cm
+#from docx.enum.text import WD_ALIGN_PARAGRAPH
+#from docx.enum.table import WD_ALIGN_VERTICAL
+from docx.shared import Pt
 
 #----------------------------------------------Helper functions for GUI
 def get_df_columns(path_and_filename):
 	try:
 		if path_and_filename.endswith(".xlsx"):
 			df_columns = list(pd.read_excel(path_and_filename, sheet_name=0).columns)
-		elif path_and_filename.endsiwth(".csv"):
+		elif path_and_filename.endswith(".csv"):
 			df_columns = list(pd.read_csv(path_and_filename).columns)
 
 		return df_columns
@@ -21,7 +30,7 @@ def get_raw_indttest_grouplevels(path_and_filename, group_var):
 	try:
 		if path_and_filename.endswith(".xlsx"):
 			df = pd.read_excel(path_and_filename, sheet_name=0)
-		elif path_and_filename.endsiwth(".csv"):
+		elif path_and_filename.endswith(".csv"):
 			df = pd.read_csv(path_and_filename)
 	except:
 		raise Exception("There was a problem reading the columns from the file.")
@@ -133,7 +142,7 @@ def calc_ttest_effect_size(effect_size_choice, t=None, n1=None, n2=None, m1=None
 
 	return effect_size
 
-#----------------------------------------------------Helper functions for saving data
+#----------------------------------------------------Helper functions for apa tables
 def pvalue_formatting(x):
 	if x<0.001:
 		return "<.001"
@@ -157,12 +166,105 @@ def correlations_format_val(x, p=None):
 			x = x + "*"
 	return x
 
-def add_table_notes(ws, table_notes=[], adjusted_pvalues_threshold=None):
-	if global_vars.correction_type != "no selection":
+def savefile(doc=None, wb=None):
+	try:
+		if doc != None:
+			doc.save(global_vars.output_filename + ".docx")
+		elif wb != None:
+			wb.save(filename=global_vars.output_filename + ".xlsx")
+	except PermissionError:
+		raise Exception("The file could not be saved. Please check if a file with the same name already exists in the target directory and close/delete it; then try running the software again.")
+
+#-------------Excel
+def add_table_notes(ws, table_notes=[]):
+	if global_vars.correction_type != "None":
 		#clunky expression but it's a one-off
 		table_notes.append("Multiple tests correction applied to p values: {c}".format(c=list(global_vars.master_dict.keys())[list(global_vars.master_dict.values()).index(global_vars.correction_type)]))
 	for note in table_notes:
 		ws.append([note])
 
+#-------------Word
+def add_correction_message_word(doc):
+	if global_vars.correction_type != "None":
+		#clunky expression but it's a one-off
+		doc.add_paragraph("Multiple tests correction applied to p values: {c}".format(c=list(global_vars.master_dict.keys())[list(global_vars.master_dict.values()).index(global_vars.correction_type)]))
 
+def word_style(cell, italic=False, bold=False, size=None):
+    for paragraph in cell.paragraphs:
+        for run in paragraph.runs:
+            if italic:
+                run.font.italic = True
+            if bold:
+                run.font.bold = True
+            if size != None:
+                run.font.size = Pt(size)
+                
+def set_autofit(doc: Document) -> Document:
+    #credits - https://github.com/python-openxml/python-docx/issues/209#issuecomment-566128709
+    """
+    Hotfix for autofit.
+    """
+    for t_idx, table in enumerate(doc.tables):
+        doc.tables[t_idx].autofit = True
+        doc.tables[t_idx].allow_autofit = True
+        doc.tables[t_idx]._tblPr.xpath("./w:tblW")[0].attrib["{http://schemas.openxmlformats.org/wordprocessingml/2006/main}type"] = "auto"
+        for row_idx, r_val in enumerate(doc.tables[t_idx].rows):
+            for cell_idx, c_val in enumerate(doc.tables[t_idx].rows[row_idx].cells):
+                doc.tables[t_idx].rows[row_idx].cells[cell_idx]._tc.tcPr.tcW.type = 'auto'
+                doc.tables[t_idx].rows[row_idx].cells[cell_idx]._tc.tcPr.tcW.w = 0
+    return doc
 
+def set_cell_border(cell: _Cell, **kwargs):
+    #credits - https://stackoverflow.com/a/49615968/13078832
+    """
+    Set cell`s border
+    Usage:
+
+    set_cell_border(
+        cell,
+        top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
+        bottom={"sz": 12, "color": "#00FF00", "val": "single"},
+        start={"sz": 24, "val": "dashed", "shadow": "true"},
+        end={"sz": 12, "val": "dashed"},
+    )
+    """
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+
+    # check for tag existnace, if none found, then create one
+    tcBorders = tcPr.first_child_found_in("w:tcBorders")
+    if tcBorders is None:
+        tcBorders = OxmlElement('w:tcBorders')
+        tcPr.append(tcBorders)
+
+    # list over all available tags
+    for edge in ('start', 'top', 'end', 'bottom', 'insideH', 'insideV'):
+        edge_data = kwargs.get(edge)
+        if edge_data:
+            tag = 'w:{}'.format(edge)
+
+            # check for tag existnace, if none found, then create one
+            element = tcBorders.find(qn(tag))
+            if element is None:
+                element = OxmlElement(tag)
+                tcBorders.append(element)
+
+            # looks like order of attributes is important
+            for key in ["sz", "val", "color", "space", "shadow"]:
+                if key in edge_data:
+                    element.set(qn('w:{}'.format(key)), str(edge_data[key]))
+
+def delete_columns_word(table, columns):
+		#does not work around merged cells
+		#credits - https://github.com/python-openxml/python-docx/issues/441#issuecomment-498716546
+		# sort columns descending
+		columns.sort(reverse=True)
+		
+		grid = table._tbl.find("w:tblGrid", table._tbl.nsmap)
+		for ci in columns:
+			for cell in table.column_cells(ci):
+				cell._tc.getparent().remove(cell._tc)
+
+			# Delete column reference.
+			col_elem = grid[ci]
+			grid.remove(col_elem)

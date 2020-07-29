@@ -1,3 +1,6 @@
+import global_vars
+import helper_funcs
+
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -5,8 +8,9 @@ from openpyxl import Workbook
 from openpyxl.styles import Border, Side, Alignment, Font
 from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
-import global_vars
-import helper_funcs
+from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_ALIGN_VERTICAL
 
 #-----------------------------------------------------------Modified raw data dataframe----------------------------------------------------
 def summ_inddtest_generate_mod_raw_data_df(raw_data_df, numeric_cols, non_numeric_cols=[]):
@@ -132,4 +136,76 @@ def summ_indttest_apa_table(mod_raw_data_df, output_df):
 
 	helper_funcs.add_table_notes(ws, [])
 
-	wb.save(filename=global_vars.output_filename + ".xlsx")
+	helper_funcs.savefile(wb=wb)
+
+def summ_indttest_apa_table_word(mod_raw_data_df, output_df):
+	output_df.drop(columns = ["pvalues"], inplace=True)
+
+	pd.options.mode.chained_assignment = None
+	output_df[list(output_df.columns)[1:-1]] = output_df[list(output_df.columns)[1:-1]].applymap(lambda x: "{:.2f}".format(x))
+
+	output_df["adjusted_pvalues"] = output_df["adjusted_pvalues"].map(helper_funcs.pvalue_formatting)
+	pd.options.mode.chained_assignment = "warn"
+
+	doc = Document()
+	table_rows_len = len(output_df) + 2
+	table_cols_len = len(output_df.columns)
+	table = doc.add_table(rows=table_rows_len, cols=table_cols_len)
+
+	table.cell(row_idx=0, col_idx=0).text = "Variable"
+	table.cell(row_idx=0, col_idx=0).merge(table.cell(row_idx=1, col_idx=0))
+	helper_funcs.word_style(table.cell(row_idx=0, col_idx=0), italic=True)
+
+	table.cell(row_idx=0, col_idx=1).text = "Group1, n={n}".format(n=mod_raw_data_df[global_vars.summ_indttest_nOne][0])
+	table.cell(row_idx=0, col_idx=1).merge(table.cell(row_idx=0, col_idx=2))
+
+	table.cell(row_idx=0, col_idx=3).text = "Group2, n={n}".format(n=mod_raw_data_df[global_vars.summ_indttest_nTwo][0])
+	table.cell(row_idx=0, col_idx=3).merge(table.cell(row_idx=0, col_idx=4))
+
+	table.cell(row_idx=0, col_idx=5).text = "df"
+	table.cell(row_idx=0, col_idx=5).merge(table.cell(row_idx=1, col_idx=5))
+	helper_funcs.word_style(table.cell(row_idx=0, col_idx=5), italic=True)
+
+	table.cell(row_idx=0, col_idx=6).text = "t"
+	table.cell(row_idx=0, col_idx=6).merge(table.cell(row_idx=1, col_idx=6))
+	helper_funcs.word_style(table.cell(row_idx=0, col_idx=6), italic=True)
+
+	table.cell(row_idx=0, col_idx=7).text = global_vars.effect_size_choice
+	if global_vars.effect_size_choice != "None": #otherwise cant remove with delete columns below if merged; see helper_funcs.delete_columns_word func notes
+		table.cell(row_idx=0, col_idx=7).merge(table.cell(row_idx=1, col_idx=7))
+	helper_funcs.word_style(table.cell(row_idx=0, col_idx=7), italic=True)
+	
+	table.cell(row_idx=0, col_idx=8).text = "p"
+	table.cell(row_idx=0, col_idx=8).merge(table.cell(row_idx=1, col_idx=8))
+	helper_funcs.word_style(table.cell(row_idx=0, col_idx=8), italic=True)
+
+	for col in range(1, 4, 2):
+		table.cell(row_idx=1, col_idx=col).text = "M"
+		helper_funcs.word_style(table.cell(row_idx=1, col_idx=col), italic=True)
+		table.cell(row_idx=1, col_idx=col+1).text = "SD"
+		helper_funcs.word_style(table.cell(row_idx=1, col_idx=col+1), italic=True)
+
+	for row in range(2, table_rows_len):
+		for col in range(0, table_cols_len):
+			table.cell(row_idx=row, col_idx=col).text = output_df.iloc[row-2, col]
+
+	for row in range(0, table_rows_len):
+		for cell in table.rows[row].cells:
+			cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+			cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+	for cell in table.rows[0].cells:
+		helper_funcs.set_cell_border(cell, top=global_vars.border_APA_word)
+	for cell in table.rows[2].cells:
+		helper_funcs.set_cell_border(cell, top=global_vars.border_APA_word)
+	for cell in table.rows[table_rows_len-1].cells:
+		helper_funcs.set_cell_border(cell, bottom=global_vars.border_APA_word)
+	
+	if global_vars.effect_size_choice == "None":
+		helper_funcs.delete_columns_word(table, [7])
+
+	doc = helper_funcs.set_autofit(doc)
+
+	helper_funcs.add_correction_message_word(doc)
+
+	helper_funcs.savefile(doc=doc)

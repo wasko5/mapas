@@ -38,6 +38,7 @@ tk_vars_defaults = {
 	"input_type_tk" : "0",
 	"input_path_and_filename_tk" : "",
 	"output_filename_tk" : "",
+	"output_filetype_tk" : "Excel",
 	"alpha_threshold_tk" : "0.05",
 
 	"raw_test_tk" : "Select a test...",
@@ -86,6 +87,7 @@ dropdown_unselected_file_msg = "Please select input file first..."
 input_path_and_filename = ""
 alpha_threshold = ""
 output_filename = ""
+output_filetype = ""
 
 input_type = ""
 
@@ -135,7 +137,9 @@ font_title = Font(size=20, bold=True)
 font_header = Font(italic=True)
 font_bold = Font(bold=True)
 border_APA = Side(border_style="medium", color="000000")
+border_APA_word = {"sz": 12, "color": "000000", "val": "single"}
 
 directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unit_testing")
 INPUT_DATAFRAMES_FOLDER = os.path.join(directory, "input dataframes")
 OUTPUT_DATAFRAMES_FOLDER = os.path.join(directory, "output dataframes")
+CSV_INPUT_DATAFRAMES_FOLDER = os.path.join(directory, "csv input dataframes")

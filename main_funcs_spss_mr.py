@@ -1,11 +1,15 @@
+import global_vars
+import helper_funcs
+
 import pandas as pd
 import numpy as np
 from openpyxl import Workbook
 from openpyxl.styles import Border, Side, Alignment, Font
 from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
-import global_vars
-import helper_funcs
+from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_ALIGN_VERTICAL
 
 #-----------------------------------------------------------Modified raw data dataframe----------------------------------------------------
 def spss_mr_generate_mod_raw_data_df(raw_data_df):
@@ -53,7 +57,7 @@ def spss_mr_generate_output_df(mod_raw_data_df):
 	output_df["95% CI"] = ["["+low+","+high+"]" for low,high in zip(ci_low_list, ci_high_list)]
 	output_df["beta"] = ['' if x=='nan' else x for x in beta_list] #the beta for the constant is missing from the spss output
 	output_df["t"] = ["{:.2f}".format(x) for x in list(mod_raw_data_df["t"])[:-1]]
-	output_df["p"] = [helper_funcs.pvalue_formatting(x) for x in list(mod_raw_data_df["Sig."])[:-1]] #can afford to format here as there will be no multitest corrections applied
+	output_df["pvalues"] = [helper_funcs.pvalue_formatting(x) for x in list(mod_raw_data_df["Sig."])[:-1]] #can afford to format here as there will be no multitest corrections applied
 	
 	return output_df
 
@@ -86,4 +90,43 @@ def spss_mr_apa_table(mod_raw_data_df, output_df):
 
 	helper_funcs.add_table_notes(ws, table_notes)
 
-	wb.save(filename=global_vars.output_filename + ".xlsx")
+	helper_funcs.savefile(wb=wb)
+
+def spss_mr_apa_table_word(mod_raw_data_df, output_df):
+	doc = Document()
+
+	table_rows_len = len(output_df) + 1
+	table_cols_len = len(output_df.columns)
+	table = doc.add_table(rows=table_rows_len, cols=table_cols_len)
+
+	for ind, var in enumerate(output_df.columns):
+		table.cell(row_idx=0, col_idx=ind).text = var
+
+	for row in range(1, table_rows_len):
+		for col in range(0, table_cols_len):
+			table.cell(row_idx=row, col_idx=col).text = output_df.iloc[row-1, col]
+
+	for cell in table.rows[0].cells:
+		helper_funcs.word_style(cell, italic=True)
+
+	for row in range(0, table_rows_len):
+		for cell in table.rows[row].cells:
+			cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+			cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+	for cell in table.rows[0].cells:
+		helper_funcs.set_cell_border(cell, top=global_vars.border_APA_word, bottom=global_vars.border_APA_word)
+	for cell in table.rows[table_rows_len-1].cells:
+		helper_funcs.set_cell_border(cell, bottom=global_vars.border_APA_word)
+
+	doc = helper_funcs.set_autofit(doc)
+
+	DV_cell = mod_raw_data_df[mod_raw_data_df.columns[0]][len(mod_raw_data_df[mod_raw_data_df.columns[0]])-1]
+	DV = DV_cell[DV_cell.find(":")+2:]
+	doc.add_paragraph("R squared adjusted = X.XX")
+	doc.add_paragraph("Dependent Variable: {}".format(DV))
+	if output_df["95% CI"][0] == "[,]":
+		doc.add_paragraph("Confidence intervals were not found in the SPSS table. Please add them to your SPSS table and re-run the program or add them manually.")
+	helper_funcs.add_correction_message_word(doc)
+
+	helper_funcs.savefile(doc=doc)
