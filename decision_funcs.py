@@ -107,6 +107,7 @@ def modify_raw_data_df(raw_data_df):
 		elif global_vars.spss_test == "pairttest":
 			mod_raw_data_df = main_funcs_spss_pairttest.spss_pairttest_generate_mod_raw_data_df(raw_data_df)
 	elif global_vars.input_type == "pvalues":
+		helper_funcs.error_on_input(df=raw_data_df, cols=[global_vars.pvalues_col], input_type="numeric")
 		mod_raw_data_df = main_funcs_pvalues.pvalues_generate_mod_raw_data_df(raw_data_df)
 
 	return mod_raw_data_df

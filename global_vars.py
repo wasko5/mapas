@@ -79,7 +79,7 @@ tk_vars_defaults = {
 	"correction_type_tk" : "Select correction...",
 
 	"raw_ttest_output_descriptives_tk" : "No",
-	"non_numeric_input_raise_errors_tk" : "Select error handling..."
+	"non_numeric_input_raise_errors_tk" : "Ignore pair-wise"
 }
 
 dropdown_unselected_file_msg = "Please select input file first..."

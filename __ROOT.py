@@ -323,6 +323,8 @@ def move_comboboboxvar_to_master(event):
 	update_columns_current_indices_dict()
 
 #-----------------------------------------------------Layout control
+#Note: the rowspan/colspan argument is crucial when gridding as if widget X is put on a grid with rowspan=2, then removed, then added back again without
+#resetting its rowspan argument, it will be set to the previous value it had (2)
 def remove_frames(frames_list):
 	for frame in frames_list:
 		frame.grid_remove()
@@ -376,7 +378,7 @@ def raw_test_frames_layout(event):
 
 	if global_vars.master_dict[raw_test_tk.get()] == "corr":
 		raw_corr_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=(5, 0))
-		correction_type_Frame.grid(row=2, column=0, sticky="NW", padx=0, pady=5)
+		correction_type_Frame.grid(row=2, column=0, rowspan=1, sticky="NW", padx=0, pady=5)
 		non_numeric_input_raise_errors_Frame.grid(row=3, column=0, sticky="NW", padx=0, pady=0)
 		col_names_Frame.grid(row=0, column=1, rowspan=4, sticky="NW", padx=15, pady=0)
 		raw_corr_vars_Frame.grid(row=0, column=2, rowspan=4, sticky="NW", padx=0, pady=0)
@@ -836,7 +838,7 @@ def set_global_variables():
 
 	global_vars.correction_type = "no selection" if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"] else global_vars.master_dict[correction_type_tk.get()]
 
-	global_vars.non_numeric_input_raise_errors = "" if non_numeric_input_raise_errors_tk.get() == global_vars.tk_vars_defaults["non_numeric_input_raise_errors_tk"] else global_vars.master_dict[non_numeric_input_raise_errors_tk.get()]
+	global_vars.non_numeric_input_raise_errors = global_vars.master_dict[non_numeric_input_raise_errors_tk.get()]
 
 def input_validation():
 	if global_vars.input_path_and_filename == "":
@@ -851,13 +853,9 @@ def input_validation():
 				raise Exception("Please select the kind of correlation (pearson, spearman, kendall) you want to perform.")
 			if global_vars.correction_type == "no selection":
 				raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
-			if global_vars.non_numeric_input_raise_errors == "":
-				raise Exception("Please select how to handle non-numeric data.")
 			if len(global_vars.raw_corr_vars) < 2:
 				raise Exception("Please select 2 or more variables to correlation. You can do so by selected your variables from  the \"Your variables\" pane\nand move them across using the arrow button.")
 		elif global_vars.raw_test == "mr":
-			if global_vars.non_numeric_input_raise_errors == "":
-				raise Exception("Please select how to handle non-numeric data.")
 			if global_vars.raw_mr_outcomevar == "" or global_vars.raw_mr_outcomevar == global_vars.dropdown_unselected_file_msg:
 				raise Exception("Please select your outcome (dependent) variable.")
 			if global_vars.raw_mr_predictors == ():
@@ -867,8 +865,6 @@ def input_validation():
 				raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
 			if global_vars.effect_size_choice == "no selection":
 				raise Exception("Please select what effect size, if any, you want.")
-			if global_vars.non_numeric_input_raise_errors == "":
-				raise Exception("Please select how to handle non-numeric data.")
 			if global_vars.raw_indttest_groupvar == "" or global_vars.raw_indttest_grouplevel1 == "" or global_vars.raw_indttest_grouplevel2 == "":
 				raise Exception("Please select your grouping variables and the labels for the groups we are comparing.")
 			if global_vars.raw_indttest_grouplevel1 == global_vars.raw_indttest_grouplevel2:
@@ -880,8 +876,6 @@ def input_validation():
 				raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
 			if global_vars.effect_size_choice == "no selection":
 				raise Exception("Please select what effect size, if any, you want.")
-			if global_vars.non_numeric_input_raise_errors == "":
-				raise Exception("Please select how to handle non-numeric data.")
 			if global_vars.raw_pairttest_var_pairs == ():
 				raise Exception("Please add your pairs to the box using the dropdown menus and the buttons.")
 	elif global_vars.input_type == "summ_corr":

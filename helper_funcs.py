@@ -87,9 +87,13 @@ def error_on_input(df, cols, input_type):
 	
 	bad_vals_dict = {k: v for k, v in bad_vals_dict.items() if len(v) > 0} #dictionary reset to contain only lists of missing data as values, if none function ends
 	if bad_vals_dict != {}:
-		error_msg = "Non-numerical or blank entries found in the data!\n"
+		error_msg = "Non-numerical or blank entries found in the data!\n\n"
+		#print(bad_vals_dict)
 		for col, ind_arr in bad_vals_dict.items():
-			error_msg += "In column {c}, there are non-numerical/blank entries on the following rows: {i}\n".format(c=col, i=(", ").join([str(x+2) for x in ind_arr]))
+			ind_str = (", ").join([str(val+2) for counter, val in enumerate(ind_arr) if counter < 10])
+			if len(ind_arr) > 10:
+				ind_str += "... and {} more".format(len(ind_arr)-10)
+			error_msg += "In column \"{c}\", there are non-numerical/blank entries on the following rows: {i}\n".format(c=col, i=ind_str)
 		raise Exception(error_msg)
 
 #------------------------------------------------Helper functions for generating output dataframes

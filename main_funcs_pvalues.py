@@ -7,8 +7,6 @@ import helper_funcs
 
 #-----------------------------------------------------------Modified raw data dataframe----------------------------------------------------
 def pvalues_generate_mod_raw_data_df(raw_data_df):
-	helper_funcs.error_on_input(df=raw_data_df, cols=[global_vars.pvalues_col], input_type="numeric")
-
 	mod_raw_data_df = raw_data_df.copy()
 
 	return mod_raw_data_df
