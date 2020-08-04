@@ -1025,7 +1025,7 @@ def submit_window():
 		open_new("file://" + directory)
 
 	ttk.Button(top, text="Open file location", command=openfilelocation).grid(row=1, column=0, padx=(15, 0), pady=5)
-	ttk.Button(top, text="I want to do more analysis", command=top.destroy).grid(row=1, column=1, padx=15, pady=5)
+	ttk.Button(top, text="I want to do more", command=top.destroy).grid(row=1, column=1, padx=15, pady=5)
 	ttk.Button(top, text="Close the app", command=master.destroy).grid(row=1,column=2, padx=(0, 15), pady=5)
 
 	center(top)
