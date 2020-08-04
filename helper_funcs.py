@@ -262,16 +262,16 @@ def set_cell_border(cell: _Cell, **kwargs):
                     element.set(qn('w:{}'.format(key)), str(edge_data[key]))
 
 def delete_columns_word(table, columns):
-		#does not work around merged cells
-		#credits - https://github.com/python-openxml/python-docx/issues/441#issuecomment-498716546
-		# sort columns descending
-		columns.sort(reverse=True)
-		
-		grid = table._tbl.find("w:tblGrid", table._tbl.nsmap)
-		for ci in columns:
-			for cell in table.column_cells(ci):
-				cell._tc.getparent().remove(cell._tc)
+	#does not work around merged cells
+	#credits - https://github.com/python-openxml/python-docx/issues/441#issuecomment-498716546
+	# sort columns descending
+	columns.sort(reverse=True)
+	
+	grid = table._tbl.find("w:tblGrid", table._tbl.nsmap)
+	for ci in columns:
+		for cell in table.column_cells(ci):
+			cell._tc.getparent().remove(cell._tc)
 
-			# Delete column reference.
-			col_elem = grid[ci]
-			grid.remove(col_elem)
+		# Delete column reference.
+		col_elem = grid[ci]
+		grid.remove(col_elem)

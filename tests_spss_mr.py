@@ -18,6 +18,8 @@ def spss_mr_tests_minimalStats():
 	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "spss_mr_tests_minimalStats.xlsx"), dtype = object)
 	#forcing the interpreted nan value to be empty as in the actual_df
 	expected_df_r.iloc[0, 3] = actual_df.iloc[0, 3]
+	# forcing pvalues as float as this was a later change; pvlaues are later updated in the multitest correction function and formatted in the tables functions
+	expected_df_r["pvalues"] = expected_df_r["pvalues"].astype(float)
 
 	#assert
 	pd.testing.assert_frame_equal(actual_df, expected_df_r, check_less_precise=3)
@@ -37,6 +39,8 @@ def spss_mr_tests_allStats():
 	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "spss_mr_tests_allStats.xlsx"), dtype = object)
 	#forcing the interpreted nan value to be empty as in the actual_df
 	expected_df_r.iloc[0, 3] = actual_df.iloc[0, 3]
+	# forcing pvalues as float as this was a later change; pvlaues are later updated in the multitest correction function and formatted in the tables functions
+	expected_df_r["pvalues"] = expected_df_r["pvalues"].astype(float)
 	
 	#assert
 	pd.testing.assert_frame_equal(actual_df, expected_df_r, check_less_precise=3)

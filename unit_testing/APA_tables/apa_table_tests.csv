@@ -12,7 +12,7 @@ raw_correlations_tests.csv,0.05,a,Word,raw,corr,spearman,"['var1', 'var2', 'var3
 raw_correlations_tests.csv,0.05,a,Excel,raw,corr,spearman,"['var1', 'var2', 'var3', 'var4', 'var5', 'var6', 'var7', 'var8']",FALSE,,[],,,,[],[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Both,raw_corr_Both_noCIs,11
 raw_correlations_tests.csv,0.05,a,Word,raw,corr,spearman,"['var1', 'var2', 'var3', 'var4', 'var5', 'var6', 'var7', 'var8']",FALSE,,[],,,,[],[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Both,raw_corr_Both_noCIs,12
 raw_mr_tests.csv,0.05,a,Excel,raw,mr,,[],TRUE,var2,"['var1', 'var3']",,,,[],[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,None,FALSE,Lower triangle,raw_mr,13
-raw_mr_tests.csv,0.05,a,Word,raw,mr,,[],TRUE,var2,"['var1', 'var3']",,,,[],[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,None,TRUE,Lower triangle,raw_mr,14
+raw_mr_tests.csv,0.05,a,Word,raw,mr,,[],TRUE,var2,"['var1', 'var3']",,,,[],[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,TRUE,Lower triangle,raw_mr,14
 raw_indttest_tests.csv,0.05,a,Excel,raw,indttest,,[],TRUE,,[],Group,Group1,Group2,"['var1', 'var2', 'var3']",[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,Cohen's d,fdr_bh,FALSE,Lower triangle,raw_indttest_withES_withMTC,15
 raw_indttest_tests.csv,0.05,a,Word,raw,indttest,,[],TRUE,,[],Group,Group1,Group2,"['var1', 'var2', 'var3']",[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,Hedge's g,fdr_bh,TRUE,Lower triangle,raw_indttest_withES_withMTC,16
 raw_indttest_tests.csv,0.05,a,Excel,raw,indttest,,[],TRUE,,[],Group,Group2,Group1,"['var1', 'var2', 'var3']",[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,None,fdr_bh,TRUE,Lower triangle,raw_indttest_noES_withMTC,17
@@ -55,10 +55,10 @@ spss_correlations_tests_kendal.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,
 spss_correlations_tests_kendal.xlsx,0.05,a,Word,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,corr,-1,-1,Group1,Group2,-1,,no selection,None,FALSE,Lower triangle,spss_corr_kendal_Lower triangle,54
 spss_correlations_tests_kendal.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,corr,-1,-1,Group1,Group2,-1,,no selection,None,FALSE,Both,spss_corr_kendal_Both,55
 spss_correlations_tests_kendal.xlsx,0.05,a,Word,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,corr,-1,-1,Group1,Group2,-1,,no selection,None,FALSE,Both,spss_corr_kendal_Both,56
-spss_mr_tests_allStats.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,mr,-1,-1,Group1,Group2,-1,,no selection,None,FALSE,Lower triangle,spss_mr_allstats,57
+spss_mr_tests_allStats.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,mr,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle,spss_mr_allstats,57
 spss_mr_tests_allStats.xlsx,0.05,a,Word,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,mr,-1,-1,Group1,Group2,-1,,no selection,None,FALSE,Lower triangle,spss_mr_allstats,58
 spss_mr_tests_minimalStats.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,mr,-1,-1,Group1,Group2,-1,,no selection,None,FALSE,Lower triangle,spss_mr_minimalstats,59
-spss_mr_tests_minimalStats.xlsx,0.05,a,Word,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,mr,-1,-1,Group1,Group2,-1,,no selection,None,FALSE,Lower triangle,spss_mr_minimalstats,60
+spss_mr_tests_minimalStats.xlsx,0.05,a,Word,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,mr,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle,spss_mr_minimalstats,60
 spss_indttest_tests.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,indttest,35,45,Group1,Group2,-1,,Hedge's g,fdr_bh,FALSE,Lower triangle,spss_indttest_withES_noGroupLabels,61
 spss_indttest_tests.xlsx,0.05,a,Word,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,indttest,35,45,MyG1,MyG2,-1,,Hedge's g,fdr_bh,FALSE,Lower triangle,spss_indttest_withES_withGroupLabels,62
 spss_indttest_tests.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,indttest,-1,-1,Group1,Group2,-1,,None,fdr_bh,FALSE,Lower triangle,spss_indttest_noES_noGroupLabels,63

@@ -13,9 +13,6 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_ALIGN_VERTICAL
 
-
-
-
 #-----------------------------------------------------------Output dataframe----------------------------------------------------
 def raw_mr_generate_output_df(mod_raw_data_df):	
 	formula = global_vars.raw_mr_outcomevar + "~"
@@ -38,9 +35,6 @@ def raw_mr_generate_output_df(mod_raw_data_df):
 	for index, row in result_z.conf_int().iterrows():
 		CI_beta_list.append(list(row))
 
-	# Suprpressing SettingWithCopyWarning pandas warning
-	# pd.options.mode.chained_assignment = None
-
 	output_dict = {}
 	output_dict["Variable"] = ["(Constant)"] + global_vars.raw_mr_predictors
 	output_dict["B"] = list(result.params)
@@ -60,14 +54,14 @@ def raw_mr_generate_output_df(mod_raw_data_df):
 
 #-----------------------------------------------------------Saving data----------------------------------------------------
 def raw_mr_apa_table_excel(mod_raw_data_df, output_df):
-	mod_output_df = output_df[["Variable","B","95% CI B","beta","t","pvalues"]]
+	mod_output_df = output_df[["Variable","B","95% CI B","beta","t","adjusted_pvalues"]]
 
 	pd.options.mode.chained_assignment = None
 	mod_output_df[["B", "beta", "t"]] = mod_output_df[["B", "beta", "t"]].applymap(lambda x: "{:.2f}".format(x))
 
-	mod_output_df["pvalues"] = mod_output_df["pvalues"].map(helper_funcs.pvalue_formatting)
+	mod_output_df["adjusted_pvalues"] = mod_output_df["adjusted_pvalues"].map(helper_funcs.pvalue_formatting)
 
-	mod_output_df.rename(columns = {"95% CI B": "95% CI", "pvalues": "p"}, inplace=True)
+	mod_output_df.rename(columns = {"95% CI B": "95% CI", "adjusted_pvalues": "p"}, inplace=True)
 	mod_output_df.loc[0, "beta"] = "" #removes the beta value for constant as it is always 0
 
 	wb = Workbook()
@@ -96,14 +90,14 @@ def raw_mr_apa_table_excel(mod_raw_data_df, output_df):
 	helper_funcs.savefile(wb=wb)
 
 def raw_mr_apa_table_word(mod_raw_data_df, output_df):
-	mod_output_df = output_df[["Variable","B","95% CI B","beta","t","pvalues"]]
+	mod_output_df = output_df[["Variable","B","95% CI B","beta","t","adjusted_pvalues"]]
 
 	pd.options.mode.chained_assignment = None
-
 	mod_output_df[["B", "beta", "t"]] = mod_output_df[["B", "beta", "t"]].applymap(lambda x: "{:.2f}".format(x))
-	mod_output_df["pvalues"] = mod_output_df["pvalues"].map(helper_funcs.pvalue_formatting)
 
-	mod_output_df.rename(columns = {"95% CI B": "95% CI", "pvalues": "p"}, inplace=True)
+	mod_output_df["adjusted_pvalues"] = mod_output_df["adjusted_pvalues"].map(helper_funcs.pvalue_formatting)
+
+	mod_output_df.rename(columns = {"95% CI B": "95% CI", "adjusted_pvalues": "p"}, inplace=True)
 	mod_output_df.loc[0, "beta"] = "" #removes the beta value for constant as it is always 0
 
 	doc = Document()

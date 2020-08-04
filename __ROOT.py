@@ -387,6 +387,7 @@ def raw_test_frames_layout(event):
 	raw_test_clear_vars()
 	reset_all_lb()
 	remove_frames(frames_list)
+	test_specifications_master_Frame.grid_rowconfigure(index=2, weight=0)
 
 	if global_vars.master_dict[raw_test_tk.get()] == "corr":
 		raw_corr_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=(5, 0))
@@ -396,10 +397,12 @@ def raw_test_frames_layout(event):
 		col_names_Frame.grid(row=0, column=1, rowspan=5, sticky="NW", padx=15, pady=0)
 		raw_corr_vars_Frame.grid(row=0, column=2, rowspan=5, sticky="NW", padx=0, pady=0)
 	elif global_vars.master_dict[raw_test_tk.get()] == "mr":
-		non_numeric_input_raise_errors_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=5)
-		col_names_Frame.grid(row=0, column=1, rowspan=2, sticky="NW", padx=15, pady=0)
+		test_specifications_master_Frame.grid_rowconfigure(index=2, weight=1)
+		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=5)
+		non_numeric_input_raise_errors_Frame.grid(row=2, column=0, sticky="NW", padx=0, pady=(0, 5))
+		col_names_Frame.grid(row=0, column=1, rowspan=3, sticky="NW", padx=15, pady=0)
 		raw_mr_outcomevar_Frame.grid(row=0, column=2, sticky="NW", padx=(0, 15), pady=0)
-		raw_mr_predictors_Frame.grid(row=1, column=2, sticky="NW", padx=(0, 15), pady=(5, 0))
+		raw_mr_predictors_Frame.grid(row=1, column=2, rowspan=2, sticky="NW", padx=(0, 15), pady=(5, 0))
 	elif global_vars.master_dict[raw_test_tk.get()] == "indttest":
 		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=5)
 		effect_size_Frame.grid(row=2, column=0, sticky="NW", padx=0, pady=0)
@@ -436,7 +439,7 @@ def spss_test_frames_layout(event):
 		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=5)
 		spss_corr_table_style_Frame.grid(row=2, column=0, rowspan=1, sticky="NW", padx=0, pady=0)
 	elif global_vars.master_dict[spss_test_tk.get()] == "mr":
-		pass #i.e. nothing needs to be done
+		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=5)
 	elif global_vars.master_dict[spss_test_tk.get()] == "indttest":
 		correction_type_Frame.grid(row=1, column=0, rowspan=4, sticky="NW", padx=0, pady=5)
 		effect_size_Frame.grid(row=5, column=0, sticky="NW", padx=0, pady=0)
@@ -860,19 +863,7 @@ def set_global_variables():
 	global_vars.pvalues_col = "" if pvalues_col_tk.get() == global_vars.tk_vars_defaults["pvalues_col_tk"] else pvalues_col_tk.get()
 
 	global_vars.effect_size_choice = "no selection" if effect_size_choice_tk.get() == global_vars.tk_vars_defaults["effect_size_choice_tk"] else effect_size_choice_tk.get()
-	if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"]:
-		global_vars.correction_type = "no selection"
-	elif global_vars.raw_test == "mr" or global_vars.spss_test == "mr":
-		global_vars.correction_type = "None"
-	else:
-		global_vars.correction_type = global_vars.master_dict[correction_type_tk.get()]
-
-	if global_vars.raw_test == "mr" or global_vars.spss_test == "mr":
-		global_vars.correction_type = "None"
-	elif correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"]:
-		global_vars.correction_type = "no selection"
-	else:
-		global_vars.correction_type = global_vars.master_dict[correction_type_tk.get()]
+	global_vars.correction_type = "no selection" if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"] else global_vars.master_dict[correction_type_tk.get()]
 
 	global_vars.non_numeric_input_raise_errors = global_vars.master_dict[non_numeric_input_raise_errors_tk.get()]
 
@@ -898,6 +889,8 @@ def input_validation():
 				raise Exception("Please select your outcome (dependent) variable.")
 			if global_vars.raw_mr_predictors == ():
 				raise Exception("Please select your at least 1 predictor (independent) variable. You can do so by selected your variables from  the \"Your variables\" pane\nand move them across using the arrow button.")
+			if global_vars.correction_type == "no selection":
+				raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
 		elif global_vars.raw_test == "indttest":
 			if global_vars.correction_type == "no selection":
 				raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
@@ -955,7 +948,8 @@ def input_validation():
 			if global_vars.correction_type == "no selection":
 				raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
 		elif global_vars.spss_test == "mr":
-			pass
+			if global_vars.correction_type == "no selection":
+				raise Exception("Please select what kind of correction, if any, you want to apply to the data.")
 		elif global_vars.spss_test == "indttest":
 			if global_vars.correction_type == "no selection":
 				raise Exception("Please select what kind of correction, if any, you want to apply to the data.")

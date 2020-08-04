@@ -57,12 +57,18 @@ def spss_mr_generate_output_df(mod_raw_data_df):
 	output_df["95% CI"] = ["["+low+", "+high+"]" for low,high in zip(ci_low_list, ci_high_list)]
 	output_df["beta"] = ['' if x=='nan' else x for x in beta_list] #the beta for the constant is missing from the spss output
 	output_df["t"] = ["{:.2f}".format(x) for x in list(mod_raw_data_df["t"])[:-1]]
-	output_df["pvalues"] = [helper_funcs.pvalue_formatting(x) for x in list(mod_raw_data_df["Sig."])[:-1]] #can afford to format here as there will be no multitest corrections applied
-	
+	output_df["pvalues"] = list(mod_raw_data_df["Sig."])[:-1] #there's a trailing np.nan at the end of the list
+
+
 	return output_df
 
 #-----------------------------------------------------------Saving data----------------------------------------------------
 def spss_mr_apa_table_excel(mod_raw_data_df, output_df):
+	output_df.drop(columns=["pvalues"], inplace=True)
+	pd.options.mode.chained_assignment = None
+	output_df["adjusted_pvalues"] = output_df["adjusted_pvalues"].map(helper_funcs.pvalue_formatting)
+	output_df.rename(columns = {"adjusted_pvalues": "p"}, inplace=True)
+
 	wb = Workbook()
 	ws = wb.active
 
@@ -93,6 +99,11 @@ def spss_mr_apa_table_excel(mod_raw_data_df, output_df):
 	helper_funcs.savefile(wb=wb)
 
 def spss_mr_apa_table_word(mod_raw_data_df, output_df):
+	output_df.drop(columns=["pvalues"], inplace=True)
+	pd.options.mode.chained_assignment = None
+	output_df["adjusted_pvalues"] = output_df["adjusted_pvalues"].map(helper_funcs.pvalue_formatting)
+	output_df.rename(columns = {"adjusted_pvalues": "p"}, inplace=True)
+
 	doc = Document()
 
 	table_rows_len = len(output_df) + 1

@@ -152,13 +152,13 @@ def multitest_correction(output_df):
 		#see https://github.com/statsmodels/statsmodels/issues/2899
 		raise Exception("The pvalues column contains blank cells. Please make sure that all data in the pvalues column is filled.")
 	
-	if global_vars.spss_test != "mr" and global_vars.raw_test != "mr":
-		if global_vars.correction_type != "None":
-			adjusted_pvalues = multitest.multipletests(output_df[pvalues_col_label], alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[1]
-		else:
-			adjusted_pvalues = output_df[pvalues_col_label]
-		
-		output_df["adjusted_pvalues"] = adjusted_pvalues
+	# if global_vars.spss_test != "mr" and global_vars.raw_test != "mr":
+	if global_vars.correction_type != "None":
+		adjusted_pvalues = multitest.multipletests(output_df[pvalues_col_label], alpha=global_vars.alpha_threshold, method=global_vars.correction_type, is_sorted=False, returnsorted=False)[1]
+	else:
+		adjusted_pvalues = output_df[pvalues_col_label]
+	
+	output_df["adjusted_pvalues"] = adjusted_pvalues
 
 	return output_df
 
