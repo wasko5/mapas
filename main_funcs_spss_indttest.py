@@ -66,7 +66,7 @@ def spss_indttest_generate_output_df(mod_raw_data_df):
 	return output_df
 
 #-----------------------------------------------------------Saving data----------------------------------------------------
-def spss_indttest_apa_table(mod_raw_data_df, output_df):
+def spss_indttest_apa_table_excel(mod_raw_data_df, output_df):
 	output_df.drop(columns=["pvalues"], inplace=True)
 
 	pd.options.mode.chained_assignment = None

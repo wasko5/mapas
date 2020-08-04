@@ -14,12 +14,12 @@ def raw_indttest_tests_cohensd():
 	global_vars.effect_size_choice = "Cohen's d"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_cohensd.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_cohensd.xlsx"))
 	#next line is forcing one of the expected values to be the same as actual - they are the same but there is a problem with check_less_precise argument
 	#see - https://github.com/pandas-dev/pandas/issues/25068
 	expected_df_r.loc[1, "pvalues"] = actual_df.loc[1, "pvalues"]
@@ -38,12 +38,12 @@ def raw_indttest_tests_hedgesg():
 	global_vars.effect_size_choice = "Hedge's g"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_hedgesg.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_hedgesg.xlsx"))
 	#next line is forcing one of the expected values to be the same as actual - they are the same but there is a problem with check_less_precise argument
 	#see - https://github.com/pandas-dev/pandas/issues/25068
 	expected_df_r.loc[1, "pvalues"] = actual_df.loc[1, "pvalues"]
@@ -63,12 +63,12 @@ def raw_indttest_tests_glassdelta():
 	global_vars.effect_size_choice = "Glass's delta"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_glassdelta.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_glassdelta.xlsx"))
 	#next line is forcing one of the expected values to be the same as actual - they are the same but there is a problem with check_less_precise argument
 	#see - https://github.com/pandas-dev/pandas/issues/25068
 	expected_df_r.loc[1, "pvalues"] = actual_df.loc[1, "pvalues"]
@@ -87,12 +87,12 @@ def raw_indttest_tests_noEffectSize():
 	global_vars.effect_size_choice = "None"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_noEffectSize.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_noEffectSize.xlsx"))
 	#next line is forcing one of the expected values to be the same as actual - they are the same but there is a problem with check_less_precise argument
 	#see - https://github.com/pandas-dev/pandas/issues/25068
 	expected_df_r.loc[1, "pvalues"] = actual_df.loc[1, "pvalues"]
@@ -111,12 +111,12 @@ def raw_indttest_tests_withMissingData():
 	global_vars.effect_size_choice = "Cohen's d"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_withMissingData.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_withMissingData.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 	
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_withMissingData.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_withMissingData.xlsx"))
 	#next line is forcing one of the expected values to be the same as actual - they are the same but there is a problem with check_less_precise argument
 	#see - https://github.com/pandas-dev/pandas/issues/25068
 	expected_df_r.loc[1, "pvalues"] = actual_df.loc[1, "pvalues"]
@@ -136,12 +136,12 @@ def raw_indttest_tests_withNumbersForGroups():
 	global_vars.effect_size_choice = "Cohen's d"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_withNumbersForGroups.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_withNumbersForGroups.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 	
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_withNumbersForGroups.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_indttest_tests_withNumbersForGroups.xlsx"))
 	#next line is forcing one of the expected values to be the same as actual - they are the same but there is a problem with check_less_precise argument
 	#see - https://github.com/pandas-dev/pandas/issues/25068
 	expected_df_r.loc[1, "pvalues"] = actual_df.loc[1, "pvalues"]

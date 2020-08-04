@@ -16,7 +16,6 @@ from statsmodels.stats import multitest
 import global_vars
 import helper_funcs
 
-
 def get_raw_data_df(debug=False):
 	#debug=True saves only required cols based on test for the log file
 	if debug:
@@ -167,54 +166,64 @@ def save_output(mod_raw_data_df, output_df):
 	if global_vars.input_type == "raw":
 		if global_vars.raw_test =="corr":
 			if global_vars.output_filetype == "Excel":
-				main_funcs_raw_correlations.raw_corr_apa_table(mod_raw_data_df, output_df)
+				if global_vars.raw_corr_include_CI:
+					main_funcs_raw_correlations.raw_corr_apa_table_withCIs_excel(mod_raw_data_df, output_df)
+				else:
+					main_funcs_raw_correlations.raw_corr_apa_table_noCIs_excel(mod_raw_data_df, output_df)
 			elif global_vars.output_filetype == "Word":
-				main_funcs_raw_correlations.raw_corr_apa_table_word(mod_raw_data_df, output_df)
+				if global_vars.raw_corr_include_CI:
+					main_funcs_raw_correlations.raw_corr_apa_table_withCIs_word(mod_raw_data_df, output_df)
+				else:
+					main_funcs_raw_correlations.raw_corr_apa_table_noCIs_word(mod_raw_data_df, output_df)
 		elif global_vars.raw_test == "mr":
 			if global_vars.output_filetype == "Excel":
-				main_funcs_raw_mr.raw_mr_apa_table(mod_raw_data_df, output_df)
+				main_funcs_raw_mr.raw_mr_apa_table_excel(mod_raw_data_df, output_df)
 			elif global_vars.output_filetype == "Word":
 				main_funcs_raw_mr.raw_mr_apa_table_word(mod_raw_data_df, output_df)
 		elif global_vars.raw_test == "indttest":
 			if global_vars.output_filetype == "Excel":
-				main_funcs_raw_indttest.raw_indttest_apa_table(mod_raw_data_df, output_df)
+				main_funcs_raw_indttest.raw_indttest_apa_table_excel(mod_raw_data_df, output_df)
 			elif global_vars.output_filetype == "Word":
 				main_funcs_raw_indttest.raw_indttest_apa_table_word(mod_raw_data_df, output_df)
 		elif global_vars.raw_test == "pairttest":
 			if global_vars.output_filetype == "Excel":
-				main_funcs_raw_pairttest.raw_pairttest_apa_table(mod_raw_data_df, output_df)
+				main_funcs_raw_pairttest.raw_pairttest_apa_table_excel(mod_raw_data_df, output_df)
 			elif global_vars.output_filetype == "Word":
 				main_funcs_raw_pairttest.raw_pairttest_apa_table_word(mod_raw_data_df, output_df)
+	
 	elif global_vars.input_type == "summ_corr":
 		if global_vars.output_filetype == "Excel":
-			main_funcs_summ_correlations.summ_corr_apa_table(mod_raw_data_df, output_df)
+			main_funcs_summ_correlations.summ_corr_apa_table_excel(mod_raw_data_df, output_df)
 		elif global_vars.output_filetype == "Word":
 			main_funcs_summ_correlations.summ_corr_apa_table_word(mod_raw_data_df, output_df)
+	
 	elif global_vars.input_type == "summ_indttest":
 		if global_vars.output_filetype == "Excel":
-			main_funcs_summ_indttest.summ_indttest_apa_table(mod_raw_data_df, output_df)
+			main_funcs_summ_indttest.summ_indttest_apa_table_excel(mod_raw_data_df, output_df)
 		elif global_vars.output_filetype == "Word":
 			main_funcs_summ_indttest.summ_indttest_apa_table_word(mod_raw_data_df, output_df)
+	
 	elif global_vars.input_type == "spss":
 		if global_vars.spss_test == "corr":
 			if global_vars.output_filetype == "Excel":
-				main_funcs_spss_correlations.spss_corr_apa_table(mod_raw_data_df, output_df)
+				main_funcs_spss_correlations.spss_corr_apa_table_excel(mod_raw_data_df, output_df)
 			elif global_vars.output_filetype == "Word":
 				main_funcs_spss_correlations.spss_corr_apa_table_word(mod_raw_data_df, output_df)
 		elif global_vars.spss_test == "mr":
 			if global_vars.output_filetype == "Excel":
-				main_funcs_spss_mr.spss_mr_apa_table(mod_raw_data_df, output_df)
+				main_funcs_spss_mr.spss_mr_apa_table_excel(mod_raw_data_df, output_df)
 			elif global_vars.output_filetype == "Word":
 				main_funcs_spss_mr.spss_mr_apa_table_word(mod_raw_data_df, output_df)
 		elif global_vars.spss_test == "indttest":
 			if global_vars.output_filetype == "Excel":
-				main_funcs_spss_indttest.spss_indttest_apa_table(mod_raw_data_df, output_df)
+				main_funcs_spss_indttest.spss_indttest_apa_table_excel(mod_raw_data_df, output_df)
 			elif global_vars.output_filetype == "Word":
 				main_funcs_spss_indttest.spss_indttest_apa_table_word(mod_raw_data_df, output_df)
 		elif global_vars.spss_test == "pairttest":
 			if global_vars.output_filetype == "Excel":
-				main_funcs_spss_pairttest.spss_pairttest_apa_table(mod_raw_data_df, output_df)
+				main_funcs_spss_pairttest.spss_pairttest_apa_table_excel(mod_raw_data_df, output_df)
 			elif global_vars.output_filetype == "Word":
 				main_funcs_spss_pairttest.spss_pairttest_apa_table_word(mod_raw_data_df, output_df)
+	
 	elif global_vars.input_type == "pvalues":
 		main_funcs_pvalues.pvalues_table(mod_raw_data_df, output_df)

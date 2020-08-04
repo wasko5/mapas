@@ -10,9 +10,6 @@ import sys
 import os
 import traceback
 
-
-
-
 def resource_path(relative_path):
      if hasattr(sys, '_MEIPASS'): 
          return os.path.join(sys._MEIPASS, relative_path) # pylint: disable=no-member
@@ -41,6 +38,7 @@ raw_test_tk = tk.StringVar()
 
 raw_corr_type_tk = tk.StringVar()
 raw_corr_vars_tk = tk.StringVar()
+raw_corr_include_CI_tk = tk.IntVar() #checkbutton; set to 1 for UI but comes out as True/False
 raw_mr_outcomevar_tk = tk.StringVar()
 raw_indttest_groupvar_tk = tk.StringVar()
 raw_indttest_grouplevel1_tk = tk.StringVar()
@@ -76,11 +74,14 @@ correction_type_tk = tk.StringVar()
 
 non_numeric_input_raise_errors_tk = tk.StringVar()
 
+corr_table_triangle_tk = tk.StringVar()
+
 #resets variables to default but does not include input variables or alpha as it is used in functions below
 def set_variables_default():
 	raw_test_tk.set(global_vars.tk_vars_defaults["raw_test_tk"])
 
 	raw_corr_type_tk.set(global_vars.tk_vars_defaults["raw_corr_type_tk"])
+	raw_corr_include_CI_tk.set(global_vars.tk_vars_defaults["raw_corr_include_CI_tk"])
 	raw_mr_outcomevar_tk.set(global_vars.tk_vars_defaults["raw_mr_outcomevar_tk"])
 	raw_indttest_groupvar_tk.set(global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"])
 	raw_indttest_grouplevel1_tk.set(global_vars.tk_vars_defaults["raw_indttest_grouplevel1_tk"])
@@ -117,6 +118,8 @@ def set_variables_default():
 
 	non_numeric_input_raise_errors_tk.set(global_vars.tk_vars_defaults["non_numeric_input_raise_errors_tk"])
 
+	corr_table_triangle_tk.set(global_vars.tk_vars_defaults["corr_table_triangle_tk"])
+
 #set all variables to default at start
 input_type_tk.set(global_vars.tk_vars_defaults["input_type_tk"])
 input_path_and_filename_tk.set(global_vars.tk_vars_defaults["input_path_and_filename_tk"])
@@ -137,7 +140,7 @@ alpha_threshold_Frame = ttk.LabelFrame(master, text="Alpha criterion")
 alpha_threshold_Frame.grid(row=0, column=2, sticky="E", padx=(0,15), pady=5)
 
 output_filename_Frame = ttk.LabelFrame(master, text="Save output")
-output_filename_Frame.grid(row=3, column=0, columnspan=2, sticky="NW", padx=15, pady=5)
+output_filename_Frame.grid(row=3, column=0, columnspan=2, rowspan=3, sticky="NW", padx=15, pady=5)
 
 input_type_Frame = ttk.LabelFrame(master, text="Select input type:")
 input_type_Frame.grid(row=1, column=0, columnspan=3, sticky="NW", padx=15, pady=5)
@@ -149,6 +152,7 @@ raw_test_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Statisti
 
 raw_corr_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Correlation type")
 raw_corr_vars_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Variables to correlate")
+raw_corr_table_style_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="APA table styling")
 
 raw_mr_outcomevar_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Outcome variable")
 raw_mr_predictors_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Predictors")
@@ -163,6 +167,7 @@ raw_pairttest_pairs_Frame.grid(row=0, column=0, pady=(0, 10))
 raw_pairttest_btn_list_Frame = tk.Frame(raw_pairttest_master_Frame)
 raw_pairttest_btn_list_Frame.grid(row=1, column=0)
 
+summ_corr_table_style_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="APA table styling")
 summ_corr_master_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Map columns")
 summ_corr_varOne_Frame = ttk.LabelFrame(summ_corr_master_Frame, text="Variable 1 column")
 summ_corr_varOne_Frame.grid(row=0, column=0, padx=(0, 5))
@@ -193,6 +198,7 @@ summ_indttest_nTwo_Frame.grid(row=3, column=1, pady=(5,0))
 
 spss_get_table_info_Frame = tk.Frame(master)
 spss_test_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Statistical test")
+spss_corr_table_style_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="APA table styling")
 spss_indttest_sampleSize_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Sample size")
 spss_indttest_groupLabels_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Group labels (optional)")
 spss_pairttest_sampleSize_Frame = ttk.LabelFrame(test_specifications_master_Frame, text="Sample size")
@@ -315,7 +321,8 @@ def move_comboboboxvar_to_master(event):
 	if combobox_prev_val != "" and combobox_prev_val != global_vars.dropdown_unselected_file_msg:
 		move_back_to_master([combobox_prev_val])
 
-	if combobox_id == ".!frame.!labelframe9.!frame.!combobox" or combobox_id == ".!frame.!labelframe9.!frame.!combobox2": #ids for the 2 pairttest dropdowns
+	if combobox_id == ".!frame.!labelframe10.!frame.!combobox" or combobox_id == ".!frame.!labelframe10.!frame.!combobox2": 
+		#ids for the 2 pairttest dropdowns - note that the numbers change if new comoboxes are added
 		pairttest_remove_added_vars_from_master()
 
 	previous_combobox_vals_dict[combobox_id] = combobox_current_val
@@ -331,9 +338,9 @@ def remove_frames(frames_list):
 
 def input_type_frames_layout():
 	#the only frames it does not include are master or input_type
-	frames_list = [raw_test_Frame, raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame,
-					raw_indttest_grouplevels_Frame, raw_indttest_dv_Frame, raw_pairttest_master_Frame, summ_corr_master_Frame, summ_indttest_master_Frame,
-					spss_get_table_info_Frame, spss_test_Frame, spss_indttest_sampleSize_Frame, spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame,
+	frames_list = [raw_test_Frame, raw_corr_Frame, raw_corr_vars_Frame, raw_corr_table_style_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame,
+					raw_indttest_grouplevels_Frame, raw_indttest_dv_Frame, raw_pairttest_master_Frame, summ_corr_table_style_Frame, summ_corr_master_Frame, summ_indttest_master_Frame,
+					spss_get_table_info_Frame, spss_test_Frame, spss_corr_table_style_Frame, spss_indttest_sampleSize_Frame, spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame,
 					pvalues_col_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame, non_numeric_input_raise_errors_Frame]
 
 	
@@ -345,8 +352,10 @@ def input_type_frames_layout():
 	if input_type_tk.get() == "raw":
 		raw_test_Frame.grid(row=0, column=0, sticky="NW")
 	elif input_type_tk.get() == "summ_corr":
+		test_specifications_master_Frame.grid_rowconfigure(index=1, weight=1)
 		correction_type_Frame.grid(row=0, column=0, rowspan=1, sticky="NW", padx=0, pady=0)
-		summ_corr_master_Frame.grid(row=0, column=1, columnspan=2, sticky="NW", padx=(15, 0), pady=0)
+		summ_corr_table_style_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=(5, 0))
+		summ_corr_master_Frame.grid(row=0, column=1, rowspan=2, columnspan=2, sticky="NW", padx=(15, 0), pady=0)
 	elif input_type_tk.get() == "summ_indttest":
 		test_specifications_master_Frame.grid_rowconfigure(index=1, weight=1)
 		correction_type_Frame.grid(row=0, column=0, rowspan=1, sticky="NW", padx=(0, 15), pady=0)
@@ -361,6 +370,8 @@ def input_type_frames_layout():
 
 def raw_test_clear_vars():
 	raw_corr_type_tk.set(global_vars.tk_vars_defaults["raw_corr_type_tk"])
+	corr_table_triangle_tk.set(global_vars.tk_vars_defaults["corr_table_triangle_tk"])
+	raw_corr_include_CI_tk.set(global_vars.tk_vars_defaults["raw_corr_include_CI_tk"])
 	raw_mr_outcomevar_tk.set(global_vars.tk_vars_defaults["raw_mr_outcomevar_tk"])
 	raw_indttest_groupvar_tk.set(global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"])
 	raw_pairttest_var1_tk.set(global_vars.tk_vars_defaults["raw_pairttest_var1_tk"])
@@ -369,8 +380,9 @@ def raw_test_clear_vars():
 	non_numeric_input_raise_errors_tk.set(global_vars.tk_vars_defaults["non_numeric_input_raise_errors_tk"])
 
 def raw_test_frames_layout(event):
-	frames_list = [raw_corr_Frame, raw_corr_vars_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, raw_indttest_grouplevels_Frame,
-					raw_indttest_dv_Frame, raw_pairttest_master_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame, non_numeric_input_raise_errors_Frame]
+	frames_list = [raw_corr_Frame, raw_corr_vars_Frame, raw_corr_table_style_Frame, raw_mr_outcomevar_Frame, raw_mr_predictors_Frame, raw_indttest_groupvar_Frame, 
+					raw_indttest_grouplevels_Frame, raw_indttest_dv_Frame, raw_pairttest_master_Frame, col_names_Frame, effect_size_Frame, correction_type_Frame, 
+					non_numeric_input_raise_errors_Frame]
 
 	raw_test_clear_vars()
 	reset_all_lb()
@@ -379,9 +391,10 @@ def raw_test_frames_layout(event):
 	if global_vars.master_dict[raw_test_tk.get()] == "corr":
 		raw_corr_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=(5, 0))
 		correction_type_Frame.grid(row=2, column=0, rowspan=1, sticky="NW", padx=0, pady=5)
-		non_numeric_input_raise_errors_Frame.grid(row=3, column=0, sticky="NW", padx=0, pady=0)
-		col_names_Frame.grid(row=0, column=1, rowspan=4, sticky="NW", padx=15, pady=0)
-		raw_corr_vars_Frame.grid(row=0, column=2, rowspan=4, sticky="NW", padx=0, pady=0)
+		non_numeric_input_raise_errors_Frame.grid(row=3, column=0, sticky="NW", padx=0, pady=(0, 5))
+		raw_corr_table_style_Frame.grid(row=4, column=0, rowspan=1, columnspan=3, sticky="NW", padx=0, pady=0)
+		col_names_Frame.grid(row=0, column=1, rowspan=5, sticky="NW", padx=15, pady=0)
+		raw_corr_vars_Frame.grid(row=0, column=2, rowspan=5, sticky="NW", padx=0, pady=0)
 	elif global_vars.master_dict[raw_test_tk.get()] == "mr":
 		non_numeric_input_raise_errors_Frame.grid(row=1, column=0, sticky="NW", padx=0, pady=5)
 		col_names_Frame.grid(row=0, column=1, rowspan=2, sticky="NW", padx=15, pady=0)
@@ -410,15 +423,18 @@ def spss_test_clear_vars():
 
 	correction_type_tk.set(global_vars.tk_vars_defaults["correction_type_tk"])
 	effect_size_choice_tk.set(global_vars.tk_vars_defaults["effect_size_choice_tk"])
+	corr_table_triangle_tk.set(global_vars.tk_vars_defaults["corr_table_triangle_tk"])
 
 def spss_test_frames_layout(event):
-	frames_list = [spss_indttest_sampleSize_Frame, spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame, effect_size_Frame, correction_type_Frame]
+	frames_list = [spss_corr_table_style_Frame, spss_indttest_sampleSize_Frame, spss_indttest_groupLabels_Frame, spss_pairttest_sampleSize_Frame, effect_size_Frame,
+					correction_type_Frame]
 
 	spss_test_clear_vars()
 	remove_frames(frames_list)
 
 	if global_vars.master_dict[spss_test_tk.get()] == "corr":
-		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=(5, 0))
+		correction_type_Frame.grid(row=1, column=0, rowspan=1, sticky="NW", padx=0, pady=5)
+		spss_corr_table_style_Frame.grid(row=2, column=0, rowspan=1, sticky="NW", padx=0, pady=0)
 	elif global_vars.master_dict[spss_test_tk.get()] == "mr":
 		pass #i.e. nothing needs to be done
 	elif global_vars.master_dict[spss_test_tk.get()] == "indttest":
@@ -432,6 +448,8 @@ def spss_test_frames_layout(event):
 		spss_pairttest_sampleSize_Frame.grid(row=0, column=1, rowspan=3, sticky="NW", padx=0, pady=0)
 
 #---------------------------------------------------------------GUI Content
+corr_table_triangle_options = ("Upper triangle", "Lower triangle", "Both")
+
 #Input file button & label
 def select_file():
 	path_and_filename = askopenfilename(initialdir = resource_path(""), title="Select file (.xlsx or .csv)", filetypes=(("Excel files",".xlsx .csv"),("All files","*.*")))
@@ -442,6 +460,7 @@ def select_file():
 			update_filename_label(filename = path_and_filename[path_and_filename.rfind("/")+1:], label = filename_label, char_limit=50)
 			if input_path_and_filename_tk.get() != global_vars.tk_vars_defaults["input_path_and_filename_tk"]:
 				columns_current_indices_dict.clear()
+				previous_combobox_vals_dict.clear()
 				reset_all_lb()
 				set_variables_default()
 				input_type_frames_layout()
@@ -511,6 +530,11 @@ raw_corr_vars_add_btn.grid(row=0, column=0, sticky="EWNS", padx=(5, 5), pady=(5,
 raw_corr_vars_remove_btn = ttk.Button(raw_corr_vars_Frame, text="X", command=lambda listbox=raw_corr_vars_lb: move_lbvars_to_master(listbox))
 raw_corr_vars_remove_btn.grid(row=1, column=0, sticky="EWNS", padx=(5, 5), pady=(5, 5))
 
+#Raw data // test // Correlations // Apa table styles
+ttk.Label(raw_corr_table_style_Frame, text="Place values in...").grid(row=0, column=0, sticky="NW")
+ttk.Combobox(raw_corr_table_style_Frame, values=corr_table_triangle_options, state="readonly", width=15, textvariable=corr_table_triangle_tk).grid(row=0, column=1, sticky="NW", padx=5)
+ttk.Checkbutton(raw_corr_table_style_Frame, text="Include 95% Confidence Intervals", variable=raw_corr_include_CI_tk).grid(row=0, column=2, sticky="NW", padx=(30, 0))
+
 #Raw data // test // Multiple Regression // Outcome variable
 raw_mr_outcomevar_drop = ttk.Combobox(raw_mr_outcomevar_Frame, state="readonly", width=30, textvariable=raw_mr_outcomevar_tk)
 raw_mr_outcomevar_drop.configure(postcommand=lambda dropdown=raw_mr_outcomevar_drop: get_values_for_dropdown(dropdown))
@@ -534,7 +558,6 @@ raw_indttest_groupvar_drop = ttk.Combobox(raw_indttest_groupvar_Frame, state="re
 raw_indttest_groupvar_drop.configure(postcommand=lambda dropdown=raw_indttest_groupvar_drop: get_values_for_dropdown(dropdown))
 raw_indttest_groupvar_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
 raw_indttest_groupvar_drop.grid(row=0, column=0)
-
 
 #Raw data // test // Independent samples t-test // Grouping variable
 def get_values_for_raw_indttest_dropdowns(dropdown):
@@ -607,6 +630,9 @@ raw_pairttest_remove_btn = ttk.Button(raw_pairttest_btn_list_Frame, text="Remove
 raw_pairttest_remove_btn.grid(row=0, column=1, sticky="EWNS")
 
 #Summary statistics - Correlations
+ttk.Label(summ_corr_table_style_Frame, text="Place values in... ").grid(row=0, column=0, sticky="NWES")
+ttk.Combobox(summ_corr_table_style_Frame, values=corr_table_triangle_options, state="readonly", width=15, textvariable=corr_table_triangle_tk).grid(row=0, column=1, sticky="NWES")
+
 summ_corr_varOne_drop = ttk.Combobox(summ_corr_varOne_Frame, state="readonly", width=30, textvariable=summ_corr_varOne_tk)
 summ_corr_varOne_drop.configure(postcommand=lambda dropdown=summ_corr_varOne_drop: get_values_for_dropdown(dropdown))
 summ_corr_varOne_drop.bind("<<ComboboxSelected>>", move_comboboboxvar_to_master)
@@ -701,6 +727,10 @@ spss_test_drop = ttk.Combobox(spss_test_Frame, values=spss_test_options, state="
 spss_test_drop.bind("<<ComboboxSelected>>", spss_test_frames_layout)
 spss_test_drop.grid(row=0, column=0)
 
+#SPSS // test // Correlations
+ttk.Label(spss_corr_table_style_Frame, text="Place values in... ").grid(row=0, column=0, sticky="NWES")
+ttk.Combobox(spss_corr_table_style_Frame, values=corr_table_triangle_options, state="readonly", width=15, textvariable=corr_table_triangle_tk).grid(row=0, column=1, sticky="NWES")
+
 #SPSS // test // Independent samples t-test // Sample Size
 ttk.Label(spss_indttest_sampleSize_Frame, text="Used for calculating effect size (if selected)").grid(row=0, column=0, columnspan=2, sticky="NWES", padx=5, pady=(0,5))
 ttk.Label(spss_indttest_sampleSize_Frame, text="Sample size of Group 1:").grid(row=1, column=0, sticky="NWES", padx=(0,5), pady=(0,5))
@@ -773,6 +803,7 @@ def set_global_variables():
 
 	global_vars.raw_corr_type =  "" if raw_corr_type_tk.get() == global_vars.tk_vars_defaults["raw_corr_type_tk"] else global_vars.master_dict[raw_corr_type_tk.get()]
 	global_vars.raw_corr_vars = list(raw_corr_vars_lb.get(0, tk.END))
+	global_vars.raw_corr_include_CI = True if raw_corr_include_CI_tk.get() == 1 else False #onvalue and offvalue arguemtns didnt work correctly; most likely due to the var being defined as IntVar()
 	global_vars.raw_mr_outcomevar = "" if raw_mr_outcomevar_tk.get() == global_vars.tk_vars_defaults["raw_mr_outcomevar_tk"] else raw_mr_outcomevar_tk.get()
 	global_vars.raw_mr_predictors = list(raw_mr_predictors_lb.get(0, tk.END))
 	global_vars.raw_indttest_groupvar = "" if raw_indttest_groupvar_tk.get() == global_vars.tk_vars_defaults["raw_indttest_groupvar_tk"] else raw_indttest_groupvar_tk.get()
@@ -836,9 +867,16 @@ def set_global_variables():
 	else:
 		global_vars.correction_type = global_vars.master_dict[correction_type_tk.get()]
 
-	global_vars.correction_type = "no selection" if correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"] else global_vars.master_dict[correction_type_tk.get()]
+	if global_vars.raw_test == "mr" or global_vars.spss_test == "mr":
+		global_vars.correction_type = "None"
+	elif correction_type_tk.get() == global_vars.tk_vars_defaults["correction_type_tk"]:
+		global_vars.correction_type = "no selection"
+	else:
+		global_vars.correction_type = global_vars.master_dict[correction_type_tk.get()]
 
 	global_vars.non_numeric_input_raise_errors = global_vars.master_dict[non_numeric_input_raise_errors_tk.get()]
+
+	global_vars.corr_table_triangle = corr_table_triangle_tk.get()
 
 def input_validation():
 	if global_vars.input_path_and_filename == "":
@@ -1034,6 +1072,7 @@ def log_error(traceback=None):
 
 		"raw_corr_type = \"{}\"".format(global_vars.raw_corr_type),
 		"raw_corr_vars = {}".format(global_vars.raw_corr_vars),
+		"raw_corr_include_CI = {}".format(global_vars.raw_corr_include_CI),
 		"raw_mr_outcomevar = \"{}\"".format(global_vars.raw_mr_outcomevar),
 		"raw_mr_predictors = {}".format(global_vars.raw_mr_predictors),
 		"raw_indttest_groupvar = \"{}\"".format(global_vars.raw_indttest_groupvar),
@@ -1068,7 +1107,9 @@ def log_error(traceback=None):
 		"effect_size_choice = \"{}\"".format(global_vars.effect_size_choice),
 		"correction_type = \"{}\"".format(global_vars.correction_type),
 
-		"non_numeric_input_raise_errors = \"{}\"".format(global_vars.non_numeric_input_raise_errors),
+		"non_numeric_input_raise_errors = {}".format(global_vars.non_numeric_input_raise_errors),
+
+		"corr_table_triangle = \"{}\"".format(global_vars.corr_table_triangle),
 		"------------------------------Input File Dataframe-----------------------"]  
 	 
 	log_file.writelines("\n".join(L) + "\n") 
@@ -1131,7 +1172,7 @@ def error_window(error_msg, traceback=None):
 
 	center(top)
 
-#---------------------------------------------------------Menu
+#----------------------------------------------------------------------------------Menu
 menubar = tk.Menu(master)
 master.config(menu=menubar)
 
@@ -1143,15 +1184,30 @@ about = tk.Menu(menubar, tearoff=0)
 about.add_command(label="About MAPAS", command=about_mapas_window)
 menubar.add_cascade(label="Help", menu=about)
 
-#------------------------
+#--------------------------------------------------------------------------------------------------------------
+master.grid_rowconfigure(index=3, weight=1)
+pb = ttk.Progressbar(master, orient = tk.HORIZONTAL, length = 100, mode = 'determinate', maximum=100, value=1)
 def run_main():
+	pb.grid(row=5, column=2, rowspan=1, sticky="ES", padx=(0, 15), pady=(0, 5))
+	master.update()
+	def increment_progressbar(pb):
+		pb.step(20)
+		master.update_idletasks()
+	
 	raw_data_df = decision_funcs.get_raw_data_df()
+	increment_progressbar(pb)
 	mod_raw_data_df = decision_funcs.modify_raw_data_df(raw_data_df)
+	increment_progressbar(pb)
 	output_df = decision_funcs.generate_output_df(mod_raw_data_df)
+	increment_progressbar(pb)
 	output_df = decision_funcs.multitest_correction(output_df)
+	increment_progressbar(pb)
 	decision_funcs.save_output(mod_raw_data_df, output_df)
+	increment_progressbar(pb)
+	pb.grid_remove()
 
-#------------------------------------------------------------------------------------Submit
+#----------------------------------------------------------------------------------------------------------Submit
+
 def submit():
 	try:
 		set_global_variables()
@@ -1162,11 +1218,6 @@ def submit():
 	except Exception as error_msg:
 		error_window(error_msg, traceback.format_exc())
 
-ttk.Button(master, text="Submit", command=submit).grid(row=3, column=2, rowspan=2, sticky="E", padx=(0,15), pady=5)
+ttk.Button(master, text="Submit", command=submit).grid(row=3, column=2, rowspan=2, sticky="ES", padx=(0, 15), pady=(5, 5))
 
 master.mainloop()
-
-#potentially useful function to raise errors in GUI at runtime; currente way of handling runtime GUI errros is suboptimal but given that there is little need for better handling, it suffices
-#def report_callback_exception(self, exc, val, tb):
-	#messagebox.showerror("Error", message=str(val))
-#tk.Tk.report_callback_exception = report_callback_exception

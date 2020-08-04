@@ -74,7 +74,7 @@ def summ_indttest_generate_output_df(mod_raw_data_df):
 	return output_df
 
 #-----------------------------------------------------------Saving data----------------------------------------------------
-def summ_indttest_apa_table(mod_raw_data_df, output_df):
+def summ_indttest_apa_table_excel(mod_raw_data_df, output_df):
 
 	output_df.drop(columns = ["pvalues"], inplace=True)
 

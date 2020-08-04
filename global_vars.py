@@ -44,6 +44,7 @@ tk_vars_defaults = {
 	"raw_test_tk" : "Select a test...",
 
 	"raw_corr_type_tk" : "Select a correlation...",
+	"raw_corr_include_CI_tk" : 1, #checkbutton; set to 1 for UI but comes out as True/False
 	"raw_mr_outcomevar_tk" : "Select outcome variable...",
 	"raw_indttest_groupvar_tk" : "Select grouping variable...",
 	"raw_indttest_grouplevel1_tk" : "Select Group 1",
@@ -78,8 +79,9 @@ tk_vars_defaults = {
 	"effect_size_choice_tk" : "Select effect size...",
 	"correction_type_tk" : "Select correction...",
 
-	"raw_ttest_output_descriptives_tk" : "No",
-	"non_numeric_input_raise_errors_tk" : "Ignore pair-wise"
+	"non_numeric_input_raise_errors_tk" : "Ignore pair-wise",
+
+	"corr_table_triangle_tk" : "Lower triangle"
 }
 
 dropdown_unselected_file_msg = "Please select input file first..."
@@ -95,6 +97,7 @@ raw_test = ""
 
 raw_corr_type = ""
 raw_corr_vars = ""
+raw_corr_include_CI = None
 raw_mr_outcomevar = ""
 raw_mr_predictors = ""
 raw_indttest_groupvar = ""
@@ -129,7 +132,9 @@ pvalues_col = ""
 effect_size_choice = ""
 correction_type = ""
 
-non_numeric_input_raise_errors = ""
+non_numeric_input_raise_errors = None
+
+corr_table_triangle = ""
 
 alignment_top = Alignment(horizontal="center", vertical="top")
 alignment_center = Alignment(horizontal="center", vertical="center")
@@ -139,7 +144,7 @@ font_bold = Font(bold=True)
 border_APA = Side(border_style="medium", color="000000")
 border_APA_word = {"sz": 12, "color": "000000", "val": "single"}
 
-directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unit_testing")
-INPUT_DATAFRAMES_FOLDER = os.path.join(directory, "input dataframes")
-OUTPUT_DATAFRAMES_FOLDER = os.path.join(directory, "output dataframes")
-CSV_INPUT_DATAFRAMES_FOLDER = os.path.join(directory, "csv input dataframes")
+unit_tests_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unit_testing")
+TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER = os.path.join(unit_tests_directory, "main_funcs", "input dataframes")
+TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER = os.path.join(unit_tests_directory, "main_funcs", "output dataframes")
+TESTS_CSV_DATAFRAMES_FOLDER = os.path.join(unit_tests_directory, "csv")

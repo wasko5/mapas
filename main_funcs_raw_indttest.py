@@ -51,7 +51,7 @@ def raw_indttest_generate_output_df(mod_raw_data_df):
 
 #-----------------------------------------------------------4. Saving data----------------------------------------------------
 #4.2.  Main function for saving data
-def raw_indttest_apa_table(mod_raw_data_df, output_df):
+def raw_indttest_apa_table_excel(mod_raw_data_df, output_df):
 
 	apa_table_df = output_df[["Variable","All_Mean","All_SD", global_vars.raw_indttest_grouplevel1+"_Mean", global_vars.raw_indttest_grouplevel1+"_SD", global_vars.raw_indttest_grouplevel2+"_Mean", 
 							global_vars.raw_indttest_grouplevel2+"_SD", "Degrees_of_Freedom", "t", global_vars.effect_size_choice, "adjusted_pvalues"]]

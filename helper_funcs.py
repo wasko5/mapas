@@ -153,20 +153,24 @@ def pvalue_formatting(x):
 		return "{:.3f}".format(x).replace("0", "", 1)
 
 def correlations_format_val(x, p=None):
-	try:
-		if isinstance(x, str): #covers the case when the correlations come from SPSS input and are flagged significant
-			x = "{:.2f}".format(float("".join([char for char in x if char!="*"]))).replace("0","",1)
-		elif abs(x) == 1.0:
-			x = "{:.2f}".format(val)
-		else:
-			x = "{:.2f}".format(x).replace("0","",1)
-	except:
-		raise Exception("Something went wrong with formatting the correlation coefficients. Please try again.")
+	if isinstance(x, str): #covers the case when the correlations come from SPSS input and are flagged significant
+		try:
+			#x = "{:.2f}".format(float("".join([char for char in x if char!="*"]))).replace("0","",1)
+			x = float("".join([char for char in x if char!="*"]))
+		except:
+			raise Exception("Something went wrong with formatting the correlation coefficients. Please try again.")
+		
+	if abs(x) == 1.0:
+		x = "{:.2f}".format(val)
+	else:
+		x = "{:.2f}".format(x).replace("0","",1)
+	
 	if p != None:
+		#adding "_" for Word so I can split in the function and add the **s in a different col
 		if p < 0.001:
-			x = x + "**"
+			x = x + "_**" if global_vars.output_filetype == "Word" else x + "**"
 		elif p < 0.05:
-			x = x + "*"
+			x = x + "_*" if global_vars.output_filetype == "Word" else x + "*"
 	return x
 
 def savefile(doc=None, wb=None):

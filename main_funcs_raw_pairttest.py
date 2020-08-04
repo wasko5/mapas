@@ -46,8 +46,7 @@ def raw_pairttest_generate_output_df(mod_raw_data_df):
 
 	return output_df
 		
-def raw_pairttest_apa_table(mod_raw_data_df, output_df):
-
+def raw_pairttest_apa_table_excel(mod_raw_data_df, output_df):
 	output_df.drop(columns = ["pvalues"], inplace=True)
 	apa_table_df = output_df[["Variable", "Time1_Mean", "Time1_SD", "Time2_Mean", "Time2_SD", "Degrees of Freedom", "t", global_vars.effect_size_choice, "adjusted_pvalues"]]
 

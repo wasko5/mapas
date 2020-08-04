@@ -9,12 +9,12 @@ def spss_correlations_tests_pearson():
 	global_vars.spss_test = "corr"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_pearson.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_pearson.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_pearson.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_pearson.xlsx"))
 
 	#assert
 	pd.testing.assert_frame_equal(actual_df, expected_df_r, check_less_precise=3)
@@ -25,12 +25,12 @@ def spss_correlations_tests_spearman():
 	global_vars.spss_test = "corr"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_spearman.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_spearman.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_spearman.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_spearman.xlsx"))
 
 	#assert
 	pd.testing.assert_frame_equal(actual_df, expected_df_r, check_less_precise=3)
@@ -41,12 +41,12 @@ def spss_correlations_tests_kendal():
 	global_vars.spss_test = "corr"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_kendal.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_kendal.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_kendal.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "spss_correlations_tests_kendal.xlsx"))
 
 	#assert
 	pd.testing.assert_frame_equal(actual_df, expected_df_r, check_less_precise=3)

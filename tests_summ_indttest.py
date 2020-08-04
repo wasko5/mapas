@@ -17,12 +17,12 @@ def summ_indttest_tests_cohensd():
 	global_vars.effect_size_choice = "Cohen's d"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "summ_indttest_tests.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "summ_indttest_tests.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_cohensd.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_cohensd.xlsx"))
 
 	#assert
 	pd.testing.assert_frame_equal(actual_df, expected_df_r, check_less_precise=3)
@@ -41,12 +41,12 @@ def summ_indttest_tests_hedgesg():
 	global_vars.effect_size_choice = "Hedge's g"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "summ_indttest_tests.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "summ_indttest_tests.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_hedgesg.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_hedgesg.xlsx"))
 
 	#assert
 	pd.testing.assert_frame_equal(actual_df, expected_df_r, check_less_precise=3)
@@ -65,12 +65,12 @@ def summ_indttest_tests_noEqualVarCol_cohensd():
 	global_vars.effect_size_choice = "Cohen's d"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_noEqualVarCol.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_noEqualVarCol.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_noEqualVarCol_cohensd.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_noEqualVarCol_cohensd.xlsx"))
 
 	#assert
 	pd.testing.assert_frame_equal(actual_df, expected_df_r, check_less_precise=3)
@@ -89,12 +89,12 @@ def summ_indttest_tests_noEqualVarCol_hedgesg():
 	global_vars.effect_size_choice = "Hedge's g"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_noEqualVarCol.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_noEqualVarCol.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_noEqualVarCol_hedgesg.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "summ_indttest_tests_noEqualVarCol_hedgesg.xlsx"))
 
 	#assert
 	pd.testing.assert_frame_equal(actual_df, expected_df_r, check_less_precise=3)

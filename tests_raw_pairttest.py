@@ -11,12 +11,12 @@ def raw_pairttest_tests_unevenGroups_cohensd():
 	global_vars.effect_size_choice = "Cohen's d"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_cohensd.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_cohensd.xlsx"))
 	#degrees of freedom is float in the actual_df as it's looking up from the researchpy output dataframe which defaults to float behaviour
 	expected_df_r["Degrees of Freedom"] = expected_df_r["Degrees of Freedom"].astype("float")
 
@@ -31,12 +31,12 @@ def raw_pairttest_tests_unevenGroups_hedgesg():
 	global_vars.effect_size_choice = "Hedge's g"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_hedgesg.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_hedgesg.xlsx"))
 	#degrees of freedom is float in the actual_df as it's looking up from the researchpy output dataframe which defaults to float behaviour
 	expected_df_r["Degrees of Freedom"] = expected_df_r["Degrees of Freedom"].astype("float")
 
@@ -51,12 +51,12 @@ def raw_pairttest_tests_unevenGroups_glassdelta():
 	global_vars.effect_size_choice = "Glass's delta"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 	
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_glassdelta.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_glassdelta.xlsx"))
 	#degrees of freedom is float in the actual_df as it's looking up from the researchpy output dataframe which defaults to float behaviour
 	expected_df_r["Degrees of Freedom"] = expected_df_r["Degrees of Freedom"].astype("float")
 
@@ -71,12 +71,12 @@ def raw_pairttest_tests_unevenGroups_noEffectSize():
 	global_vars.effect_size_choice = "None"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_noEffectSize.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_noEffectSize.xlsx"))
 	#degrees of freedom is float in the actual_df as it's looking up from the researchpy output dataframe which defaults to float behaviour
 	expected_df_r["Degrees of Freedom"] = expected_df_r["Degrees of Freedom"].astype("float")
 
@@ -91,12 +91,12 @@ def raw_pairttest_tests_evenGroups():
 	global_vars.effect_size_choice = "None"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_evenGroups.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_evenGroups.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_evenGroups.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_evenGroups.xlsx"))
 	#degrees of freedom is float in the actual_df as it's looking up from the researchpy output dataframe which defaults to float behaviour
 	expected_df_r["Degrees of Freedom"] = expected_df_r["Degrees of Freedom"].astype("float")
 
@@ -111,12 +111,12 @@ def raw_pairttest_tests_unequalVariance():
 	global_vars.effect_size_choice = "Cohen's d"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unequalVariance.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unequalVariance.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unequalVariance.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unequalVariance.xlsx"))
 	#degrees of freedom is float in the actual_df as it's looking up from the researchpy output dataframe which defaults to float behaviour
 	expected_df_r["Degrees of Freedom"] = expected_df_r["Degrees of Freedom"].astype("float")
 
@@ -131,12 +131,12 @@ def raw_pairttest_tests_unevenGroups_withMissingData():
 	global_vars.effect_size_choice = "None"
 
 	#setup - actual
-	input_df = pd.read_excel(os.path.join(global_vars.INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_withMissingData.xlsx"))
+	input_df = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_INPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_withMissingData.xlsx"))
 	mod_input_df = decision_funcs.modify_raw_data_df(input_df)
 	actual_df = decision_funcs.generate_output_df(mod_input_df)
 
 	#setup - expected
-	expected_df_r = pd.read_excel(os.path.join(global_vars.OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_withMissingData.xlsx"))
+	expected_df_r = pd.read_excel(os.path.join(global_vars.TESTS_MAIN_FUNCS_OUTPUT_DATAFRAMES_FOLDER, "raw_pairttest_tests_unevenGroups_withMissingData.xlsx"))
 	#degrees of freedom is float in the actual_df as it's looking up from the researchpy output dataframe which defaults to float behaviour
 	expected_df_r["Degrees of Freedom"] = expected_df_r["Degrees of Freedom"].astype("float")
 
