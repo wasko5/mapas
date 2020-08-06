@@ -10,6 +10,11 @@ import sys
 import os
 import traceback
 
+import threading
+import time
+from math import e
+import random
+
 def resource_path(relative_path):
      if hasattr(sys, '_MEIPASS'): 
          return os.path.join(sys._MEIPASS, relative_path) # pylint: disable=no-member
@@ -1178,27 +1183,59 @@ about = tk.Menu(menubar, tearoff=0)
 about.add_command(label="About MAPAS", command=about_mapas_window)
 menubar.add_cascade(label="Help", menu=about)
 
-#--------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------Progressbar-----------
 master.grid_rowconfigure(index=3, weight=1)
-pb = ttk.Progressbar(master, orient = tk.HORIZONTAL, length = 100, mode = 'determinate', maximum=100, value=1)
+pb_Frame = tk.Frame(master)
+pb = ttk.Progressbar(pb_Frame, orient = tk.HORIZONTAL, length = 100, mode = 'determinate', maximum=100, value=1)
+pb.grid(row=0, column=0, sticky="W")
+pb_label = ttk.Label(pb_Frame, text="")
+pb_label.grid(row=0, column=1, sticky="W", padx=(5, 0))
+
+def progressbar():
+	pb_Frame.grid(row=5, column=2, rowspan=1, sticky="ES", padx=(0, 15), pady=(0, 5))
+
+	sleep_const = 0.05
+
+	global work_completed
+	while True:
+		if pb["value"] >= 100:
+			pb_Frame.grid_remove()
+			pb["value"] = 1
+			work_completed = 1
+			break
+		elif pb["value"] == 99 and work_completed < 100:
+			continue
+
+		delta = work_completed - pb["value"]
+		speed_function = sleep_const * (1/(e**(delta/15)))
+		time.sleep(speed_function)
+		pb["value"] += 1
+		label_text = str(pb["value"]) if pb["value"] >= 10 else "0" + str(pb["value"])
+		label_text += " %"
+		pb_label.config(text=label_text)
+
+	clear_output_filename()
+	submit_window()
+
 def run_main():
-	pb.grid(row=5, column=2, rowspan=1, sticky="ES", padx=(0, 15), pady=(0, 5))
-	master.update()
-	def increment_progressbar(pb):
-		pb.step(20)
-		master.update_idletasks()
-	
-	raw_data_df = decision_funcs.get_raw_data_df()
-	increment_progressbar(pb)
-	mod_raw_data_df = decision_funcs.modify_raw_data_df(raw_data_df)
-	increment_progressbar(pb)
-	output_df = decision_funcs.generate_output_df(mod_raw_data_df)
-	increment_progressbar(pb)
-	output_df = decision_funcs.multitest_correction(output_df)
-	increment_progressbar(pb)
-	decision_funcs.save_output(mod_raw_data_df, output_df)
-	increment_progressbar(pb)
-	pb.grid_remove()
+	global work_completed
+
+	try:
+		raw_data_df = decision_funcs.get_raw_data_df()
+		work_completed += (pb["maximum"] / 5 ) - 1 #-1 as it starts from 1
+		mod_raw_data_df = decision_funcs.modify_raw_data_df(raw_data_df)
+		work_completed += (pb["maximum"] / 5 )
+		output_df = decision_funcs.generate_output_df(mod_raw_data_df)
+		work_completed += (pb["maximum"] / 5 )
+		output_df = decision_funcs.multitest_correction(output_df)
+		work_completed += (pb["maximum"] / 5 )
+		decision_funcs.save_output(mod_raw_data_df, output_df)
+		work_completed += (pb["maximum"] / 5 )
+	except Exception as error_msg:
+		pb_Frame.grid_remove()
+		pb["value"] = 1
+		work_completed = 1
+		error_window(error_msg, traceback.format_exc())
 
 #----------------------------------------------------------------------------------------------------------Submit
 
@@ -1206,9 +1243,14 @@ def submit():
 	try:
 		set_global_variables()
 		input_validation()
-		run_main()
-		clear_output_filename()
-		submit_window()
+
+		global work_completed
+		work_completed = 1
+		t1 = threading.Thread(target=progressbar)
+		t2 = threading.Thread(target=run_main)
+		t1.start()
+		t2.start()
+		
 	except Exception as error_msg:
 		error_window(error_msg, traceback.format_exc())
 
