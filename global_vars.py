@@ -3,9 +3,9 @@ import os
 
 version = "1.0"
 apa_reference = "Petrov, N., Atanasov, V., & Thompson, T. (2020). ..."
-article_link = "www.nikolaybpetrov.com/mapas"
-github_repository = "*GITHUB LINK*"
-software_page = "www.nikolaybpetrov.com/mapas"
+article_link = "www.nikolaybpetrov.com/mufos"
+github_repository = "*GITHUB REPOS*"
+software_page = "www.nikolaybpetrov.com/mufos"
 contact = "nikbpetrov@gmail.com"
 
 master_dict = {

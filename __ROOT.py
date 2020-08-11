@@ -21,8 +21,8 @@ def resource_path(relative_path):
      return os.path.join(os.path.abspath("."), relative_path)
 
 master = tk.Tk()
-master.title("Multi-test corrections and APA tables Software (MAPAS)")
-master.iconphoto(True, tk.PhotoImage(file=resource_path(os.path.join("Images", "MAPAS_logo_temp.png"))))
+master.title("MUltiple corrections and FOrmatted tables Software (MUFOS)")
+master.iconphoto(True, tk.PhotoImage(file=resource_path(os.path.join("Images", "MUFOS_logo_temp.png"))))
 master.resizable(False, False)
 
 s = ttk.Style()
@@ -1008,7 +1008,7 @@ def submit_window():
 
 	top = tk.Toplevel()
 	top.grab_set()
-	top.title("Thanks for using MAPAS!")
+	top.title("Thanks for using MUFOS!")
 	def exit(event):
 		top.destroy()
 	top.bind("<Escape>", exit)
@@ -1025,20 +1025,20 @@ def submit_window():
 
 	ttk.Button(top, text="Open file location", command=openfilelocation).grid(row=1, column=0, padx=(15, 0), pady=5)
 	ttk.Button(top, text="I want to do more", command=top.destroy).grid(row=1, column=1, padx=15, pady=5)
-	ttk.Button(top, text="Close MAPAS", command=master.destroy).grid(row=1,column=2, padx=(0, 15), pady=5)
+	ttk.Button(top, text="Close MUFOS", command=master.destroy).grid(row=1,column=2, padx=(0, 15), pady=5)
 
 	center(top)
 
-def about_mapas_window():
+def about_mufos_window():
 
 	top = tk.Toplevel()
 	top.grab_set()
-	top.title("About MAPAS")
+	top.title("About MUFOS")
 	def exit(event):
 		top.destroy()
 	top.bind("<Escape>", exit)
 
-	some_message = '''This is MAPAS version: {v}.
+	some_message = '''This is MUFOS version: {v}.
 
 	To learn more about the software, see:
 	{a}'''.format(v=global_vars.version, a=global_vars.apa_reference)
@@ -1180,7 +1180,7 @@ file.add_command(label="Exit", command=master.destroy)
 menubar.add_cascade(label="File", menu=file)
 
 about = tk.Menu(menubar, tearoff=0)
-about.add_command(label="About MAPAS", command=about_mapas_window)
+about.add_command(label="About MUFOS", command=about_mufos_window)
 menubar.add_cascade(label="Help", menu=about)
 
 #---------------------------------------------------------------------------------------------------Progressbar-----------
@@ -1190,6 +1190,11 @@ pb = ttk.Progressbar(pb_Frame, orient = tk.HORIZONTAL, length = 100, mode = 'det
 pb.grid(row=0, column=0, sticky="W")
 pb_label = ttk.Label(pb_Frame, text="")
 pb_label.grid(row=0, column=1, sticky="W", padx=(5, 0))
+
+# defining parameter percent work completed at each step for different function variations based input type-test-output filetype
+# estimates based on 100 simulations
+# naming convention is "{it}_{rt}_{st}_{ot}".format(it=global_vars.input_type, rt=global_vars.raw_test, st=global_vars.spss_test, ot=global_vars.output_filetype)
+STEP_PROP_PARAMETERS = {"raw_corr__Excel" : [2.169095185536897, 5.914414532641468, 14.16665399214891, 0.7361556754735404, 77.01368061419919], "raw_mr__Excel" : [4.11416255257356, 9.79010750704141, 48.22850999868059, 1.471043534804188, 36.39617640690025], "raw_indttest__Excel" : [1.544051413589211, 4.074658800863024, 70.82666304441446, 0.6049842435045669, 22.94964249762873], "raw_pairttest__Excel" : [2.15104879555932, 7.275923289104615, 60.37240033527652, 0.8337756220709613, 29.36685195798859], "summ_corr___Excel" : [6.990646723476519, 5.365258420187717, 0.08393013223751027, 0.7483947064382025, 86.81177001766004], "summ_indttest___Excel" : [12.70778439597138, 15.18663457475113, 6.185539991731328, 1.816395198091914, 64.10364583945424], "spss__corr_Excel" : [22.89612597258211, 4.391243636640771, 8.67459090264281, 1.631373600409783, 62.40666588772452], "spss__mr_Excel" : [30.35780930429611, 6.770562521152234, 11.99160090820251, 2.374220560019873, 48.50580670632927], "spss__indttest_Excel" : [25.72795560493005, 3.635214596761074, 4.625627673203663, 1.426379668947819, 64.5848224561574], "spss__pairttest_Excel" : [21.85418924683545, 4.982184268980168, 3.448086248050346, 2.109455140910078, 67.60608509522397], "pvalues___Excel" : [28.85377134290844, 1.552692930052978, 0.5155302208117393, 4.051096284459848, 65.02690922176699], "raw_corr__Word" : [0.03428409883723416, 0.1040888604635286, 0.2486774986402154, 0.01078846268018421, 99.60216107937882], "raw_mr__Word" : [1.492892827887905, 3.720723523016167, 18.5803679947098, 0.5334446284398885, 75.67257102594624], "raw_indttest__Word" : [0.5021314268779407, 1.114109982509153, 21.47850188339917, 0.1617219514463895, 76.74353475576734], "raw_pairttest__Word" : [0.8766425452332035, 2.722766055853425, 22.66129736929139, 0.32491663952454, 73.41437739009743], "summ_corr___Word" : [0.4013182174158029, 0.2742093936564176, 0.006732319504279152, 0.03668724809641724, 99.28105282132705], "summ_indttest___Word" : [1.72216085383845, 2.744870922310169, 0.9195676618110901, 0.2540048576744448, 94.35939570436584], "spss__corr_Word" : [5.619090440291735, 1.025972971276906, 1.905916363516649, 0.446393712463111, 91.00262651245158], "spss__mr_Word" : [7.099928718932321, 1.117421533315409, 2.104337750918563, 0.3347570576313393, 89.34355493920236], "spss__indttest_Word" : [1.214114446281185, 0.164638087592778, 0.1810200679936557, 0.08422296980722717, 98.35600442832516], "spss__pairttest_Word" : [4.80030054810114, 0.9258413602834321, 0.7469525224698347, 0.3270224858791788, 93.19988308326641]}
 
 def progressbar():
 	pb_Frame.grid(row=5, column=2, rowspan=1, sticky="ES", padx=(0, 15), pady=(0, 5))
@@ -1220,17 +1225,25 @@ def progressbar():
 def run_main():
 	global work_completed
 
+	step_prop_key_lookup = "{it}_{rt}_{st}_{ot}".format(it=global_vars.input_type, rt=global_vars.raw_test, st=global_vars.spss_test, ot=global_vars.output_filetype)
+	step_prop_curr = STEP_PROP_PARAMETERS[step_prop_key_lookup]
+
 	try:
 		raw_data_df = decision_funcs.get_raw_data_df()
-		work_completed += (pb["maximum"] / 5 ) - 1 #-1 as it starts from 1
+		work_completed += step_prop_curr[0]
+		print(work_completed)
 		mod_raw_data_df = decision_funcs.modify_raw_data_df(raw_data_df)
-		work_completed += (pb["maximum"] / 5 )
+		work_completed += step_prop_curr[1]
+		print(work_completed)
 		output_df = decision_funcs.generate_output_df(mod_raw_data_df)
-		work_completed += (pb["maximum"] / 5 )
+		work_completed += step_prop_curr[2]
+		print(work_completed)
 		output_df = decision_funcs.multitest_correction(output_df)
-		work_completed += (pb["maximum"] / 5 )
+		work_completed += step_prop_curr[3]
+		print(work_completed)
 		decision_funcs.save_output(mod_raw_data_df, output_df)
-		work_completed += (pb["maximum"] / 5 )
+		work_completed += pb["maximum"] - work_completed #ensures stability - especially given that props add to 100 but bar starts from 1
+		print(work_completed)
 	except Exception as error_msg:
 		pb_Frame.grid_remove()
 		pb["value"] = 1

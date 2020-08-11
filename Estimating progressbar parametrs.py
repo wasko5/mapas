@@ -13,12 +13,15 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.shared import Inches
 import pandas as pd
+import numpy as np
 
 import time
 
+iterations = 100
+
 TESTS_APA_TABLES_INPUT_DATAFRAMES_FOLDER = os.path.join(global_vars.unit_tests_directory, "APA_tables", "input dataframes")
 
-df = pd.read_csv("parameter gathering.csv", keep_default_na=False)
+parameter_gather_global_vars_df = pd.read_csv("parameter gathering.csv", keep_default_na=False)
 
 def str_to_arr(x, pairttest=False):
 	x = x.replace("[","")
@@ -31,8 +34,10 @@ def str_to_arr(x, pairttest=False):
 	return x
 
 parameters_dict = {}
-for row_ind in range(0, len(df)):
-	row = df.loc[row_ind]
+
+start_10_runs = time.time()
+for row_ind in range(0, len(parameter_gather_global_vars_df)):
+	row = parameter_gather_global_vars_df.loc[row_ind]
 	
 	global_vars.input_path_and_filename = os.path.join(TESTS_APA_TABLES_INPUT_DATAFRAMES_FOLDER, row[0])
 	global_vars.alpha_threshold = row[1]
@@ -75,12 +80,13 @@ for row_ind in range(0, len(df)):
 	global_vars.corr_table_triangle = row[38]
 
 	curr_step_dict = {}
-	curr_step_dict["step 1"] = []
-	curr_step_dict["step 2"] = []
-	curr_step_dict["step 3"] = []
-	curr_step_dict["step 4"] = []
-	curr_step_dict["step 5"] = []
-	for i in range(3):
+	curr_step_dict["Step 1"] = []
+	curr_step_dict["Step 2"] = []
+	curr_step_dict["Step 3"] = []
+	curr_step_dict["Step 4"] = []
+	curr_step_dict["Step 5"] = []
+
+	for i in range(iterations):
 		start_time = time.time()
 		raw_data_df = decision_funcs.get_raw_data_df()
 		raw_data_df_end_time = time.time()
@@ -104,22 +110,26 @@ for row_ind in range(0, len(df)):
 		raw_data_df_prop = raw_data_df_duration / total_duration  * 100
 		mod_raw_data_df_prop = mod_raw_data_df_duration / total_duration * 100
 		output_df_prop = output_df_duration / total_duration * 100
-		multitest_correction_prop = output_df_duration / total_duration * 100
+		multitest_correction_prop = multitest_correction_duration / total_duration * 100
 		save_output_prop = save_output_duration / total_duration * 100
 
-		curr_step_dict["step 1"].append(raw_data_df_prop)
-		curr_step_dict["step 2"].append(mod_raw_data_df_prop)
-		curr_step_dict["step 3"].append(output_df_prop)
-		curr_step_dict["step 4"].append(multitest_correction_prop)
-		curr_step_dict["step 5"].append(save_output_prop)
+		curr_step_dict["Step 1"].append(raw_data_df_prop)
+		curr_step_dict["Step 2"].append(mod_raw_data_df_prop)
+		curr_step_dict["Step 3"].append(output_df_prop)
+		curr_step_dict["Step 4"].append(multitest_correction_prop)
+		curr_step_dict["Step 5"].append(save_output_prop)
 
 	key_lookup = "{it}_{rt}_{st}_{ot}".format(it=global_vars.input_type, rt=global_vars.raw_test, st=global_vars.spss_test, ot=global_vars.output_filetype)
 	parameters_dict[key_lookup] = curr_step_dict
 
-	break
+summary_estimates_df = pd.DataFrame(index=["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"])
 
-print(parameters_dict)
+for key, subdict in parameters_dict.items():
+	for step, estimates in subdict.items():
+		summary_estimates_df.loc[step, key] = np.mean(estimates)
 
+summary_estimates_df.to_excel("summary_estaimtes_df_{} iterations.xlsx".format(iterations))
+print("{} iterations for each variation took {:.2f} seconds to run".format(iterations, time.time() - start_10_runs))  
 
 
 

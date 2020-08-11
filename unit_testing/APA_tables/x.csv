@@ -1,0 +1,22 @@
+input_path_and_filename,alpha_threshold,output_filename,output_filetype,input_type,raw_test,raw_corr_type,raw_corr_vars,raw_corr_include_CI,raw_mr_outcomevar,raw_mr_predictors,raw_indttest_groupvar,raw_indttest_grouplevel1,raw_indttest_grouplevel2,raw_indttest_dv,raw_pairttest_var_pairs,summ_corr_varOne,summ_corr_varTwo,summ_corr_coeff,summ_corr_pvalues,summ_indttest_var,summ_indttest_meanOne,summ_indttest_sdOne,summ_indttest_nOne,summ_indttest_meanTwo,summ_indttest_sdTwo,summ_indttest_nTwo,summ_indttest_equal_var,spss_test,spss_indttest_nOne,spss_indttest_nTwo,spss_indttest_groupOneLabel,spss_indttest_groupTwoLabel,spss_pairttest_n,pvalues_col,effect_size_choice,correction_type,non_numeric_input_raise_errors,corr_table_triangle
+raw_correlations_tests.csv,0.05,a,Excel,raw,corr,pearson,"['var1', 'var2', 'var3', 'var4', 'var5', 'var6', 'var7', 'var8']",TRUE,,[],,,,[],[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle
+raw_mr_tests.csv,0.05,a,Excel,raw,mr,,[],TRUE,var2,"['var1', 'var3']",,,,[],[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle
+raw_indttest_tests.csv,0.05,a,Excel,raw,indttest,,[],TRUE,,[],Group,Group1,Group2,"['var1', 'var2', 'var3']",[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,Cohen's d,fdr_bh,FALSE,Lower triangle
+raw_pairttest_tests_unevenGroups.csv,0.05,a,Excel,raw,pairttest,,[],TRUE,,[],,,,[],"[['Bar1', 'Bar2'], ['Foo1', 'Foo2']]",,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,Cohen's d,fdr_bh,FALSE,Lower triangle
+summ_correlations.xlsx,0.05,a,Excel,summ_corr,,,[],TRUE,,[],,,,[],[],variable 1,variable 2,test statistic r,pvalues,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle
+summ_indttest_tests.xlsx,0.05,a,Excel,summ_indttest,,,[],TRUE,,[],,,,[],[],,,,,Variable,Mean1,SD1,N1,Mean2,SD2,N2,Equal Variances,,-1,-1,Group1,Group2,-1,,Hedge's g,fdr_bh,FALSE,Lower triangle
+spss_correlations_tests_pearson.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,corr,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle
+spss_mr_tests_allStats.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,mr,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle
+spss_indttest_tests.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,indttest,35,45,Group1,Group2,-1,,Hedge's g,fdr_bh,FALSE,Lower triangle
+spss_pairttest_tests.xlsx,0.05,a,Excel,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,pairttest,-1,-1,Group1,Group2,44,,Cohen's d,fdr_bh,FALSE,Lower triangle
+p-values.xlsx,0.05,a,Excel,pvalues,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,pvalues,no selection,fdr_bh,FALSE,Lower triangle
+raw_correlations_tests.csv,0.05,a,Word,raw,corr,pearson,"['var1', 'var2', 'var3', 'var4', 'var5', 'var6', 'var7', 'var8']",TRUE,,[],,,,[],[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle
+raw_mr_tests.csv,0.05,a,Word,raw,mr,,[],TRUE,var2,"['var1', 'var3']",,,,[],[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle
+raw_indttest_tests.csv,0.05,a,Word,raw,indttest,,[],TRUE,,[],Group,Group1,Group2,"['var1', 'var2', 'var3']",[],,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,Cohen's d,fdr_bh,FALSE,Lower triangle
+raw_pairttest_tests_unevenGroups.csv,0.05,a,Word,raw,pairttest,,[],TRUE,,[],,,,[],"[['Bar1', 'Bar2'], ['Foo1', 'Foo2']]",,,,,,,,,,,,,,-1,-1,Group1,Group2,-1,,Cohen's d,fdr_bh,FALSE,Lower triangle
+summ_correlations.xlsx,0.05,a,Word,summ_corr,,,[],TRUE,,[],,,,[],[],variable 1,variable 2,test statistic r,pvalues,,,,,,,,,,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle
+summ_indttest_tests.xlsx,0.05,a,Word,summ_indttest,,,[],TRUE,,[],,,,[],[],,,,,Variable,Mean1,SD1,N1,Mean2,SD2,N2,Equal Variances,,-1,-1,Group1,Group2,-1,,Hedge's g,fdr_bh,FALSE,Lower triangle
+spss_correlations_tests_pearson.xlsx,0.05,a,Word,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,corr,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle
+spss_mr_tests_allStats.xlsx,0.05,a,Word,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,mr,-1,-1,Group1,Group2,-1,,no selection,fdr_bh,FALSE,Lower triangle
+spss_indttest_tests.xlsx,0.05,a,Word,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,indttest,35,45,Group1,Group2,-1,,Hedge's g,fdr_bh,FALSE,Lower triangle
+spss_pairttest_tests.xlsx,0.05,a,Word,spss,,,[],TRUE,,[],,,,[],[],,,,,,,,,,,,,pairttest,-1,-1,Group1,Group2,44,,Cohen's d,fdr_bh,FALSE,Lower triangle
