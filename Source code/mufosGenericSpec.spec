@@ -64,7 +64,7 @@ a.datas += Tree(get_dateutil_path(), prefix="dateutil", excludes=["*.pyc"])
 a.datas += Tree(get_patsy_path(), prefix="patsy", excludes=["*.pyc"])
 
 a.datas += [ (os.path.join("Images", "spss_instr3.gif"), resource_path(os.path.join("Images", "spss_instr3.gif")), 'DATA')]
-a.datas += [ (os.path.join("Images", "MAPAS_logo_temp.png"), resource_path(os.path.join("Images", "MAPAS_logo_temp.png")), 'DATA')]
+a.datas += [ (os.path.join("Images", "MUFOS_logo_temp.png"), resource_path(os.path.join("Images", "MUFOS_logo_temp.png")), 'DATA')]
 
 a.binaries = filter(lambda x: 'pandas' not in x[0], a.binaries)
 
@@ -75,7 +75,7 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
       a.scripts,
       exclude_binaries=True,
-      name='mapas',
+      name='mufos',
       debug=False,
       strip=None,
       upx=True,
@@ -87,4 +87,4 @@ coll = COLLECT(exe,
            a.datas,
            strip=None,
            upx=True,
-           name='mapas')
+           name='mufos')
