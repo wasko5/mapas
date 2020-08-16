@@ -46,11 +46,11 @@ jobs:
     # Build executable distribution
     - name: PyInstaller
       run: |
-        pyinstaller mapasGenericSpec.spec
+        pyinstaller mufosGenericSpec.spec
 
     # Upload distribution as an artifact
     - name: Upload dist as an artifact
       uses: actions/upload-artifact@v2
       with:
           name: dist-windows
-          path: dist/mapas
+          path: dist/mufos
